@@ -1,0 +1,10 @@
+{
+  "source": "github",
+  "repo": "DianaKnodel1/direct-zip-import",
+  "capabilities": [
+    {"capability": "code", "source": "github repo", "outcome": "copy", "status": "done", "next_action": "imported 1:1, dev server runs"},
+    {"capability": "schema+records+auth", "source": "external self-hosted Supabase (api.mb-portal.com)", "outcome": "preserve", "status": "blocked", "next_action": "user provides SUPABASE_URL + SUPABASE_PUBLISHABLE_KEY (and VITE_ variants) via Lovable secret settings / connector"},
+    {"capability": "bot-runner/landing-server/webid-sim-server", "source": "sub-packages", "outcome": "copy", "status": "done", "next_action": "copied as source, run separately on own server"},
+    {"capability": "verification", "source": "preview", "outcome": "partial", "status": "blocked", "next_action": "login page renders; full check needs Supabase env vars"}
+  ]
+}

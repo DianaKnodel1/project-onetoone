@@ -1,12 +1,12 @@
-# Project OneToOne
+# Integrate Project
 
-BITTE DAS PROJEKT 1:1 einbauen
+kannst du das projekt bitte einbinden
 
 This project was built with [Lovable](https://lovable.dev).
 
 ## Build with Lovable
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/942738a8-f402-449c-a0bf-50329afd1df4).
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/4bdc1b69-a1e5-4845-bb18-b7f786700144).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
 - **Stay in sync**: every change made in Lovable is committed straight to this repository.
