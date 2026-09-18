@@ -2,13 +2,9 @@
   "source": "github",
   "repo": "DianaKnodel1/direct-zip-import",
   "capabilities": [
-    {"capability": "code", "source": "github repo", "outcome": "copy", "status": "in_progress", "next_action": "rsync repo into project"},
-    {"capability": "schema", "source": "supabase/migrations + manual-migrations (external self-hosted Supabase)", "outcome": "preserve", "status": "pending", "next_action": "existing external DB already has schema"},
-    {"capability": "records", "source": "external Supabase (api.mb-portal.com)", "outcome": "preserve", "status": "pending", "next_action": "data lives in existing DB, no export needed if connected"},
-    {"capability": "auth", "source": "self-hosted Supabase Auth", "outcome": "preserve", "status": "pending", "next_action": "verify sign-in once env vars present"},
-    {"capability": "env-vars", "source": ".env (VITE_SUPABASE_URL, keys)", "outcome": "blocker", "status": "pending", "next_action": "user adds values via Lovable secrets/settings"},
-    {"capability": "bot-runner/landing-server/webid-sim-server", "source": "sub-packages", "outcome": "copy", "status": "pending", "next_action": "copied as source, run separately on own server"},
-    {"capability": "payments/stripe", "source": "env reference only", "outcome": "defer", "status": "pending", "next_action": "check actual usage"},
-    {"capability": "verification", "source": "preview", "outcome": "pending", "status": "pending", "next_action": "build + preview check"}
+    {"capability": "code", "source": "github repo", "outcome": "copy", "status": "done", "next_action": "imported 1:1, dev server runs"},
+    {"capability": "schema+records+auth", "source": "external self-hosted Supabase (api.mb-portal.com)", "outcome": "preserve", "status": "blocked", "next_action": "user provides SUPABASE_URL + SUPABASE_PUBLISHABLE_KEY (and VITE_ variants) via Lovable secret settings / connector"},
+    {"capability": "bot-runner/landing-server/webid-sim-server", "source": "sub-packages", "outcome": "copy", "status": "done", "next_action": "copied as source, run separately on own server"},
+    {"capability": "verification", "source": "preview", "outcome": "partial", "status": "blocked", "next_action": "login page renders; full check needs Supabase env vars"}
   ]
 }
