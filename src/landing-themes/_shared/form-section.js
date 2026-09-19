@@ -291,16 +291,21 @@
 
     if(broker){
       // Einheitlicher Text auf ALLEN Landing Pages – nur das Design variiert.
+      // own_brand = Gespräch findet bei derselben Firma statt, auf der beworben
+      // wurde → kein Markenwechsel, kein "Wir verbinden Sie mit ...".
+      var ownBrand=broker.own_brand!==false;
       h.textContent='Fast geschafft!';
       p.textContent='Um Ihre Bewerbung abzuschließen, wählen Sie bitte jetzt Ihren Termin für das Erstgespräch aus.';
       var pc=document.createElement('div');pc.style.cssText='background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:16px;margin:0 0 22px;';
       if(broker.partner_logo){var lg=document.createElement('img');lg.src=broker.partner_logo;lg.alt=broker.partner_name||'';lg.style.cssText='max-height:36px;margin:0 auto 10px;display:block;';pc.appendChild(lg);}
-      var pl=document.createElement('div');pl.textContent='Wir verbinden Sie mit';pl.style.cssText='font-size:13px;color:#475569;margin-bottom:6px;';
+      var pl=document.createElement('div');pl.textContent=ownBrand?'Ihr Gespräch findet statt mit':'Wir verbinden Sie mit';pl.style.cssText='font-size:13px;color:#475569;margin-bottom:6px;';
       var pn=document.createElement('div');pn.textContent=broker.partner_name||'unserem Partnerunternehmen';pn.style.cssText='font-size:17px;font-weight:700;color:#0f172a;';
-      pc.appendChild(pl);pc.appendChild(pn);box.appendChild(pc);
+      pc.appendChild(pl);pc.appendChild(pn);
+      var pd=document.createElement('div');pd.textContent='Online-Gespräch · ca. 15 Minuten · nur Ihr Handy oder Laptop nötig';pd.style.cssText='font-size:12px;color:#475569;margin-top:8px;';
+      pc.appendChild(pd);box.appendChild(pc);
       var hr=document.createElement('hr');hr.style.cssText='border:0;border-top:1px solid #e2e8f0;margin:18px 0;';box.appendChild(hr);
       var nextH=document.createElement('h4');nextH.textContent='Wie geht es jetzt weiter?';nextH.style.cssText='margin:0 0 8px;font-size:17px;font-weight:700;';
-      var nextP=document.createElement('p');nextP.textContent='Um den Prozess zu beschleunigen, laden wir Sie herzlich zu einem kurzen Online-Bewerbungsgespräch ein.';nextP.style.cssText='margin:0 0 16px;color:#475569;font-size:14px;line-height:1.55;';
+      var nextP=document.createElement('p');nextP.textContent='Sie wählen jetzt Ihren Wunschtermin. Direkt danach erhalten Sie eine Bestätigung per E-Mail, dazu eine Erinnerung am Vortag und kurz vor dem Gespräch.';nextP.style.cssText='margin:0 0 16px;color:#475569;font-size:14px;line-height:1.55;';
       box.appendChild(nextH);box.appendChild(nextP);
       // Calendly sitzt IMMER vor dem Termin. Kein Portal-/Fallback-Link mehr –
       // fehlt der Calendly-Link, ist die Landing Page falsch konfiguriert.
