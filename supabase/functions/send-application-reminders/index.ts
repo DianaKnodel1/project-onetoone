@@ -788,6 +788,7 @@ serve(async (req) => {
       const isNoShowFast = kind === "no_show_30min";
       const isAbandoned = kind === "interview_abandoned";
       const isRebook = kind === "rebook_after_cancel_24h" || kind === "rebook_after_cancel_72h";
+      const isUpcoming = kind === "upcoming_24h" || kind === "upcoming_1h";
       const emailKind: EmailKind = isRegistration
         ? "fasttrack_registration_complete"
         : (isNoShow || isAbandoned)
