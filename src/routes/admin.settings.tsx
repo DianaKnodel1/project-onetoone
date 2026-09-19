@@ -179,4 +179,12 @@ const SECTIONS: { value: string; hint: string; tiles: TileDef[] }[] = [
       { to: "/admin/activity", title: "Protokoll", desc: "Aktivitäts-Log aller Admin-Aktionen", icon: History },
     ],
   },
+  {
+    value: "bestand",
+    hint: "Alte Vermittlungs-Seiten: nur noch zur Pflege bestehender Einträge.",
+    tiles: [
+      { to: "/admin/vermittlung", title: "Vermittlung (Bestand)", desc: "Alter Broker-Flow – für neue Seiten nicht mehr nutzen", icon: Handshake },
+      { to: "/admin/partner-companies", title: "Fast-Track-Firmen (Bestand)", desc: "Partner-Unternehmen der alten Vermittlungsseiten", icon: Handshake },
+    ],
+  },
 ];
