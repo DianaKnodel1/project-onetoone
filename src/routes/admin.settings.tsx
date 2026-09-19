@@ -159,8 +159,6 @@ const SECTIONS: { value: string; hint: string; tiles: TileDef[] }[] = [
       
       { to: "/admin/calendly", title: "Calendly", desc: "Webhooks, Event-Types, Signing-Keys", icon: CalendarClock },
       { to: "/admin/ai-settings", title: "KI-Assistent", desc: "An/Aus, FAQ, System-Prompt, Modell", icon: Bot },
-      { to: "/admin/vermittlung", title: "Vermittlung", desc: "Broker-Flow, Übergabe an Fast-Track", icon: Handshake },
-      { to: "/admin/partner-companies", title: "Fast-Track-Firmen", desc: "Partner-Unternehmen verwalten", icon: Handshake },
     ],
   },
   {
