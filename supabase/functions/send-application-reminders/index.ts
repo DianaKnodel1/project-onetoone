@@ -160,6 +160,44 @@ Herzliche Grüße
 {{recruiter_name}}
 {{tenant_name}}`,
   },
+  upcoming_24h: {
+    subject: "Morgen um {{appointment_time}} Uhr: Ihr Gespräch mit {{tenant_name}}",
+    body:
+`Hallo {{first_name}},
+
+kurze Erinnerung an Ihr Bewerbungsgespräch mit {{tenant_name}}:
+
+Termin: {{appointment_date}} um {{appointment_time}} Uhr
+Dauer: ca. 15 Minuten
+Sie brauchen nur Ihr Handy oder Ihren Laptop an einem ruhigen Ort.
+
+Passt der Termin doch nicht? Kein Problem – hier können Sie ihn verschieben:
+{{rebook_link}}
+
+Wir freuen uns auf Sie.
+
+Herzliche Grüße
+{{recruiter_name}}
+{{tenant_name}}`,
+  },
+  upcoming_1h: {
+    subject: "In einer Stunde: Ihr Gespräch mit {{tenant_name}}",
+    body:
+`Hallo {{first_name}},
+
+Ihr Bewerbungsgespräch mit {{tenant_name}} beginnt heute um {{appointment_time}} Uhr. Es dauert nur etwa 15 Minuten.
+
+Bitte suchen Sie sich rechtzeitig einen ruhigen Platz und halten Sie Handy oder Laptop bereit.
+
+Sollte es wider Erwarten nicht klappen, verschieben Sie den Termin bitte kurz hier:
+{{rebook_link}}
+
+Bis gleich!
+
+Herzliche Grüße
+{{recruiter_name}}
+{{tenant_name}}`,
+  },
 };
 
 interface TenantRow {
