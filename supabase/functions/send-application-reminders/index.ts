@@ -42,6 +42,11 @@ const REG_PENDING_1_MIN = 24 * 60;        // 24h nach Zusage/Invite
 const REG_PENDING_2_MIN = 72 * 60;        // 72h nach Zusage/Invite (2. Nachfass)
 const REBOOK_1_MIN      = 24 * 60;        // 24h nach Cancel
 const REBOOK_2_MIN      = 72 * 60;        // 72h nach Cancel
+// Terminerinnerungen VOR dem Gespräch (gegen Nichterscheinen).
+const UPCOMING_24H_FROM = 22 * 60;        // ab 22h vor Termin
+const UPCOMING_24H_TO   = 26 * 60;        // bis 26h vor Termin
+const UPCOMING_1H_FROM  = 45;             // ab 45 Min vor Termin
+const UPCOMING_1H_TO    = 95;             // bis 95 Min vor Termin
 
 const DEFAULTS = {
   no_booking: {
