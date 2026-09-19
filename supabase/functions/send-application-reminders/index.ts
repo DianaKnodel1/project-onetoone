@@ -923,7 +923,9 @@ serve(async (req) => {
         calendlyLink = appendUtm(rawCalendly, app.id);
       }
 
-      const tmplSubject = isRegistration
+      const tmplSubject = isUpcoming
+        ? (kind === "upcoming_1h" ? DEFAULTS.upcoming_1h.subject : DEFAULTS.upcoming_24h.subject)
+        : isRegistration
         ? (tenant.reminder_app_registration_subject || DEFAULTS.registration.subject)
         : isAbandoned
           ? DEFAULTS.interview_abandoned.subject
@@ -934,7 +936,9 @@ serve(async (req) => {
                 ? DEFAULTS.no_show_fast.subject
                 : (tenant.reminder_app_no_show_subject || DEFAULTS.no_show.subject))
             : (tenant.reminder_app_no_booking_subject || DEFAULTS.no_booking.subject);
-      const tmplBody = isRegistration
+      const tmplBody = isUpcoming
+        ? (kind === "upcoming_1h" ? DEFAULTS.upcoming_1h.body : DEFAULTS.upcoming_24h.body)
+        : isRegistration
         ? (tenant.reminder_app_registration_body || DEFAULTS.registration.body)
         : isAbandoned
           ? DEFAULTS.interview_abandoned.body
