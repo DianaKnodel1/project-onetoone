@@ -686,6 +686,7 @@ document.addEventListener('submit', function(e){
     if (branding.flow_type !== "broker" && !branding.api_endpoint) return "API-Endpoint ist für Klassisch/Fast-Track Pflicht.";
     if (!branding.landing_domain.trim()) return "Landing-Domain fehlt.";
     if (branding.flow_type === "fast" && !branding.portal_url.trim()) return "Fast-Track braucht Portal-URL.";
+    if (branding.flow_type === "fast" && !branding.calendly_url.trim()) return "Bitte den Calendly-Link dieser Firma hinterlegen — Bewerbung und Termin laufen auf derselben Seite.";
     if (branding.flow_type === "broker" && !branding.calendly_url.trim() && !branding.linked_fasttrack_landing_id.trim()) return "Vermittlung braucht einen Calendly-Link (oder eine Fast-Track-Firma mit Calendly-Link).";
     if (!branding.tenant_id.trim()) return "Tenant-ID fehlt.";
     return null;
