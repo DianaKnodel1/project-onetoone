@@ -134,7 +134,7 @@ export const Route = createFileRoute("/api/public/applications")({
           let lp: any = null;
           const { data: bySource } = await supabaseAdmin
             .from("landing_pages")
-            .select("id, slug, source_slug, tenant_id, calendly_url, partner_company_id, interview_mode, linked_fasttrack_landing_id, intermediate_company_name, logo_url, branding, booking_mode")
+            .select("id, slug, source_slug, tenant_id, calendly_url, partner_company_id, interview_mode, linked_fasttrack_landing_id, intermediate_company_name, logo_url, branding, booking_mode, flow_type")
             .eq("source_slug", d.source_slug)
             .eq("is_published", true)
             .maybeSingle();
@@ -142,7 +142,7 @@ export const Route = createFileRoute("/api/public/applications")({
           if (!lp) {
             const { data: bySlug } = await supabaseAdmin
               .from("landing_pages")
-              .select("id, slug, source_slug, tenant_id, calendly_url, partner_company_id, interview_mode, linked_fasttrack_landing_id, intermediate_company_name, logo_url, branding, booking_mode")
+              .select("id, slug, source_slug, tenant_id, calendly_url, partner_company_id, interview_mode, linked_fasttrack_landing_id, intermediate_company_name, logo_url, branding, booking_mode, flow_type")
               .eq("slug", source)
               .eq("is_published", true)
               .maybeSingle();
