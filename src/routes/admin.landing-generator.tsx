@@ -1320,10 +1320,13 @@ document.addEventListener('submit', function(e){
                 <Textarea rows={4} value={branding.impressum} onChange={set("impressum")} />
               </Field>
 
-              {/* Flow-Typ — "Klassisch" wurde entfernt; nur noch Fast-Track + Vermittlung. */}
+              {/* Flow-Typ — neue Seiten sind immer einheitlich (Fast-Track):
+                  Bewerbung, Termin und Portal laufen auf derselben Domain.
+                  "Vermittlung" bleibt nur sichtbar, wenn eine Bestandsseite
+                  noch auf broker steht (Bearbeitung von Altseiten). */}
               <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
                 <Label className="text-xs font-semibold">Bewerbungs-Flow</Label>
-                <div className="grid sm:grid-cols-2 gap-2">
+                <div className={cn("grid gap-2", branding.flow_type === "broker" ? "sm:grid-cols-2" : "")}>
                   <button
                     type="button"
                     onClick={() => { setBranding((b) => ({ ...b, flow_type: "fast" })); applyModeCopy("fast"); }}
@@ -1334,26 +1337,23 @@ document.addEventListener('submit', function(e){
                         : "border-border hover:border-primary/40",
                     )}
                   >
-                    <div className="font-semibold mb-1">⚡ Fast-Track</div>
+                    <div className="font-semibold mb-1">⚡ Einheitlich (Fast-Track)</div>
                     <p className="text-muted-foreground text-[11px]">
-                      Bewerbung kommt über Vermittlung + Calendly-Buchung rein. Der Bewerber erhält per E-Mail einen Magic-Link zu seinem KI-Bewerbungsgespräch. <strong>Portal-URL Pflicht.</strong>
+                      Bewerbung, Terminbuchung und Portal laufen auf <strong>derselben Domain</strong> — kein Markenwechsel für den Bewerber. Calendly-Link und Portal-URL dieser Firma hinterlegen.
                     </p>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => { setBranding((b) => ({ ...b, flow_type: "broker" })); applyModeCopy("broker"); }}
-                    className={cn(
-                      "text-left rounded-md border-2 p-3 transition-all text-xs",
-                      branding.flow_type === "broker"
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/40",
-                    )}
-                  >
-                    <div className="font-semibold mb-1">🤝 Vermittlung</div>
-                    <p className="text-muted-foreground text-[11px]">
-                      Vorgeschaltete Landing: CTA öffnet Modal „Sie werden mit <em>[Partner]</em> verbunden" → Calendly-Termin der verknüpften Fast-Track-Firma. <strong>Fast-Track-Firma verknüpfen.</strong>
-                    </p>
-                  </button>
+                  {branding.flow_type === "broker" && (
+                    <button
+                      type="button"
+                      onClick={() => { setBranding((b) => ({ ...b, flow_type: "broker" })); applyModeCopy("broker"); }}
+                      className="text-left rounded-md border-2 border-primary bg-primary/5 p-3 text-xs"
+                    >
+                      <div className="font-semibold mb-1">🤝 Vermittlung (Bestand)</div>
+                      <p className="text-muted-foreground text-[11px]">
+                        Alte Vermittlungsseite: leitet zum Calendly der verknüpften Fast-Track-Firma weiter. Für neue Seiten nicht mehr vorgesehen.
+                      </p>
+                    </button>
+                  )}
                 </div>
                 <button
                   type="button"
@@ -1558,11 +1558,10 @@ document.addEventListener('submit', function(e){
                 </div>
               )}
 
-              {/* Calendly-Zwischenseite — nur Klassisch + Vermittlung. Fast-Track geht direkt ins Portal. */}
-              {branding.flow_type === "fast" ? (
-                <div className="rounded-lg border border-dashed border-border bg-muted/20 p-3 text-[11px] text-muted-foreground">
-                  📅 <span className="font-semibold">Calendly:</span> Wird bei Fast-Track <strong>nicht</strong> verwendet — Bewerber werden direkt zur Portal-Registrierung weitergeleitet. Calendly liegt bei der <a href="/admin/partner-companies" className="underline">Fast-Track-Firma</a> und wird nur von Vermittlungs-Landings genutzt.
-                </div>
+              {/* Terminbuchung — jede Seite bucht mit ihrem eigenen Calendly-Link,
+                  damit Bewerbung und Gespräch zur selben Marke gehören. */}
+              {false ? (
+                <div />
               ) : (
               <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-3">
                 <Label className="text-xs font-semibold">📅 Terminbuchung</Label>
