@@ -555,7 +555,7 @@ serve(async (req) => {
       }
     }
 
-    type ReminderKind = "no_booking_24h" | "no_booking_72h" | "no_show_30min" | "no_show_24h" | "interview_abandoned" | "registration_pending_2h" | "registration_pending_24h" | "registration_pending_72h" | "rebook_after_cancel_24h" | "rebook_after_cancel_72h";
+    type ReminderKind = "no_booking_24h" | "no_booking_72h" | "no_show_30min" | "no_show_24h" | "interview_abandoned" | "registration_pending_2h" | "registration_pending_24h" | "registration_pending_72h" | "rebook_after_cancel_24h" | "rebook_after_cancel_72h" | "upcoming_24h" | "upcoming_1h";
     type Todo = { app: any; kind: ReminderKind; inviteToken?: string };
     const todo: Todo[] = [];
 
@@ -617,6 +617,18 @@ serve(async (req) => {
         if (startedMin >= ABANDONED_MIN && startedMin < ABANDONED_MAX_MIN) {
           if (!already.has(`${a.id}|interview_abandoned`)) todo.push({ app: a, kind: "interview_abandoned" });
           continue;
+        }
+      }
+
+      // 0b) Terminerinnerung VOR dem Gespräch: 24h und 1h vorher, jeweils mit
+      //     Verschiebe-Link. Wirkt direkt gegen Nichterscheinen.
+      if (a.scheduled_at && a.booking_status !== "cancelled" && !a.interview_completed_at) {
+        const untilMin = (new Date(a.scheduled_at).getTime() - now) / 60_000;
+        if (untilMin >= UPCOMING_24H_FROM && untilMin < UPCOMING_24H_TO) {
+          if (!already.has(`${a.id}|upcoming_24h`)) { todo.push({ app: a, kind: "upcoming_24h" }); continue; }
+        }
+        if (untilMin >= UPCOMING_1H_FROM && untilMin < UPCOMING_1H_TO) {
+          if (!already.has(`${a.id}|upcoming_1h`)) { todo.push({ app: a, kind: "upcoming_1h" }); continue; }
         }
       }
 
