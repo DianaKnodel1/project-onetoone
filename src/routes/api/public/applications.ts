@@ -650,13 +650,15 @@ export const Route = createFileRoute("/api/public/applications")({
             first_name: firstName, last_name: lastName,
             utm_content: appId, utm_source: d.source_slug ?? "",
           }).toString();
-          // Die Danke-Karte nennt die Firma, an die vermittelt wird. Bei einer
-          // Vermittlung ist das die verknüpfte Fast-Track-Landing, nicht die
-          // eigene Landingpage.
+          // Einheitlicher Ablauf: Bewerbung und Termin gehören zur selben Marke.
+          // Nur bei Alt-Vermittlungsseiten (flow_type='broker') wird noch die
+          // verknüpfte Fast-Track-Landing als Zielfirma genannt.
+          const isLegacyBrokerLanding = (landingPage as any)?.flow_type === "broker";
           let targetName = "";
           let targetLogo: string | null = null;
-          const linkedFastId = (landingPage as any)?.linked_fasttrack_landing_id
-            ?? d.target_landing_id ?? null;
+          const linkedFastId = isLegacyBrokerLanding
+            ? ((landingPage as any)?.linked_fasttrack_landing_id ?? d.target_landing_id ?? null)
+            : null;
           if (linkedFastId) {
             const { data: ftLp } = await supabaseAdmin
               .from("landing_pages")
@@ -668,12 +670,12 @@ export const Route = createFileRoute("/api/public/applications")({
             targetLogo = (ftLp as any)?.logo_url || ftBranding.logo_image || null;
           }
           const ownBranding = (landingPage as any)?.branding ?? {};
+          const ownName = (ownBranding.firmenname as string | undefined)
+            || (landingPage as any)?.intermediate_company_name
+            || "";
+          const shownName = targetName || ownName;
           broker_block = {
-            partner_name:
-              targetName
-              || (landingPage as any)?.intermediate_company_name
-              || (ownBranding.firmenname ?? "")
-              || "unserem Partnerunternehmen",
+            partner_name: shownName || "unserem Partnerunternehmen",
             partner_logo: targetLogo || (landingPage as any)?.logo_url || ownBranding.logo_image || null,
             calendly_url: calBase ? `${calBase}${sep}${qs}` : "",
             fallback_url: null,
@@ -681,6 +683,9 @@ export const Route = createFileRoute("/api/public/applications")({
             intro_headline: null,
             intro_subline: null,
             portal_register_url: null,
+            // true = Gespräch findet bei derselben Firma statt, auf der beworben
+            // wurde → Danke-Karte zeigt kein "Wir verbinden Sie mit …".
+            own_brand: !targetName || (!!ownName && targetName === ownName),
           };
         } else if (isFast && d.portal_url) {
           // Fasttrack ohne Calendly-Link: direkt zur Portal-Startseite.
