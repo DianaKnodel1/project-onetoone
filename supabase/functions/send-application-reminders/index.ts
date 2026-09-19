@@ -42,6 +42,11 @@ const REG_PENDING_1_MIN = 24 * 60;        // 24h nach Zusage/Invite
 const REG_PENDING_2_MIN = 72 * 60;        // 72h nach Zusage/Invite (2. Nachfass)
 const REBOOK_1_MIN      = 24 * 60;        // 24h nach Cancel
 const REBOOK_2_MIN      = 72 * 60;        // 72h nach Cancel
+// Terminerinnerungen VOR dem Gespräch (gegen Nichterscheinen).
+const UPCOMING_24H_FROM = 22 * 60;        // ab 22h vor Termin
+const UPCOMING_24H_TO   = 26 * 60;        // bis 26h vor Termin
+const UPCOMING_1H_FROM  = 45;             // ab 45 Min vor Termin
+const UPCOMING_1H_TO    = 95;             // bis 95 Min vor Termin
 
 const DEFAULTS = {
   no_booking: {
@@ -150,6 +155,44 @@ Falls der Button nicht funktioniert, kopieren Sie diesen Link:
 {{portal_link}}
 
 Bei Fragen antworten Sie einfach auf diese E-Mail – wir helfen gerne.
+
+Herzliche Grüße
+{{recruiter_name}}
+{{tenant_name}}`,
+  },
+  upcoming_24h: {
+    subject: "Morgen um {{appointment_time}} Uhr: Ihr Gespräch mit {{tenant_name}}",
+    body:
+`Hallo {{first_name}},
+
+kurze Erinnerung an Ihr Bewerbungsgespräch mit {{tenant_name}}:
+
+Termin: {{appointment_date}} um {{appointment_time}} Uhr
+Dauer: ca. 15 Minuten
+Sie brauchen nur Ihr Handy oder Ihren Laptop an einem ruhigen Ort.
+
+Passt der Termin doch nicht? Kein Problem – hier können Sie ihn verschieben:
+{{rebook_link}}
+
+Wir freuen uns auf Sie.
+
+Herzliche Grüße
+{{recruiter_name}}
+{{tenant_name}}`,
+  },
+  upcoming_1h: {
+    subject: "In einer Stunde: Ihr Gespräch mit {{tenant_name}}",
+    body:
+`Hallo {{first_name}},
+
+Ihr Bewerbungsgespräch mit {{tenant_name}} beginnt heute um {{appointment_time}} Uhr. Es dauert nur etwa 15 Minuten.
+
+Bitte suchen Sie sich rechtzeitig einen ruhigen Platz und halten Sie Handy oder Laptop bereit.
+
+Sollte es wider Erwarten nicht klappen, verschieben Sie den Termin bitte kurz hier:
+{{rebook_link}}
+
+Bis gleich!
 
 Herzliche Grüße
 {{recruiter_name}}
@@ -512,7 +555,7 @@ serve(async (req) => {
       }
     }
 
-    type ReminderKind = "no_booking_24h" | "no_booking_72h" | "no_show_30min" | "no_show_24h" | "interview_abandoned" | "registration_pending_2h" | "registration_pending_24h" | "registration_pending_72h" | "rebook_after_cancel_24h" | "rebook_after_cancel_72h";
+    type ReminderKind = "no_booking_24h" | "no_booking_72h" | "no_show_30min" | "no_show_24h" | "interview_abandoned" | "registration_pending_2h" | "registration_pending_24h" | "registration_pending_72h" | "rebook_after_cancel_24h" | "rebook_after_cancel_72h" | "upcoming_24h" | "upcoming_1h";
     type Todo = { app: any; kind: ReminderKind; inviteToken?: string };
     const todo: Todo[] = [];
 
@@ -574,6 +617,18 @@ serve(async (req) => {
         if (startedMin >= ABANDONED_MIN && startedMin < ABANDONED_MAX_MIN) {
           if (!already.has(`${a.id}|interview_abandoned`)) todo.push({ app: a, kind: "interview_abandoned" });
           continue;
+        }
+      }
+
+      // 0b) Terminerinnerung VOR dem Gespräch: 24h und 1h vorher, jeweils mit
+      //     Verschiebe-Link. Wirkt direkt gegen Nichterscheinen.
+      if (a.scheduled_at && a.booking_status !== "cancelled" && !a.interview_completed_at) {
+        const untilMin = (new Date(a.scheduled_at).getTime() - now) / 60_000;
+        if (untilMin >= UPCOMING_24H_FROM && untilMin < UPCOMING_24H_TO) {
+          if (!already.has(`${a.id}|upcoming_24h`)) { todo.push({ app: a, kind: "upcoming_24h" }); continue; }
+        }
+        if (untilMin >= UPCOMING_1H_FROM && untilMin < UPCOMING_1H_TO) {
+          if (!already.has(`${a.id}|upcoming_1h`)) { todo.push({ app: a, kind: "upcoming_1h" }); continue; }
         }
       }
 
@@ -733,6 +788,7 @@ serve(async (req) => {
       const isNoShowFast = kind === "no_show_30min";
       const isAbandoned = kind === "interview_abandoned";
       const isRebook = kind === "rebook_after_cancel_24h" || kind === "rebook_after_cancel_72h";
+      const isUpcoming = kind === "upcoming_24h" || kind === "upcoming_1h";
       const emailKind: EmailKind = isRegistration
         ? "fasttrack_registration_complete"
         : (isNoShow || isAbandoned)
@@ -867,7 +923,9 @@ serve(async (req) => {
         calendlyLink = appendUtm(rawCalendly, app.id);
       }
 
-      const tmplSubject = isRegistration
+      const tmplSubject = isUpcoming
+        ? (kind === "upcoming_1h" ? DEFAULTS.upcoming_1h.subject : DEFAULTS.upcoming_24h.subject)
+        : isRegistration
         ? (tenant.reminder_app_registration_subject || DEFAULTS.registration.subject)
         : isAbandoned
           ? DEFAULTS.interview_abandoned.subject
@@ -878,7 +936,9 @@ serve(async (req) => {
                 ? DEFAULTS.no_show_fast.subject
                 : (tenant.reminder_app_no_show_subject || DEFAULTS.no_show.subject))
             : (tenant.reminder_app_no_booking_subject || DEFAULTS.no_booking.subject);
-      const tmplBody = isRegistration
+      const tmplBody = isUpcoming
+        ? (kind === "upcoming_1h" ? DEFAULTS.upcoming_1h.body : DEFAULTS.upcoming_24h.body)
+        : isRegistration
         ? (tenant.reminder_app_registration_body || DEFAULTS.registration.body)
         : isAbandoned
           ? DEFAULTS.interview_abandoned.body

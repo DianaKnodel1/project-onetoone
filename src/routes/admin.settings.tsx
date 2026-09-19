@@ -159,8 +159,6 @@ const SECTIONS: { value: string; hint: string; tiles: TileDef[] }[] = [
       
       { to: "/admin/calendly", title: "Calendly", desc: "Webhooks, Event-Types, Signing-Keys", icon: CalendarClock },
       { to: "/admin/ai-settings", title: "KI-Assistent", desc: "An/Aus, FAQ, System-Prompt, Modell", icon: Bot },
-      { to: "/admin/vermittlung", title: "Vermittlung", desc: "Broker-Flow, Übergabe an Fast-Track", icon: Handshake },
-      { to: "/admin/partner-companies", title: "Fast-Track-Firmen", desc: "Partner-Unternehmen verwalten", icon: Handshake },
     ],
   },
   {
@@ -179,6 +177,14 @@ const SECTIONS: { value: string; hint: string; tiles: TileDef[] }[] = [
       { to: "/admin/team-leader-settings", title: "Teamleiter", desc: "Profil, Avatar, Online-Status", icon: UsersIcon },
       { to: "/admin/chat-faq", title: "Chat-Wissensbasis", desc: "Antworten, die der Chat-Vorschlag nutzen darf", icon: FileText },
       { to: "/admin/activity", title: "Protokoll", desc: "Aktivitäts-Log aller Admin-Aktionen", icon: History },
+    ],
+  },
+  {
+    value: "bestand",
+    hint: "Alte Vermittlungs-Seiten: nur noch zur Pflege bestehender Einträge.",
+    tiles: [
+      { to: "/admin/vermittlung", title: "Vermittlung (Bestand)", desc: "Alter Broker-Flow – für neue Seiten nicht mehr nutzen", icon: Handshake },
+      { to: "/admin/partner-companies", title: "Fast-Track-Firmen (Bestand)", desc: "Partner-Unternehmen der alten Vermittlungsseiten", icon: Handshake },
     ],
   },
 ];
