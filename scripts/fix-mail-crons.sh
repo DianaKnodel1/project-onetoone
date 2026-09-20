@@ -2,6 +2,11 @@
 # =============================================================================
 #  fix-mail-crons.sh — repariert die Mail-/Reminder-Crons auf dem Backend
 # =============================================================================
+#  WARNUNG (Stand 2026-09-19): NICHT ausführen! Die automatischen Bewerber-
+#  Mail-Jobs wurden bewusst abgeschaltet (Calendly verschickt Bestätigung,
+#  Erinnerungen und SMS). Dieses Skript würde sie wieder anlegen. Siehe
+#  supabase/manual-migrations/20260919000000_disable_mail_crons.sql.
+# =============================================================================
 #  Behebt:
 #    1) Cron-Jobs mit unersetztem <SUPABASE_URL>-Platzhalter → echte URL
 #    2) Doppelt registrierten Job send-reminders-hourly (kaputtes Duplikat weg)
