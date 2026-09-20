@@ -1,55 +1,89 @@
-# Conversion-Optimierung: Vom gebuchten Termin zum Erscheinen
+# Conversion-Optimierung: Vom Lead zum fertigen Mitarbeiter
 
-Ziel: Mehr gebuchte Bewerber erscheinen zum Gespräch.
+Ziel: Mehr Bewerber erscheinen zum Gespräch UND mehr Zusagen werden zu
+fertig registrierten Mitarbeitern (Vertrag + Ausweis).
 
-## Was gebaut wird (Danke-Seite nach der Buchung)
+## Schritt 0: Erst genau hinschauen (kein Neubau nötig)
 
-1. **WhatsApp-Bestätigungs-Knopf.** Nach der Terminbuchung erscheint ein
-   großer WhatsApp-Knopf: „Termin kurz bestätigen". Ein Klick öffnet
-   WhatsApp mit vorgefertigtem Text an eure Nummer („Hallo, ich bin Maria,
-   mein Termin am Dienstag um 14 Uhr passt"). Wer bestätigt, hat sich
-   bewusst festgelegt — und ihr seht sofort, wer engagiert ist. Läuft über
-   das physische Handy, keine Sperr-Gefahr. Nummer kommt aus dem
-   bestehenden WhatsApp-Feld des Mandanten.
+Die Datenbank weiß bereits, wer sich registriert hat, ob der Vertrag
+ausgefüllt ist und ob der Ausweis hochgeladen wurde. Ein read-only
+Auswertungs-Skript (Erweiterung von `analyze-no-shows.sh`) zeigt den
+kompletten Trichter in Zahlen:
 
-2. **„In Kalender speichern"-Knopf.** Google-Kalender und Apple/Outlook
-   (.ics) direkt auf der Danke-Seite — der Termin steht im eigenen
-   Kalender mit eigener Erinnerung, unabhängig von jeder Mail.
+```text
+Bewerbung -> Termin gebucht -> erschienen -> Zusage
+          -> registriert -> Vertrag ausgefüllt -> Ausweis hochgeladen -> fertig
+```
 
-3. **Klare Termin-Karte mit Countdown.** „Dein Gespräch: Dienstag,
-   14:00 Uhr · mit {Name} · ca. 15 Minuten · Video" plus Countdown bis
-   zum Termin. Kein Raum für Unsicherheit, was wann mit wem passiert.
+Damit wissen wir genau, ob die 8 von 10 an der Registrierung selbst, am
+Vertrag oder am Ausweis hängen bleiben — und bauen dann gezielt an der
+richtigen Stelle statt zu raten. Du führst das Skript auf deinem Server
+aus und fügst das Ergebnis hier ein.
 
-4. **Hemmschwelle senken.** Ein Satz auf der Danke-Seite: „Kein steifes
-   Bewerbungsgespräch — wir lernen uns locker kennen, du brauchst nichts
-   vorzubereiten." Viele erscheinen nicht, weil sie Lampenfieber bekommen.
+## Schritt 1: WhatsApp als roter Faden durch beide Funnels
+
+Der persönliche Kontakt vom echten Handy ist der stärkste Hebel für beide
+Probleme. Gebaut wird:
+
+1. **Danke-Seite nach der Buchung**: großer WhatsApp-Knopf „Termin kurz
+   bestätigen" mit vorgefertigtem Text an eure Nummer (Name + Termin).
+   Wer bestätigt, legt sich bewusst fest — und ihr seht sofort, wer
+   engagiert ist.
+2. **Zusage-Karte im Portal**: WhatsApp-Knopf „Fragen? Schreib mir direkt"
+   mit vorgefertigtem Text („Hallo, ich bin Maria, habe gerade die Zusage
+   bekommen und brauche kurz Hilfe"). Wer einen echten Ansprechpartner
+   hat, bricht viel seltener ab.
+3. **Ausweis-Alternative „per WhatsApp senden"**: Beim Ausweis-Schritt
+   ein Hinweis „Kein Upload möglich? Schick das Foto einfach per WhatsApp
+   an uns — wir kümmern uns." Senkt die technisch heikelste Hürde.
+4. **Neutraler Interview-Text** auf der Danke-Seite: „kurzes
+   Kennenlerngespräch, ca. 15 Minuten, bequem vom Handy" — kein „Video",
+   kein „schriftlich/Chat".
+
+## Schritt 2: Calendly-Anleitung (bei dir, ca. 10 Minuten)
+
+Kurze Abhak-Liste, die ich dir schreibe:
+
+- Buchbare Zeiten auf die nächsten 1–3 Tage begrenzen (größter Hebel
+  gegen No-Shows)
+- Reconfirmation aktivieren („Bist du dabei? Ja / Verschieben", 24 h vorher)
+- SMS-Erinnerung 1 h vorher prüfen
+
+## Schritt 3 (danach, datenbasiert): Onboarding vereinfachen
+
+Je nachdem, was Schritt 0 zeigt:
+
+- Bricht es bei der **Registrierung selbst**: Zusage-Karte entschärfen,
+  Registrierung auf das Nötigste reduzieren, Rest später.
+- Bricht es am **Vertrag**: Felder aus der Bewerbung vorausfüllen,
+  Fortschrittsanzeige „Schritt 1 von 3 · dauert 2 Minuten", Nutzen-Text
+  „Vertrag ausgefüllt = Starttermin + erster Lohn".
+- Bricht es am **Ausweis**: WhatsApp-Weg (Schritt 1.3) pushen, Upload
+  am Handy vereinfachen.
 
 ## Nicht Teil dieses Schritts
 
-- Calendly-Anleitung (SMS 1 h vorher, Reconfirmation aktivieren,
-  Vorlaufzeit auf 2–3 Tage begrenzen) — liefern wir auf Wunsch später.
-- WhatsApp Business Plattform (360dialog/Twilio) für automatische
-  Erinnerungen — späterer Schritt, wenn das Volumen wächst.
-- Admin-Listen für manuelles Nachfassen — vom Nutzer verworfen.
+- Kalender-Speichern-Knopf (verworfen — zu kleiner Hebel)
+- Admin-Listen für manuelles Nachfassen (verworfen)
+- WhatsApp Business Plattform (360dialog/Twilio) — später, wenn das
+  Volumen über das physische Handy hinauswächst
+- Eigene Mails bleiben komplett aus — alles läuft über Calendly + WhatsApp
 
-## Messung (ehrlich)
+## Messung
 
-Ob Calendly-Mails ankommen, ist von außen nicht sichtbar. Gemessen wird
-das Ergebnis: das Skript `analyze-no-shows.sh` (nur lesend) vergleicht
-gebuchte Termine mit abgeschlossenen Gesprächen. Nach 2–3 Wochen erneut
-laufen lassen und die Erscheinensquote vorher/nachher vergleichen:
-
-```bash
-DAYS=90 bash scripts/analyze-no-shows.sh --local
-```
+Vorher/Nachher-Vergleich mit dem Auswertungs-Skript (Schritt 0) nach
+2–3 Wochen: Erscheinensquote und Quote „Zusage → fertig registriert".
 
 ## Technisch kurz
 
-- `src/landing-themes/_shared/form-section.js`: Danke-Karte nach
-  Calendly-Buchung um WhatsApp-Knopf (wa.me mit vorbefülltem Text),
-  Kalender-Buttons (Google-URL + .ics-Download) und Countdown erweitern.
-  Termin-Daten (Datum/Uhrzeit) kommen aus der Calendly-Event-Antwort,
-  die nach der Buchung vorliegt.
-- Keine automatischen Versände, keine eigenen Mails — alles passiert im
-  Browser des Bewerbers.
-- Deploy wie immer: `bash scripts/deploy.sh` + Landing-Sync.
+- `scripts/analyze-no-shows.sh`: neuer Abschnitt „Registrierungs-Trichter"
+  (Zusage → profiles vorhanden → Vertrag → kyc_verifications → fertig),
+  nur SELECTs.
+- `src/landing-themes/_shared/form-section.js`: WhatsApp-Bestätigungs-Knopf
+  + neutraler Gesprächs-Text auf der Danke-Karte (wa.me, Nummer aus dem
+  WhatsApp-Feld des Mandanten).
+- `src/components/interview/ZusageCard.tsx`: WhatsApp-Hilfe-Knopf.
+- `src/components/register/StepIdentity.tsx`: Hinweis „Ausweis per
+  WhatsApp senden" als Alternative unter dem Upload.
+- Keine automatischen Versände, keine eigenen Mails.
+- Deploy: `bash scripts/deploy.sh` + Landing-Sync.
