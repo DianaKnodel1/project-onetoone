@@ -55,24 +55,6 @@ export function EmailRetryQueuePanel() {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
-  const handleRun = async (logId?: string) => {
-    if (logId) setBusy(logId); else setRunning(true);
-    try {
-      const res: any = await runNow({ data: logId ? { log_id: logId } : {} });
-      if (!res?.ok) {
-        toast({ title: "Nachversand fehlgeschlagen", description: res?.error ?? "Unbekannter Fehler", variant: "destructive" });
-      } else {
-        const s = res.summary ?? {};
-        toast({
-          title: "Nachversand ausgeführt",
-          description: `${s.sent ?? 0} versendet · ${s.waiting ?? 0} warten weiter · ${s.failed ?? 0} fehlgeschlagen`,
-        });
-      }
-      await load();
-    } catch (e: any) {
-      toast({ title: "Fehler", description: e?.message ?? String(e), variant: "destructive" });
-    } finally { setBusy(null); setRunning(false); }
-  };
 
   const handleCancel = async (logId: string) => {
     setBusy(logId);
