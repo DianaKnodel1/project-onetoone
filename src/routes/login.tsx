@@ -22,9 +22,10 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useTenant } from "@/contexts/TenantContext";
 import { translateAuthError } from "@/lib/auth-errors";
-import { MailCheck } from "lucide-react";
+import { MailCheck, MessageCircle, Mail } from "lucide-react";
 import PortalAuthShell from "@/components/portal/PortalAuthShell";
 import { usePortalTheme } from "@/hooks/use-portal-theme";
+import { useWhatsAppSupport } from "@/hooks/use-whatsapp-support";
 
 
 const LOGIN_TIMEOUT_MS = 15000;
