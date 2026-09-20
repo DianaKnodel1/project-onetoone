@@ -7,7 +7,6 @@ import { Loader2, RefreshCcw, Check, Clock, AlertTriangle, Info } from "lucide-r
 import { useServerFn } from "@tanstack/react-start";
 import {
   listRetryQueue,
-  runRetryQueueNow,
   cancelRetryEntry,
   type RetryQueueItem,
 } from "@/lib/email-retry-queue.functions";
@@ -36,14 +35,12 @@ function fmt(ts: string | null): string {
 export function EmailRetryQueuePanel() {
   const { toast } = useToast();
   const list = useServerFn(listRetryQueue);
-  const runNow = useServerFn(runRetryQueueNow);
   const cancel = useServerFn(cancelRetryEntry);
 
   const [waiting, setWaiting] = useState<RetryQueueItem[]>([]);
   const [manual, setManual] = useState<RetryQueueItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
-  const [running, setRunning] = useState(false);
 
   const load = async () => {
     setLoading(true);
