@@ -94,14 +94,10 @@ export function EmailRetryQueuePanel() {
                 {kind === "waiting" ? fmt(r.next_retry_at) : ((r.error_message ?? "").slice(0, 90) || "—")}
               </td>
               <td className="px-3 py-2 text-right whitespace-nowrap">
-                <Button size="sm" variant="outline" className="h-7 gap-1 mr-1"
-                  onClick={() => handleRun(r.id)} disabled={busy === r.id}>
-                  {busy === r.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-                  Jetzt versuchen
-                </Button>
                 <Button size="sm" variant="ghost" className="h-7 gap-1"
                   onClick={() => handleCancel(r.id)} disabled={busy === r.id}>
-                  <Check className="h-3 w-3" /> Erledigt
+                  {busy === r.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                  Erledigt
                 </Button>
               </td>
             </tr>
@@ -121,24 +117,27 @@ export function EmailRetryQueuePanel() {
           <div>
             <h3 className="text-sm font-semibold flex items-center gap-2">
               <Clock className="h-4 w-4 text-amber-500" />
-              Warteschlange · automatischer Nachversand
+              Warteschlange · Nachversand (deaktiviert)
             </h3>
             <p className="text-xs text-muted-foreground max-w-2xl mt-1">
-              Mails, die wegen einer vorübergehenden Störung nicht rausgingen (SMTP-Timeout, Stundenlimit,
-              Mail-Pause, Sendefenster), werden automatisch alle 10 Minuten erneut versucht — mit wachsendem
-              Abstand und maximal 5 Versuchen innerhalb von 72 Stunden.
+              Der eigene Mailversand ist komplett abgeschaltet — Termin-Mails und SMS kommen von Calendly.
+              Diese Liste zeigt nur noch Altlasten aus der Zeit davor; nachsenden kann hier nichts mehr.
+              Einträge kannst du als „Erledigt" abhaken.
             </p>
           </div>
           <div className="flex gap-2">
-            <Button size="sm" variant="default" onClick={() => handleRun()} disabled={running} className="h-8 gap-1.5">
-              {running ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-              Jetzt alle nachsenden
-            </Button>
             <Button size="sm" variant="outline" onClick={load} disabled={loading} className="h-8 gap-1.5">
               {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCcw className="h-3.5 w-3.5" />}
               Neu laden
             </Button>
           </div>
+        </div>
+
+        <div className="rounded-md border border-sky-300/60 bg-sky-50 dark:bg-sky-950/30 px-3 py-2 flex items-start gap-2">
+          <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-sky-600 dark:text-sky-300" />
+          <p className="text-xs text-sky-800 dark:text-sky-200">
+            Eigener Mailversand deaktiviert — diese Warteschlange versendet nichts mehr.
+          </p>
         </div>
 
         {loading ? (
