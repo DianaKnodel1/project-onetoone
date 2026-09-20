@@ -56,6 +56,8 @@ function LoginPage() {
   const { toast } = useToast();
   const { tenant } = useTenant();
   const t = usePortalTheme().tokens;
+  const whatsapp = useWhatsAppSupport();
+  const supportEmail = (tenant as any)?.company_email || (tenant as any)?.sender_email || null;
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -257,6 +259,36 @@ function LoginPage() {
           {loading ? "Wird angemeldet…" : "Anmelden"}
         </Button>
       </form>
+
+      <div className="rounded-lg border border-border/60 bg-muted/30 px-4 py-3 space-y-2">
+        <p className="text-xs text-muted-foreground">
+          Probleme beim Anmelden oder Passwort vergessen? Da unser eigener Mailversand deaktiviert
+          ist, kommt keine automatische E-Mail — schreib uns einfach direkt:
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {whatsapp.enabled && whatsapp.href && (
+            <a
+              href={whatsapp.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300/60 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors"
+            >
+              <MessageCircle className="h-3.5 w-3.5" /> Per WhatsApp schreiben
+            </a>
+          )}
+          {supportEmail && (
+            <a
+              href={`mailto:${supportEmail}`}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+            >
+              <Mail className="h-3.5 w-3.5" /> {supportEmail}
+            </a>
+          )}
+          {!whatsapp.enabled && !supportEmail && (
+            <span className="text-xs text-muted-foreground">Wende dich an deinen Ansprechpartner.</span>
+          )}
+        </div>
+      </div>
 
       <div className="flex items-center gap-3">
         <span className="h-px flex-1 bg-border" />
