@@ -341,6 +341,16 @@ function VerificationPage() {
                 </div>
               </div>
 
+              {/* Nutzen-Satz: beantwortet die stille Frage „warum brauchst du meinen Ausweis?" */}
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5">
+                <p className="text-sm font-medium text-foreground mb-0.5">Wofür wir das brauchen</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Dein Ausweis dient ausschließlich der Identitätsprüfung — so läuft
+                  es bei jeder Anstellung. Danach bist du für deinen Start
+                  freigeschaltet.
+                </p>
+              </div>
+
               <div className="rounded-xl border border-dashed border-border bg-muted/30 overflow-hidden">
                 {currentPreview ? (
                   <div className="relative group">
