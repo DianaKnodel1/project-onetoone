@@ -145,7 +145,8 @@ export default function StepContract({
           <FileText className="h-6 w-6 text-primary" />
         </div>
         <h2 className="text-2xl font-heading font-bold text-foreground">Arbeitsvertrag</h2>
-        <p className="text-sm text-muted-foreground mt-1">Bitte lies den Vertrag und unterschreibe digital</p>
+        <p className="text-sm text-muted-foreground mt-1">Deine Bewerbungsdaten sind bereits eingetragen – bitte prüfe sie und unterschreibe digital</p>
+        <p className="text-sm font-medium text-primary mt-1">Vertrag unterschrieben = Starttermin und erster Lohn sind gesichert</p>
       </div>
 
       {/* Contract Content */}
