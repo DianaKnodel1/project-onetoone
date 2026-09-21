@@ -315,11 +315,12 @@
         var hint2=document.createElement('p');hint2.textContent='Es öffnet sich ein neues Fenster zur Terminauswahl.';hint2.style.cssText='margin:12px 0 0;font-size:12px;color:#94a3b8;';box.appendChild(hint2);}
       else{var hint3=document.createElement('p');hint3.textContent='Die Terminbuchung ist gerade nicht verfügbar. Bitte kontaktieren Sie uns kurz – wir vereinbaren den Termin persönlich mit Ihnen.';hint3.style.cssText='margin:4px 0 0;font-size:13px;color:#64748b;';box.appendChild(hint3);
         try{console.error('[landing] broker.calendly_url fehlt – Landing Page ohne Calendly-Link konfiguriert');}catch(e){}}
-      // WhatsApp-Bestätigung: Wer den Termin danach kurz per WhatsApp bestätigt,
-      // hat sich bewusst festgelegt (stärkster Hebel gegen Nichterscheinen).
+      // WhatsApp: Der Termin ist pro forma — das Gespräch kann jederzeit
+      // stattfinden. Flexibilität klar sagen, damit ein verpasster Termin
+      // nicht wie „jetzt ist es zu spät" wirkt.
       if(wa){
         var wcard=document.createElement('div');wcard.style.cssText='background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 16px;margin:18px 0 0;text-align:center;';
-        wcard.innerHTML='<p style="margin:0 0 10px;font-size:13px;color:#166534;line-height:1.5;"><strong>Danach:</strong> Bestätigen Sie Ihren Termin kurz per WhatsApp – so wissen wir, dass Sie dabei sind.</p><a href="https://wa.me/'+wa+'?text='+encodeURIComponent('Hallo, ich habe gerade meinen Termin für das Kennenlerngespräch gebucht. Ich bin dabei!')+'" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25d366;color:#fff;text-decoration:none;font-weight:700;padding:12px 16px;border-radius:8px;font-size:15px;">Termin per WhatsApp bestätigen</a>';
+        wcard.innerHTML='<p style="margin:0 0 10px;font-size:13px;color:#166534;line-height:1.5;"><strong>Termin passt nicht?</strong> Kein Problem — das Kennenlerngespräch ist flexibel. Schreiben Sie uns kurz per WhatsApp, dann führen wir das Gespräch, wann es Ihnen passt.</p><a href="https://wa.me/'+wa+'?text='+encodeURIComponent('Hallo, ich habe gerade meinen Termin für das Kennenlerngespräch gebucht. Passt bei mir!')+'" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25d366;color:#fff;text-decoration:none;font-weight:700;padding:12px 16px;border-radius:8px;font-size:15px;">Kurz per WhatsApp melden</a>';
         box.appendChild(wcard);
       }
     } else if(isFast){

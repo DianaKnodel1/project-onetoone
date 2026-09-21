@@ -391,21 +391,24 @@ function PersonalDataPage() {
             <CreditCard className="h-5 w-5 text-primary" />
             <CardTitle className="text-lg">Bank & Sozialversicherung</CardTitle>
           </div>
-          <CardDescription>Für deine Gehaltsabrechnung und Lohnsteuer.</CardDescription>
+          <CardDescription>
+            Diese Angaben benötigen wir für deine Gehaltsabrechnung — gesetzlich
+            vorgeschrieben. Ohne sie können wir dein Gehalt nicht überweisen.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Field label="IBAN *">
-            <Input value={iban} onChange={(e) => setIban(formatIban(e.target.value))} placeholder="DE00 0000 0000 0000 0000 00" />
-          </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Steuer-ID *" hint="11-stellig">
+            <Field label="Steuer-ID *" hint="11-stellig · für die Lohnabrechnung">
               <Input value={taxNumber} onChange={(e) => setTaxNumber(e.target.value.replace(/[^0-9]/g, "").slice(0, 11))} placeholder="12345678901" />
             </Field>
-            <Field label="Sozialversicherungsnummer *">
+            <Field label="Sozialversicherungsnummer *" hint="für deine Anmeldung bei der Sozialversicherung">
               <Input value={svNumber} onChange={(e) => setSvNumber(e.target.value.slice(0, 20))} placeholder="12 345678 A 901" />
             </Field>
           </div>
-          <Field label="Krankenkasse *">
+          <Field label="IBAN *" hint="für die Überweisung deines Gehalts">
+            <Input value={iban} onChange={(e) => setIban(formatIban(e.target.value))} placeholder="DE00 0000 0000 0000 0000 00" />
+          </Field>
+          <Field label="Krankenkasse *" hint="für deine Anmeldung — gesetzlich vorgeschrieben">
             <Select value={healthInsurance || undefined} onValueChange={setHealthInsurance}>
               <SelectTrigger><SelectValue placeholder="Krankenkasse wählen" /></SelectTrigger>
               <SelectContent>
