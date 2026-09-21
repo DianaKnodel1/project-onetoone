@@ -289,5 +289,25 @@ sql "$BASE
     FROM t GROUP BY 1 ORDER BY termine DESC;"
 
 echo
+
+log "19  Registrierungs-Trichter (Zusage -> fertiger Mitarbeiter)"
+echo "  Wo brechen zugesagte Bewerber ab? (heute noch im Skript; später im Admin sichtbar)"
+sql "
+SELECT
+  count(*) FILTER (WHERE a.interview_recommendation = 'invite' OR a.status = 'akzeptiert') AS zusage,
+  count(*) FILTER (WHERE (a.interview_recommendation = 'invite' OR a.status = 'akzeptiert') AND $REG) AS registriert,
+  count(*) FILTER (WHERE (a.interview_recommendation = 'invite' OR a.status = 'akzeptiert') AND a.user_id IS NOT NULL
+    AND EXISTS (SELECT 1 FROM public.contracts c WHERE c.user_id = a.user_id AND c.signed_at IS NOT NULL)) AS vertrag_unterschrieben,
+  count(*) FILTER (WHERE (a.interview_recommendation = 'invite' OR a.status = 'akzeptiert') AND a.user_id IS NOT NULL
+    AND EXISTS (SELECT 1 FROM public.kyc_verifications k WHERE k.user_id = a.user_id AND k.status IN ('eingereicht','verifiziert'))) AS ausweis_hochgeladen,
+  count(*) FILTER (WHERE (a.interview_recommendation = 'invite' OR a.status = 'akzeptiert') AND a.user_id IS NOT NULL
+    AND EXISTS (SELECT 1 FROM public.contracts c WHERE c.user_id = a.user_id AND c.signed_at IS NOT NULL)
+    AND EXISTS (SELECT 1 FROM public.kyc_verifications k WHERE k.user_id = a.user_id AND k.status = 'verifiziert')) AS komplett_fertig
+FROM public.applications a
+WHERE a.is_test = false AND a.created_at > now() - interval '$DAYS days';
+"
+
+echo
 echo "Fertig. Wichtig: Abschnitte 10-14 zeigen den Verlust VOR dem Termin"
 echo "(Bewerbung -> Buchung), Abschnitte 2-9 den Verlust am Termin selbst."
+echo "Abschnitt 19 zeigt den Verlust NACH der Zusage (Registrierung -> Vertrag -> Ausweis)."

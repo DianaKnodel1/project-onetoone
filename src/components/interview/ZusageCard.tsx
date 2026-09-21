@@ -1,8 +1,8 @@
 // Zusage-Screen: wird direkt im Portal angezeigt, sobald die KI eine Zusage
 // erteilt hat — optisch angelehnt an die „Willkommen im Team"-E-Mail.
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { UserPlus } from "lucide-react";
+import { UserPlus, MessageCircle } from "lucide-react";
+import { useWhatsAppSupport } from "@/hooks/use-whatsapp-support";
 
 export function ZusageCard({
   company,
@@ -26,19 +26,13 @@ export function ZusageCard({
   mailFailed?: boolean;
 }) {
   const login = loginHref || "/login";
-  // Registrierung sofort abschliessen statt auf die E-Mail zu warten:
-  // liegt der persönliche Link vor, leiten wir automatisch weiter.
-  const [seconds, setSeconds] = useState(8);
-  const [stopped, setStopped] = useState(false);
-  useEffect(() => {
-    if (!registrationLink || stopped) return;
-    if (seconds <= 0) {
-      window.location.href = registrationLink;
-      return;
-    }
-    const t = setTimeout(() => setSeconds((s) => s - 1), 1000);
-    return () => clearTimeout(t);
-  }, [registrationLink, seconds, stopped]);
+  // Kein automatischer Redirect mehr: Die 8-Sekunden-Weiterleitung hat
+  // Bewerber überrumpelt. Stattdessen klarer Button + WhatsApp-Hilfe.
+  const whatsapp = useWhatsAppSupport();
+  const waText = encodeURIComponent(
+    `Hallo, ich bin ${firstName || ""} und habe gerade die Zusage bekommen – ich brauche kurz Hilfe bei der Registrierung.`.replace(/\s+/g, " ").trim(),
+  );
+  const waHref = whatsapp.href ? `${whatsapp.href}?text=${waText}` : null;
   return (
     <div
       className={`bg-white dark:bg-slate-900 rounded-2xl border-2 p-6 sm:p-8 space-y-5 text-center shadow-lg ${className ?? ""}`}
@@ -88,17 +82,16 @@ export function ZusageCard({
           </a>
         </Button>
         <p className="text-xs text-muted-foreground">
-          {stopped ? (
-            <>Klicken Sie oben, um Ihre Registrierung abzuschließen.</>
-          ) : (
-            <>
-              Sie werden in {seconds} Sekunden automatisch zur Registrierung weitergeleitet.{" "}
-              <button type="button" onClick={() => setStopped(true)} className="underline hover:text-foreground">
-                Nicht weiterleiten
-              </button>
-            </>
-          )}
+          Klicke oben, um deine Registrierung abzuschließen – dauert nur wenige Minuten.
         </p>
+        {waHref && (
+          <Button asChild variant="outline" size="lg" className="w-full font-semibold text-base h-12">
+            <a href={waHref} target="_blank" rel="noopener noreferrer">
+              <MessageCircle className="h-5 w-5 mr-2" />
+              Fragen? Schreib mir direkt per WhatsApp
+            </a>
+          </Button>
+        )}
         {mailFailed && (
           <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
             ✉️ Die Bestätigungs-E-Mail ist noch unterwegs. Nutzen Sie zur Sicherheit

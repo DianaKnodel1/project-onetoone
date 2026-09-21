@@ -15,10 +15,11 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Upload, CheckCircle2, XCircle, ArrowLeft, ArrowRight, Loader2,
-  IdCard, ScanFace, Camera, ShieldCheck,
+  IdCard, ScanFace, Camera, ShieldCheck, MessageCircle,
 } from "lucide-react";
 import { SupportCTA } from "@/components/SupportCTA";
 import { StepSuccessModal } from "@/components/StepSuccessModal";
+import { useWhatsAppSupport } from "@/hooks/use-whatsapp-support";
 
 interface KycData {
   id: string;
@@ -59,6 +60,7 @@ function VerificationPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const whatsapp = useWhatsAppSupport();
   const [kyc, setKyc] = useState<KycData | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState<FieldKey | null>(null);
@@ -387,6 +389,22 @@ function VerificationPage() {
                   </label>
                 )}
               </div>
+
+              {whatsapp.href && (
+                <a
+                  href={`${whatsapp.href}?text=${encodeURIComponent("Hallo, der Ausweis-Upload klappt bei mir nicht – ich schicke das Foto lieber direkt hier.")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/40 p-4 text-left transition hover:bg-green-100/70 dark:hover:bg-green-950/60"
+                >
+                  <MessageCircle className="h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
+                  <span className="text-sm">
+                    <span className="font-medium">Upload klappt nicht?</span>{" "}
+                    <span className="text-muted-foreground">Schick das Foto einfach per WhatsApp – wir übernehmen den Rest für dich.</span>
+                  </span>
+                </a>
+              )}
+
 
               <div className="flex items-center justify-between gap-3 pt-2">
                 <Button

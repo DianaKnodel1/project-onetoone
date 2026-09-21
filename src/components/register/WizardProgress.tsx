@@ -19,6 +19,8 @@ export default function WizardProgress({ step }: Props) {
   if (step >= STEPS.length) return null;
 
   const progress = ((step + 1) / STEPS.length) * 100;
+  // Je Schritt grob 1 Minute – sichtbares Zeitversprechen senkt Abbrüche
+  const remainingMinutes = Math.max(1, STEPS.length - step);
 
   return (
     <div className="mb-8">
@@ -26,7 +28,7 @@ export default function WizardProgress({ step }: Props) {
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
           Schritt {step + 1} von {STEPS.length}
         </p>
-        <p className="text-xs font-bold text-primary">{Math.round(progress)}%</p>
+        <p className="text-xs font-bold text-primary">{Math.round(progress)}% · noch ca. {remainingMinutes} Min.</p>
       </div>
       <Progress value={progress} className="h-2" />
       <div className="flex justify-between mt-3">
