@@ -290,9 +290,9 @@ sql "$BASE
 
 echo
 
-section "19 · REGISTRIERUNGS-TRICHTER (Zusage → fertiger Mitarbeiter)"
+log "19  Registrierungs-Trichter (Zusage -> fertiger Mitarbeiter)"
 echo "  Wo brechen zugesagte Bewerber ab? (heute noch im Skript; später im Admin sichtbar)"
-q "
+sql "
 SELECT
   count(*) FILTER (WHERE a.interview_recommendation = 'invite' OR a.status = 'akzeptiert') AS zusage,
   count(*) FILTER (WHERE (a.interview_recommendation = 'invite' OR a.status = 'akzeptiert') AND $REG) AS registriert,
