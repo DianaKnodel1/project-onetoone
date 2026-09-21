@@ -341,14 +341,14 @@ function VerificationPage() {
                 </div>
               </div>
 
-              {/* Nutzen-Satz: beantwortet die stille Frage „warum brauchst du meinen Ausweis?" */}
+              {/* Kurze, konkrete Erklärung direkt vor dem ersten Upload. */}
               <div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5">
-                <p className="text-sm font-medium text-foreground mb-0.5">Wofür wir das brauchen</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Dein Ausweis dient ausschließlich der Identitätsprüfung — so läuft
-                  es bei jeder Anstellung. Danach bist du für deinen Start
-                  freigeschaltet.
-                </p>
+                <p className="text-sm font-medium text-foreground mb-2">Was passiert mit meinen Daten?</p>
+                <div className="space-y-1.5 text-xs text-muted-foreground leading-relaxed">
+                  <p><span className="font-medium text-foreground">Ausweis vorne und hinten:</span> Wir prüfen deine Identität und die Angaben, die wir für deine Anstellung benötigen.</p>
+                  <p><span className="font-medium text-foreground">Selfie:</span> Damit gleichen wir ab, dass der Ausweis wirklich zu dir gehört.</p>
+                  <p><span className="font-medium text-foreground">Schutz deiner Daten:</span> Die Übertragung ist verschlüsselt. Wir verwenden die Dateien nur für die Identitätsprüfung und geben sie nicht an Dritte weiter.</p>
+                </div>
               </div>
 
               <div className="rounded-xl border border-dashed border-border bg-muted/30 overflow-hidden">
@@ -483,25 +483,6 @@ function VerificationPage() {
             </CardContent>
           </Card>
         )}
-
-        {/* Trust-Badges — Vertrauen erhöhen, Abbruch reduzieren */}
-        {!isVerified && !isSubmitted && (
-          <Card className="bg-muted/30 border-border">
-            <CardContent className="py-4 px-5">
-              <p className="text-xs font-semibold text-foreground mb-2.5">Deine Daten sind sicher</p>
-              <div className="grid sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5">🔒 DSGVO-konforme Speicherung</span>
-                <span className="inline-flex items-center gap-1.5">🔒 Verschlüsselte Übertragung</span>
-                <span className="inline-flex items-center gap-1.5">🔒 Nur zur Identitätsprüfung verwendet</span>
-                <span className="inline-flex items-center gap-1.5">🔒 Keine Weitergabe an Dritte</span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <p className="text-xs text-muted-foreground text-center">
-          Deine Dokumente werden verschlüsselt übertragen und nur zur Identitätsprüfung verwendet.
-        </p>
 
         {!isVerified && (
           <SupportCTA topic="Identitätsprüfung" hint="Probleme beim Upload? Wir helfen in 5 Minuten weiter." />
