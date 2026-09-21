@@ -44,6 +44,12 @@ export default function StepContract({
 
   const canSubmit = agreed && signatureName.trim().length > 1 && signatureDataUrl;
 
+  // Unterschriften-Name vorausfüllen: nur prüfen statt tippen
+  useEffect(() => {
+    const fullName = `${firstName} ${lastName}`.trim();
+    if (fullName && !signatureName.trim()) setSignatureName(fullName);
+  }, [firstName, lastName]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     const loadContract = async () => {
       setLoadingTemplate(true);
