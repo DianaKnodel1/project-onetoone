@@ -301,7 +301,7 @@
       var pl=document.createElement('div');pl.textContent=ownBrand?'Ihr Gespräch findet statt mit':'Wir verbinden Sie mit';pl.style.cssText='font-size:13px;color:#475569;margin-bottom:6px;';
       var pn=document.createElement('div');pn.textContent=broker.partner_name||'unserem Partnerunternehmen';pn.style.cssText='font-size:17px;font-weight:700;color:#0f172a;';
       pc.appendChild(pl);pc.appendChild(pn);
-      var pd=document.createElement('div');pd.textContent='Online-Gespräch · ca. 15 Minuten · nur Ihr Handy oder Laptop nötig';pd.style.cssText='font-size:12px;color:#475569;margin-top:8px;';
+      var pd=document.createElement('div');pd.textContent='Kurzes Kennenlerngespräch · ca. 15 Minuten · bequem vom Handy';pd.style.cssText='font-size:12px;color:#475569;margin-top:8px;';
       pc.appendChild(pd);box.appendChild(pc);
       var hr=document.createElement('hr');hr.style.cssText='border:0;border-top:1px solid #e2e8f0;margin:18px 0;';box.appendChild(hr);
       var nextH=document.createElement('h4');nextH.textContent='Wie geht es jetzt weiter?';nextH.style.cssText='margin:0 0 8px;font-size:17px;font-weight:700;';
@@ -315,6 +315,13 @@
         var hint2=document.createElement('p');hint2.textContent='Es öffnet sich ein neues Fenster zur Terminauswahl.';hint2.style.cssText='margin:12px 0 0;font-size:12px;color:#94a3b8;';box.appendChild(hint2);}
       else{var hint3=document.createElement('p');hint3.textContent='Die Terminbuchung ist gerade nicht verfügbar. Bitte kontaktieren Sie uns kurz – wir vereinbaren den Termin persönlich mit Ihnen.';hint3.style.cssText='margin:4px 0 0;font-size:13px;color:#64748b;';box.appendChild(hint3);
         try{console.error('[landing] broker.calendly_url fehlt – Landing Page ohne Calendly-Link konfiguriert');}catch(e){}}
+      // WhatsApp-Bestätigung: Wer den Termin danach kurz per WhatsApp bestätigt,
+      // hat sich bewusst festgelegt (stärkster Hebel gegen Nichterscheinen).
+      if(wa){
+        var wcard=document.createElement('div');wcard.style.cssText='background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 16px;margin:18px 0 0;text-align:center;';
+        wcard.innerHTML='<p style="margin:0 0 10px;font-size:13px;color:#166534;line-height:1.5;"><strong>Danach:</strong> Bestätigen Sie Ihren Termin kurz per WhatsApp – so wissen wir, dass Sie dabei sind.</p><a href="https://wa.me/'+wa+'?text='+encodeURIComponent('Hallo, ich habe gerade meinen Termin für das Kennenlerngespräch gebucht. Ich bin dabei!')+'" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25d366;color:#fff;text-decoration:none;font-weight:700;padding:12px 16px;border-radius:8px;font-size:15px;">Termin per WhatsApp bestätigen</a>';
+        box.appendChild(wcard);
+      }
     } else if(isFast){
       h.textContent='Fast geschafft!';
       p.textContent='Klicken Sie jetzt auf den Button, um Ihren Termin zu buchen.';
