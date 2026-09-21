@@ -291,10 +291,22 @@ const MODAL_CSS = `
 #lov-apply-modal .lov-apply-body{max-height:calc(100vh - 80px);overflow-y:auto}
 #lov-apply-modal .lov-apply-body > section{padding-top:32px;padding-bottom:32px}
 body.lov-apply-open{overflow:hidden}
+.lov-apply-duration{display:block;width:max-content;max-width:100%;margin-top:10px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.94);border:1px solid rgba(15,23,42,.14);box-shadow:0 3px 12px rgba(15,23,42,.1);color:#0f172a;font:600 13px/1.3 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;text-align:center}
 `;
 const MODAL_JS = `
 (function(){
   if (window.__lovApplyModalReady) return; window.__lovApplyModalReady = true;
+  function addDurationHint(){
+    if (document.querySelector('.lov-apply-duration')) return;
+    var links = Array.prototype.slice.call(document.querySelectorAll('a[href*="#bewerbung-form"]'));
+    var cta = links.find(function(link){ return !link.closest('nav, header'); }) || links[0];
+    if (!cta) return;
+    var hint = document.createElement('span');
+    hint.className = 'lov-apply-duration';
+    hint.textContent = 'Bewerbung dauert ca. 2 Minuten';
+    hint.setAttribute('aria-label', 'Bewerbung dauert ca. 2 Minuten');
+    cta.insertAdjacentElement('afterend', hint);
+  }
   function open(){ var m=document.getElementById('lov-apply-modal'); if(!m) return; m.classList.add('is-open'); document.body.classList.add('lov-apply-open'); }
   function close(){ var m=document.getElementById('lov-apply-modal'); if(!m) return; m.classList.remove('is-open'); document.body.classList.remove('lov-apply-open'); if(location.hash==='#bewerbung-form'){ history.replaceState(null,'',location.pathname+location.search); } }
   document.addEventListener('click', function(e){
@@ -305,6 +317,8 @@ const MODAL_JS = `
   document.addEventListener('keydown', function(e){ if(e.key==='Escape') close(); });
   if (location.hash === '#bewerbung-form') open();
   window.addEventListener('hashchange', function(){ if(location.hash==='#bewerbung-form') open(); });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addDurationHint);
+  else addDurationHint();
 })();
 `;
 
