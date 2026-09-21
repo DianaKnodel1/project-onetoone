@@ -1,29 +1,14 @@
-# Vertrauen sichtbar machen: Zusage, Ausweis, Personaldaten (A + B)
+# Vertrauen sichtbar machen: Zusage-Seite, Begründungen, flexible Terminstrecke
 
-Ziel: An den drei Stellen, an denen Bewerber zweifeln — Danke-Fenster, Zusage,
-Dateneingabe — Seriosität sichtbar machen und die Terminstrecke abschließen.
-Alles echt, nichts Erfundenes: Bleibt ein Feld leer, erscheint es nicht.
+Ziel: An den Stellen, an denen Bewerber zweifeln — Zusage, Ausweis,
+Personaldaten — Seriosität sichtbar machen und die Terminstrecke an die
+Realität anpassen (das Gespräch ist flexibel, kein fester Termin nötig).
 
-## 1. Sozialer Beweis (echt, aus Daten)
+## 1. Zusage-Seite: Mensch statt „HR Management"
 
-1. **Neuer öffentlicher RPC `get_public_tenant_stats`** (SECURITY DEFINER,
-   anon-lesbar): liefert pro Mandant nur die Anzahl aktiver Mitarbeiter —
-   sonst keine Daten.
-2. **Mandanten-Felder für Mitarbeiterstimmen:** `testimonial_1_text`,
-   `testimonial_1_author`, `testimonial_2_text`, `testimonial_2_author`
-   (Migration + GRANTs). Im Admin (Einstellungen) pflegbar.
-3. **Beweis-Komponente** „Über X aktive Mitarbeiter arbeiten aktuell über uns"
-   + bis zu 2 Mitarbeiterstimmen (Vorname + Tätigkeit). Eingebaut auf:
-   - Zusage-Seite (`ZusageCard.tsx`)
-   - Registrierungs-Abschluss (Step 99 in `register.tsx`)
-   - Danke-Modal auf den Landing Pages (`form-section.js`; Stats werden wie
-     `WHATSAPP_NUMBER` als `window.TENANT_STATS` injiziert — Landing-Server
-     erweitern)
-
-## 2. Zusage-Seite: Mensch statt „HR Management"
-
-1. **Ansprechpartner-Karte** mit Name, Foto, Funktion (gleiche Datenquelle
-   wie die Teamleiter-Karte) direkt auf der Zusage.
+1. **Ansprechpartner-Karte** mit Name, Foto, Funktion (aus den
+   Mandanten-Feldern, gleiche Quelle wie die Teamleiter-Karte) direkt auf
+   der Zusage — statt „HR Management".
 2. **Firmenangaben sichtbar:** Ort/Anschrift, Geschäftsführer (aus den
    Mandanten-Daten).
 3. **„Bitte bereithalten"-Liste mit Begründungen:**
@@ -31,23 +16,28 @@ Alles echt, nichts Erfundenes: Bleibt ein Feld leer, erscheint es nicht.
    - IBAN — „für die Überweisung deines Gehalts"
    - Steuer-ID — „für die Lohnabrechnung — gesetzlich vorgeschrieben"
 
-## 3. Begründungen an den Dateneingabe-Schritten
+## 2. Begründungen an den Dateneingabe-Schritten
 
 - **Ausweis-Schritt** (`verification.tsx`): Nutzen-Satz über dem Upload
   ergänzen (WhatsApp-Hinweis ist bereits vorhanden).
-- **Personal-Daten** (Steuer-ID, SV-Nummer, IBAN): pro Feld ein kurzer
-  Begründungssatz; IBAN bleibt letzter Schritt.
+- **Personal-Daten** (`personal-data.tsx`; Steuer-ID, SV-Nummer, IBAN):
+  pro Feld ein kurzer Begründungssatz; IBAN bleibt letzter Schritt.
 - **Vertrag:** Nutzen-Satz und vorausgefüllter Name sind bereits umgesetzt.
 
-## 4. Terminstrecke abschließen (A)
+## 3. Terminstrecke: Flexibilität klar sagen (A)
 
-- Im Danke-Fenster (`form-section.js`) ergänzen: „Termin verpasst?
-  Verschieben ist kein Problem — einfach einen neuen Termin wählen"
-  (Link zur Calendly-Buchung).
-- Ohne Code (Checkliste an dich): persönliche WhatsApp in der ersten Stunde
-  nach der Buchung vom echten Handy.
+Der Termin wird nur pro forma ausgemacht — das Interview kann jederzeit
+wahrgenommen werden. Genau das muss der Bewerber im Danke-Fenster lesen,
+sonst fühlt sich ein verpasster Termin wie „jetzt ist es zu spät" an:
 
-## 5. Messung
+1. **Danke-Fenster** (`form-section.js`): statt der verbindlichen
+   Bestätigungs-Formulierung eine flexible Botschaft — „Termin passt nicht?
+   Das Gespräch ist flexibel. Melde dich einfach per WhatsApp, dann führen
+   wir es, wann es dir passt." WhatsApp-Knopf bleibt.
+2. **Termin-Erinnerungs-Szene:** dieselbe Flexibilitäts-Botschaft auf dem
+   Danke-Screen im Portal (falls dort noch eine Termin-Karte erscheint).
+
+## 4. Messung
 
 - Kein neuer Code: `analyze-no-shows.sh` hat den Registrierungs-Trichter
   bereits (Abschnitt 19). Vergleich über 2–3 Wochen vorher/nachher
@@ -55,25 +45,19 @@ Alles echt, nichts Erfundenes: Bleibt ein Feld leer, erscheint es nicht.
 
 ## Nicht Teil dieses Schritts
 
-- Lead-Menge (C) — eigenes Thema, später
-- WhatsApp Business Plattform (360dialog/Twilio) — später
-- Automatische Erinnerungen/Nachfass-Nachrichten — eigene Mails bleiben aus,
+- Sozialer Beweis (Zähler, Mitarbeiterstimmen) — erstmal nicht
+- Lead-Menge — eigenes Thema, später
+- Automatische Erinnerungen/Nachrichten — eigene Mails bleiben aus,
   Calendly + manuelles WhatsApp reichen
 
 ## Technisch kurz
 
-- Migration: `ALTER TABLE tenants ADD COLUMN testimonial_*`; RPC
-  `get_public_tenant_stats` inkl. `GRANT SELECT ... TO anon` (in derselben
-  Migration).
-- Dateien: `src/components/interview/ZusageCard.tsx`,
-  `src/routes/register.tsx` (Step 99), `src/routes/_employee/verification.tsx`,
-  Personal-Daten-Schritt, `src/landing-themes/_shared/form-section.js`,
-  `src/routes/admin.settings.tsx` (Stimmen pflegen), Landing-Server (Stats
-  injizieren).
+- `src/components/interview/ZusageCard.tsx`: Ansprechpartner-Karte
+  (Mandanten-Felder team_leader_*), Firmenangaben, Begründungen hinter
+  „Bitte bereithalten".
+- `src/routes/_employee/verification.tsx`: Nutzen-Satz über dem Upload.
+- `src/routes/_employee/personal-data.tsx`: Begründungssätze pro Feld.
+- `src/landing-themes/_shared/form-section.js`: Flexibilitäts-Botschaft im
+  Danke-Fenster (WhatsApp-Bestätigungstext entschärfen).
+- Keine Migration nötig — alle Daten existieren bereits.
 - Deploy: `bash scripts/deploy.sh` + Landing-Sync.
-
-## Womit ich dich brauche
-
-- 1–2 echte Mitarbeiterzitate (Vorname + Tätigkeit + 1 Satz)
-- Freigabe, wie die Zähler-Formulierung klingen soll
-  („Über X aktive Mitarbeiter arbeiten aktuell über uns")
