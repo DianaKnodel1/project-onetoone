@@ -82,17 +82,16 @@ export function ZusageCard({
           </a>
         </Button>
         <p className="text-xs text-muted-foreground">
-          {stopped ? (
-            <>Klicken Sie oben, um Ihre Registrierung abzuschließen.</>
-          ) : (
-            <>
-              Sie werden in {seconds} Sekunden automatisch zur Registrierung weitergeleitet.{" "}
-              <button type="button" onClick={() => setStopped(true)} className="underline hover:text-foreground">
-                Nicht weiterleiten
-              </button>
-            </>
-          )}
+          Klicke oben, um deine Registrierung abzuschließen – dauert nur wenige Minuten.
         </p>
+        {waHref && (
+          <Button asChild variant="outline" size="lg" className="w-full font-semibold text-base h-12">
+            <a href={waHref} target="_blank" rel="noopener noreferrer">
+              <MessageCircle className="h-5 w-5 mr-2" />
+              Fragen? Schreib mir direkt per WhatsApp
+            </a>
+          </Button>
+        )}
         {mailFailed && (
           <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
             ✉️ Die Bestätigungs-E-Mail ist noch unterwegs. Nutzen Sie zur Sicherheit
