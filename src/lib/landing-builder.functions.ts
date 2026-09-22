@@ -134,13 +134,13 @@ export const generateLandingDraft = createServerFn({ method: "POST" })
     const style = normalizeStyle(out?.style);
     const rawSections = Array.isArray(out?.sections) ? out.sections : [];
     const sections: any[] = [];
-    let hasForm = false;
+
     for (const s of rawSections.slice(0, 20)) {
       const type = String(s?.type || "");
       const def = CAT.find((d) => d.type === type);
       if (!def) continue;
       if (def.unique && sections.some((x) => x.type === type)) continue;
-      if (type === "form") { hasForm = true; continue; }
+      if (type === "form") continue;
       const base = createSection(type);
       const incoming = s?.data && typeof s.data === "object" ? s.data : {};
       const merged: Record<string, unknown> = { ...base.data };
@@ -150,7 +150,7 @@ export const generateLandingDraft = createServerFn({ method: "POST" })
       sections.push({ ...base, data: merged });
     }
     // Sicherheitsnetz: ohne Formular bringt eine Landing nichts.
-    if (hasForm || true) sections.push(createSection("form"));
+    sections.push(createSection("form"));
 
     return {
       style,
