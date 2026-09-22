@@ -229,7 +229,7 @@ export function createSection(type: string): LandingSection {
 
 /** Sinnvoller Startaufbau für eine neue Baukasten-Seite. */
 export function defaultSections(): LandingSection[] {
-  return ["hero", "stelle", "ablauf", "kontakt", "faq", "form"].map(createSection);
+  return ["hero", "stelle", "textbild", "ablauf", "kontakt", "faq", "form"].map(createSection);
 }
 
 /** Startpunkte für „Neue Seite". */
@@ -439,6 +439,27 @@ function renderBild(d: Record<string, any>): string {
 </section>`;
 }
 
+function renderTextbild(d: Record<string, any>): string {
+  const img = safeUrl(d.imageUrl);
+  const cta = d.ctaText ? `<p class="lb-tb-cta"><a class="lb-btn" href="#bewerbung-form">${esc(d.ctaText)}</a></p>` : "";
+  if (!img && !d.title && !d.text) return "";
+  const textCol = `<div class="lb-tb-text">
+      ${d.kicker ? `<span class="lb-kicker">${esc(d.kicker)}</span>` : ""}
+      ${d.title ? `<h2 class="lb-h2">${esc(d.title)}</h2>` : ""}
+      ${d.text ? `<p class="lb-p">${esc(d.text).replace(/\n/g, "<br>")}</p>` : ""}
+      ${cta}
+    </div>`;
+  const imgCol = img ? `<div class="lb-tb-img"><img src="${esc(img)}" alt="${esc(d.alt || "")}" loading="lazy"></div>` : "";
+  return `<section class="lb-section">
+  <div class="lb-wrap">
+    <div class="lb-tb${d.imageRight ? " lb-tb-right" : ""}">
+      ${textCol}
+      ${imgCol}
+    </div>
+  </div>
+</section>`;
+}
+
 function renderForm(branding: Record<string, any>): string {
   return applyPlaceholders(sharedFormHtml, branding);
 }
@@ -503,6 +524,12 @@ a{color:var(--lb-primary)}
 .lb-bild{margin:0}
 .lb-bild img{border-radius:16px;width:100%}
 .lb-bild figcaption{text-align:center;font-size:13px;color:var(--lb-muted);margin-top:10px}
+.lb-tb{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+.lb-tb-right .lb-tb-img{order:-1}
+.lb-tb .lb-kicker{margin-bottom:14px}
+.lb-tb-cta{margin-top:20px}
+.lb-tb-img img{border-radius:18px;box-shadow:0 24px 60px -20px rgba(15,23,42,.25)}
+@media(max-width:860px){.lb-tb{grid-template-columns:1fr;gap:26px}}
 .lb-footer{background:var(--lb-secondary);color:#cbd5e1;padding:44px 20px;font-size:14px}
 .lb-footer-in{max-width:1080px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center;justify-content:space-between}
 .lb-footer a{color:#e2e8f0;text-decoration:none}
@@ -599,6 +626,7 @@ export function renderSectionsLanding(opts: {
       case "kontakt": html = renderKontakt(d, branding); break;
       case "freitext": html = renderFreitext(d); break;
       case "bild": html = renderBild(d); break;
+      case "textbild": html = renderTextbild(d); break;
       case "form":
         if (!hasForm) { html = renderForm(branding); hasForm = true; }
         break;
