@@ -26,7 +26,9 @@ export default function StepAccount({ firstName, lastName, email, password, setF
           <UserPlus className="h-6 w-6 text-primary-foreground" />
         </div>
         <h1 className="text-2xl font-heading font-bold text-foreground">Willkommen im Team!</h1>
-        <p className="text-sm text-muted-foreground mt-1">Erstelle dein Konto in nur 3 Minuten</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Noch rund 2 Minuten bis zum Start – Ihre Angaben sind bereits vorausgefüllt.
+        </p>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
