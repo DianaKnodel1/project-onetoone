@@ -169,7 +169,20 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
           setApplications,
           () => setLoadingApplications(false));
       const profilesTask = track("Mitarbeiter",
-          () => fetchAll<ProfileRow>(() => supabase.from("profiles").select(PROFILE_OVERVIEW_COLUMNS).order("created_at", { ascending: false })),
+          async () => {
+            try {
+              return await fetchAll<ProfileRow>(() => supabase.from("profiles").select(PROFILE_OVERVIEW_COLUMNS).order("created_at", { ascending: false }));
+            } catch (err) {
+              // Ältere Datenbanken kennen die Sperr-Spalten noch nicht.
+              const msg = err instanceof Error ? err.message : String(err);
+              if (!/is_blocked|blocked_at/.test(msg)) throw err;
+              const fallbackColumns = PROFILE_OVERVIEW_COLUMNS
+                .split(", ")
+                .filter((c) => c !== "is_blocked" && c !== "blocked_at")
+                .join(", ");
+              return await fetchAll<ProfileRow>(() => supabase.from("profiles").select(fallbackColumns).order("created_at", { ascending: false }));
+            }
+          },
           setProfiles,
           () => setLoadingProfiles(false));
 
