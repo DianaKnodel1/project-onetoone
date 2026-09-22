@@ -318,7 +318,7 @@ function LandingBaukastenPage() {
       const payload: Record<string, unknown> = {
         slug: slug.trim(),
         theme_id: current?.theme_id || "theme-10",
-        flow_type: current?.flow_type || "fast",
+        flow_type: current?.flow_type || "classic",
         source_slug: current?.source_slug || "",
         is_published: current?.is_published ?? false,
         booking_mode: current?.booking_mode || "calendly",
