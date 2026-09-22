@@ -443,6 +443,16 @@ function AdminChatPage() {
 
 
 
+  const toggleBlockedInChat = async (userId: string, blocked: boolean) => {
+    try {
+      await setEmployeeBlocked({ data: { user_id: userId, blocked } });
+      setConversations((prev) => prev.map((c) => (c.user_id === userId ? { ...c, blocked } : c)));
+      toast({ title: blocked ? "Mitarbeiter gesperrt" : "Mitarbeiter freigegeben" });
+    } catch (e: any) {
+      toast({ title: "Fehler", description: e?.message ?? "Aktion fehlgeschlagen", variant: "destructive" });
+    }
+  };
+
   const markUnread = async (userId: string) => {
     const { error } = await supabase
       .from("chat_conversations")
