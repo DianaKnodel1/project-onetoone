@@ -20,6 +20,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useServerFn } from "@tanstack/react-start";
 import { pollAnosimSms } from "@/lib/sms-poll.functions";
 
+const AUTO_REFRESH_MS = 15000;
+
+/** Erkennt einen typischen SMS-Code (4-8 Ziffern) im Text. */
+function extractCode(body: string): string | null {
+  const m = String(body ?? "").match(/\b(\d{4,8})\b/);
+  return m ? m[1]! : null;
+}
+
 interface AssignedChannel {
   assignment_id: string;
   is_active: boolean;
@@ -36,6 +44,7 @@ interface AssignedChannel {
 
 interface SmsMessage {
   id: string;
+  channel_id: string | null;
   from_number: string;
   to_number: string;
   body: string;
@@ -62,6 +71,23 @@ function SmsPage() {
     if (authLoading || !user) return;
     init();
   }, [user, authLoading]);
+
+  // Neue Codes automatisch nachladen, solange die Seite offen ist.
+  useEffect(() => {
+    if (!accessAllowed) return;
+    const t = setInterval(() => {
+      void (async () => {
+        try {
+          await pollNow({ data: undefined as any });
+        } catch {
+          /* Abruf beim Anbieter fehlgeschlagen - wir laden trotzdem neu */
+        }
+        await loadData().catch(() => {});
+      })();
+    }, AUTO_REFRESH_MS);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessAllowed]);
 
   const init = async () => {
     try {
@@ -100,17 +126,26 @@ function SmsPage() {
 
       setAssignedChannels(merged);
 
-      const channelIds = merged.map((m) => m.channel.id);
+      const activeChannels = merged.filter((m) => m.is_active && m.channel.is_active);
+      const channelIds = activeChannels.map((m) => m.channel.id);
       let msgs: SmsMessage[] = [];
       if (channelIds.length > 0) {
         const { data, error: msgError } = await supabase
           .from("sms_messages")
-          .select("id, from_number, to_number, body, direction, status, created_at")
+          .select("id, channel_id, from_number, to_number, body, direction, status, created_at")
           .in("channel_id", channelIds)
           .order("created_at", { ascending: false })
           .limit(50);
         if (msgError) throw msgError;
-        msgs = (data as SmsMessage[]) ?? [];
+        // Nur Nachrichten, die nach der Zuweisung eingegangen sind.
+        const startByChannel = new Map<string, number>();
+        for (const a of activeChannels) {
+          startByChannel.set(a.channel.id, new Date(a.assigned_at).getTime());
+        }
+        msgs = ((data as SmsMessage[]) ?? []).filter((m) => {
+          const start = startByChannel.get(m.channel_id ?? "");
+          return start === undefined || new Date(m.created_at).getTime() >= start;
+        });
       }
       setMessages(msgs);
     } catch (err) {
@@ -264,6 +299,19 @@ function SmsPage() {
                       <p className="text-xs text-muted-foreground font-mono">
                         {m.direction === "inbound" ? `Von ${m.from_number}` : `An ${m.to_number}`}
                       </p>
+                      {m.direction === "inbound" && extractCode(m.body) && (
+                        <button
+                          onClick={() => {
+                            const code = extractCode(m.body)!;
+                            void navigator.clipboard?.writeText(code);
+                            toast({ title: "Code kopiert", description: code });
+                          }}
+                          className="mt-1.5 inline-flex items-center gap-1.5 rounded-md bg-primary/10 text-primary px-2 py-1 font-mono text-sm font-bold tracking-wider"
+                          title="Code kopieren"
+                        >
+                          {extractCode(m.body)}
+                        </button>
+                      )}
                       <p className="text-sm text-foreground mt-1 whitespace-pre-wrap break-words">
                         {m.body}
                       </p>
