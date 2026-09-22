@@ -6,7 +6,8 @@ import {
   getLandingPage,
   saveLandingPage,
 } from "@/lib/landing-pages.functions";
-import { renderSectionsPreview } from "@/lib/landing-builder.functions";
+import { renderSectionsPreview, generateLandingDraft, generateLandingImage } from "@/lib/landing-builder.functions";
+import { listLandingTemplates, saveLandingTemplate, deleteLandingTemplate } from "@/lib/landing-templates.functions";
 import { supabase } from "@/integrations/supabase/client";
 import {
   SECTION_CATALOG,
@@ -14,8 +15,12 @@ import {
   sectionsFromTemplate,
   defaultSections,
   createSection,
+  FONT_PAIRS,
+  normalizeStyle,
+  defaultStyle,
   type LandingSection,
   type SectionField,
+  type LandingStyle,
 } from "@/lib/landing-sections";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Loader2, Save, ArrowUp, ArrowDown, Trash2, Plus, Layers, ExternalLink,
   Monitor, Smartphone, Undo2, Settings2, GripVertical, X, Upload,
+  Sparkles, Shuffle, Palette, BookmarkPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
