@@ -97,6 +97,10 @@ function LandingBaukastenPage() {
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [showAiDialog, setShowAiDialog] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [templates, setTemplates] = useState<TemplateRow[]>([]);
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const savedSnapshot = useRef<string>("");
@@ -245,6 +249,7 @@ function LandingBaukastenPage() {
       whatsapp_enabled: branding.whatsapp_enabled,
       impressum: branding.impressum, datenschutz: branding.datenschutz,
       seo_title: branding.seo_title, seo_description: branding.seo_description,
+      style: branding.style,
     }),
     [branding]
   );
