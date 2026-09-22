@@ -22,6 +22,7 @@ import StepIdentity from "@/components/register/StepIdentity";
 import StepOptional from "@/components/register/StepOptional";
 import { usePortalTheme } from "@/hooks/use-portal-theme";
 import WhatsAppSupportButton from "@/components/WhatsAppSupportButton";
+import { isEmailBlocked as checkEmailBlocked } from "@/lib/employee-block.functions";
 
 
 const STORAGE_KEY = "onboarding_wizard_step";
