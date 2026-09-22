@@ -22,6 +22,7 @@ import StepIdentity from "@/components/register/StepIdentity";
 import StepOptional from "@/components/register/StepOptional";
 import { usePortalTheme } from "@/hooks/use-portal-theme";
 import WhatsAppSupportButton from "@/components/WhatsAppSupportButton";
+import { isEmailBlocked as checkEmailBlocked } from "@/lib/employee-block.functions";
 
 
 const STORAGE_KEY = "onboarding_wizard_step";
@@ -317,6 +318,23 @@ function RegisterPage() {
     try {
       const fullName = `${firstName.trim()} ${lastName.trim()}`;
       const trimmedEmail = email.trim();
+
+      // Gesperrte Konten dürfen sich nicht neu registrieren – gleiche
+      // neutrale Meldung wie bei einem falschen Passwort.
+      try {
+        const blockCheck: any = await checkEmailBlocked({ data: { email: trimmedEmail } });
+        if (blockCheck?.blocked) {
+          toast({
+            title: "Registrierung fehlgeschlagen",
+            description: "E-Mail oder Passwort ist falsch.",
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch {
+        /* Prüfung nicht erreichbar – Registrierung läuft normal weiter */
+      }
+
 
       // 1. Account via Edge Function anlegen (sendet Confirmation-Mail über Tenant-SMTP)
       const { data: fnData, error: fnErr } = await supabase.functions.invoke("send-signup-confirmation", {

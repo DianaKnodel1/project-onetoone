@@ -5,6 +5,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export type PollResult = {
   pulled: number;
   inserted: number;
+  /** Tatsächlich neu gespeicherte SMS (ohne Doppelte). */
+  new: number;
   channels_polled: number;
   errors: string[];
 };
@@ -41,6 +43,7 @@ async function runPoll(): Promise<PollResult> {
   const result: PollResult = {
     pulled: 0,
     inserted: 0,
+    new: 0,
     channels_polled: 0,
     errors: [],
   };
@@ -123,7 +126,7 @@ async function runPoll(): Promise<PollResult> {
 
       const providerMessageId = buildProviderMessageId(sms);
 
-      const { error: insErr } = await sb
+      const { data: insRows, error: insErr } = await sb
         .from("sms_messages")
         .upsert(
           {
@@ -139,15 +142,18 @@ async function runPoll(): Promise<PollResult> {
             created_at: sms.messageDate,
           },
           { onConflict: "channel_id,provider_message_id", ignoreDuplicates: true },
-        );
+        )
+        .select("id");
 
       if (insErr) {
         result.errors.push(`insert: ${insErr.message}`);
         continue;
       }
-      // upsert mit ignoreDuplicates liefert keine eindeutige "inserted"-Zahl;
-      // wir zählen optimistisch.
+      // .select() liefert nur wirklich eingefügte Zeilen zurück –
+      // so zählen wir Doppelte nicht mit.
+      const added = Array.isArray(insRows) ? insRows.length : 0;
       result.inserted += 1;
+      result.new += added;
     }
   }
 

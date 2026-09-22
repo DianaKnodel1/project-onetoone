@@ -117,7 +117,7 @@ function LoginPage() {
           Promise.all([
             supabase
               .from("profiles")
-              .select("tenant_id, status")
+              .select("tenant_id, status, is_blocked")
               .eq("user_id", data.user.id)
               .maybeSingle(),
             supabase
@@ -148,6 +148,16 @@ function LoginPage() {
       const roles: string[] = (roleRes.data ?? []).map((r: { role: string }) => r.role);
       const isAdminUser = roles.includes("admin");
       const isStaffUser = roles.includes("admin_mitarbeiter");
+
+      // Gesperrtes Konto: bewusst die normale Fehlermeldung — der Nutzer
+      // soll von der Sperre nichts mitbekommen.
+      if ((profile as any)?.is_blocked) {
+        await supabase.auth.signOut();
+        const description = "E-Mail oder Passwort ist falsch.";
+        setAuthError(description);
+        toast({ title: "Anmeldung fehlgeschlagen", description, variant: "destructive" });
+        return;
+      }
 
       if (profile?.status === "deaktiviert") {
         await supabase.auth.signOut();
