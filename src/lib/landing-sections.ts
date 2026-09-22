@@ -16,7 +16,7 @@ import sharedFormCss from "../landing-themes/_shared/form-section.css?raw";
 import sharedFormJs from "../landing-themes/_shared/form-section.js?raw";
 
 // ── Typen ────────────────────────────────────────────────────────────────
-export type SectionFieldKind = "text" | "textarea" | "image" | "color" | "boolean" | "strings" | "objects";
+export type SectionFieldKind = "text" | "textarea" | "image" | "color" | "boolean" | "strings" | "objects" | "select";
 
 export type SectionField = {
   key: string;
@@ -27,6 +27,8 @@ export type SectionField = {
   /** nur kind="objects": Felder eines Listeneintrags */
   itemFields?: { key: string; label: string; kind: "text" | "textarea" | "image" }[];
   itemLabel?: string;
+  /** nur kind="select" */
+  options?: { value: string; label: string }[];
 };
 
 export type SectionTypeDef = {
@@ -53,6 +55,14 @@ export const SECTION_CATALOG: SectionTypeDef[] = [
       { key: "subtitle", label: "Untertitel", kind: "textarea" },
       { key: "ctaText", label: "Knopf-Text", kind: "text", placeholder: "Jetzt bewerben" },
       { key: "imageUrl", label: "Bild (optional)", kind: "image", help: "Bild direkt hochladen oder Bild-URL einfügen." },
+      {
+        key: "variant", label: "Darstellung", kind: "select",
+        options: [
+          { value: "split", label: "Text links, Bild rechts" },
+          { value: "centered", label: "Zentriert, Bild darunter" },
+          { value: "cover", label: "Bild als Hintergrund" },
+        ],
+      },
     ],
     defaults: () => ({
       kicker: "",
@@ -60,6 +70,7 @@ export const SECTION_CATALOG: SectionTypeDef[] = [
       subtitle: "Wir bringen dich in einen sicheren Job bei geprüften Unternehmen in deiner Region. Ohne lange Bewerbungsunterlagen.",
       ctaText: "Jetzt bewerben",
       imageUrl: "",
+      variant: "split",
     }),
   },
   {
@@ -267,6 +278,115 @@ export function sectionsFromTemplate(templateId: string): LandingSection[] {
   return tpl.types.map(createSection);
 }
 
+// ── Design-Ebene (branding.style) ────────────────────────────────────────
+export type LandingStyle = {
+  mode: "light" | "dark";
+  primary: string;
+  accent: string;
+  bg: string;
+  surface: string;
+  ink: string;
+  muted: string;
+  fontPair: string;
+  radius: number;
+  density: "kompakt" | "normal" | "luftig";
+  buttonShape: "pill" | "rund" | "eckig";
+};
+
+export const FONT_PAIRS: { id: string; label: string; heading: string; body: string; google: string[] }[] = [
+  { id: "system", label: "System (ohne Webfont)", heading: `system-ui,-apple-system,"Segoe UI",Roboto,sans-serif`, body: `system-ui,-apple-system,"Segoe UI",Roboto,sans-serif`, google: [] },
+  { id: "inter-plus", label: "Modern & sachlich", heading: `"Plus Jakarta Sans",system-ui,sans-serif`, body: `Inter,system-ui,sans-serif`, google: ["Plus+Jakarta+Sans:wght@600;800", "Inter:wght@400;600"] },
+  { id: "dm", label: "Freundlich & rund", heading: `"DM Sans",system-ui,sans-serif`, body: `"DM Sans",system-ui,sans-serif`, google: ["DM+Sans:wght@400;500;700"] },
+  { id: "serif", label: "Seriös mit Serifen", heading: `"Source Serif 4",Georgia,serif`, body: `Inter,system-ui,sans-serif`, google: ["Source+Serif+4:wght@600;700", "Inter:wght@400;600"] },
+  { id: "bold", label: "Kräftig & werblich", heading: `Archivo,system-ui,sans-serif`, body: `"Barlow",system-ui,sans-serif`, google: ["Archivo:wght@700;800", "Barlow:wght@400;600"] },
+];
+
+const HEX = /^#[0-9a-fA-F]{6}$/;
+const hex = (v: unknown, fb: string) => (HEX.test(String(v ?? "")) ? String(v) : fb);
+
+export function defaultStyle(): LandingStyle {
+  return {
+    mode: "light", primary: "#1d4ed8", accent: "#0f172a", bg: "#ffffff",
+    surface: "#f8fafc", ink: "#0f172a", muted: "#475569",
+    fontPair: "system", radius: 14, density: "normal", buttonShape: "pill",
+  };
+}
+
+export function normalizeStyle(raw: unknown): LandingStyle {
+  const d = defaultStyle();
+  const s = (raw && typeof raw === "object" ? raw : {}) as Record<string, any>;
+  const mode = s.mode === "dark" ? "dark" : "light";
+  const dark = mode === "dark";
+  return {
+    mode,
+    primary: hex(s.primary, d.primary),
+    accent: hex(s.accent, d.accent),
+    bg: hex(s.bg, dark ? "#0b1120" : d.bg),
+    surface: hex(s.surface, dark ? "#111c33" : d.surface),
+    ink: hex(s.ink, dark ? "#f1f5f9" : d.ink),
+    muted: hex(s.muted, dark ? "#94a3b8" : d.muted),
+    fontPair: FONT_PAIRS.some((f) => f.id === s.fontPair) ? String(s.fontPair) : d.fontPair,
+    radius: Number.isFinite(Number(s.radius)) ? Math.min(32, Math.max(0, Math.round(Number(s.radius)))) : d.radius,
+    density: ["kompakt", "normal", "luftig"].includes(String(s.density)) ? (String(s.density) as LandingStyle["density"]) : d.density,
+    buttonShape: ["pill", "rund", "eckig"].includes(String(s.buttonShape)) ? (String(s.buttonShape) as LandingStyle["buttonShape"]) : d.buttonShape,
+  };
+}
+
+const PALETTES: { primary: string; accent: string; mode: "light" | "dark"; bg: string; surface: string; ink: string; muted: string }[] = [
+  { primary: "#1d4ed8", accent: "#0f172a", mode: "light", bg: "#ffffff", surface: "#f1f5f9", ink: "#0f172a", muted: "#475569" },
+  { primary: "#0f766e", accent: "#134e4a", mode: "light", bg: "#ffffff", surface: "#f0fdfa", ink: "#0f172a", muted: "#475569" },
+  { primary: "#b45309", accent: "#1c1917", mode: "light", bg: "#fffbf5", surface: "#fef3c7", ink: "#1c1917", muted: "#57534e" },
+  { primary: "#be123c", accent: "#1f2937", mode: "light", bg: "#ffffff", surface: "#fff1f2", ink: "#111827", muted: "#4b5563" },
+  { primary: "#4f46e5", accent: "#020617", mode: "dark", bg: "#0b1120", surface: "#131f38", ink: "#f8fafc", muted: "#94a3b8" },
+  { primary: "#22c55e", accent: "#052e16", mode: "dark", bg: "#0a0f0c", surface: "#132218", ink: "#f0fdf4", muted: "#9ca3af" },
+];
+
+const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)]!;
+
+/** Zufällige, aber immer kontraststarke Design-Variante („Design neu würfeln"). */
+export function randomStyle(): LandingStyle {
+  const p = pick(PALETTES);
+  return normalizeStyle({
+    ...p,
+    fontPair: pick(FONT_PAIRS).id,
+    radius: pick([0, 6, 12, 18, 24]),
+    density: pick(["kompakt", "normal", "luftig"]),
+    buttonShape: pick(["pill", "rund", "eckig"]),
+  });
+}
+
+function styleCss(st: LandingStyle): string {
+  const pair = FONT_PAIRS.find((f) => f.id === st.fontPair) || FONT_PAIRS[0]!;
+  const pad = st.density === "kompakt" ? 48 : st.density === "luftig" ? 104 : 72;
+  const btnRadius = st.buttonShape === "pill" ? "999px" : st.buttonShape === "rund" ? "10px" : "2px";
+  return `
+:root{--lb-primary:${st.primary};--lb-secondary:${st.accent};--lb-ink:${st.ink};--lb-muted:${st.muted};--lb-bg:${st.bg};--lb-surface:${st.surface};--lb-line:${st.mode === "dark" ? "rgba(255,255,255,.14)" : "#e2e8f0"};--lb-radius:${st.radius}px;}
+body{font-family:${pair.body};background:var(--lb-bg);color:var(--lb-ink)}
+h1,h2,h3,.lb-brand{font-family:${pair.heading}}
+.lb-section{padding:${pad}px 0}
+.lb-hero{padding:${pad + 16}px 0;background:linear-gradient(180deg,color-mix(in oklab,var(--lb-primary) ${st.mode === "dark" ? 18 : 7}%,var(--lb-bg)) 0%,var(--lb-bg) 100%)}
+.lb-alt{background:var(--lb-surface)}
+.lb-card,.lb-step,.lb-faq-item{background:var(--lb-surface);border-color:var(--lb-line);border-radius:var(--lb-radius)}
+.lb-btn{border-radius:${btnRadius}}
+.lb-hero-img,.lb-tb-img img,.lb-bild img{border-radius:calc(var(--lb-radius) + 4px)}
+.lb-header{background:color-mix(in oklab,var(--lb-bg) 92%,transparent);border-bottom:1px solid var(--lb-line)}
+.lb-hero-centered .lb-hero-grid{grid-template-columns:1fr;text-align:center;justify-items:center}
+.lb-hero-centered .lb-hero-sub{margin-left:auto;margin-right:auto}
+.lb-hero-cover{position:relative;color:#fff;background-size:cover;background-position:center}
+.lb-hero-cover::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,6,23,.62),rgba(2,6,23,.78))}
+.lb-hero-cover .lb-wrap{position:relative}
+.lb-hero-cover .lb-hero-grid{grid-template-columns:1fr;text-align:center;justify-items:center}
+.lb-hero-cover .lb-hero-sub,.lb-hero-cover .lb-duration{color:rgba(255,255,255,.85)}
+`;
+}
+
+function fontLink(st: LandingStyle): string {
+  const pair = FONT_PAIRS.find((f) => f.id === st.fontPair) || FONT_PAIRS[0]!;
+  if (!pair.google.length) return "";
+  const fam = pair.google.map((g) => `family=${g}`).join("&");
+  return `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?${fam}&display=swap">`;
+}
+
 
 // ── Renderer ─────────────────────────────────────────────────────────────
 function esc(s: unknown): string {
@@ -318,7 +438,15 @@ function objects(v: unknown): Record<string, any>[] {
 function renderHero(d: Record<string, any>): string {
   const img = safeUrl(d.imageUrl);
   const cta = esc(d.ctaText || "Jetzt bewerben");
-  return `<section class="lb-hero">
+  const variant = ["split", "centered", "cover"].includes(String(d.variant)) ? String(d.variant) : "split";
+  const cover = variant === "cover" && img;
+  const cls = `lb-hero${cover ? " lb-hero-cover" : variant === "centered" ? " lb-hero-centered" : ""}`;
+  const bgAttr = cover ? ` style="background-image:url('${esc(img)}')"` : "";
+  const showImg = img && variant === "split";
+  const belowImg = img && variant === "centered"
+    ? `<div class="lb-hero-imgwrap"><img class="lb-hero-img" src="${esc(img)}" alt="" loading="eager"></div>`
+    : "";
+  return `<section class="${cls}"${bgAttr}>
   <div class="lb-wrap lb-hero-grid">
     <div>
       ${d.kicker ? `<span class="lb-kicker">${esc(d.kicker)}</span>` : ""}
@@ -329,7 +457,7 @@ function renderHero(d: Record<string, any>): string {
         <span class="lb-duration">Bewerbung dauert ca. 2&nbsp;Minuten</span>
       </p>
     </div>
-    ${img ? `<div class="lb-hero-imgwrap"><img class="lb-hero-img" src="${esc(img)}" alt="" loading="eager"></div>` : ""}
+    ${showImg ? `<div class="lb-hero-imgwrap"><img class="lb-hero-img" src="${esc(img)}" alt="" loading="eager"></div>` : belowImg}
   </div>
 </section>`;
 }
@@ -610,6 +738,13 @@ export function renderSectionsLanding(opts: {
   const secondary = secondaryOf(branding);
   const host = String(opts.host || branding.landing_domain || "").replace(/^www\./, "");
   const editor = Boolean(opts.editor);
+  // Design-Ebene: wenn keine eigene Gestaltung hinterlegt ist, greifen die
+  // bisherigen Farben aus dem Branding — bestehende Seiten sehen unverändert aus.
+  const st = normalizeStyle(
+    branding.style && typeof branding.style === "object"
+      ? { primary, accent: secondary, ...(branding.style as Record<string, any>) }
+      : { primary, accent: secondary }
+  );
 
   const list = Array.isArray(opts.sections) ? opts.sections : [];
   const bodyParts: string[] = [];
@@ -672,8 +807,10 @@ ${desc ? `<meta property="og:description" content="${esc(desc)}">` : ""}
 ${host ? `<meta property="og:url" content="https://${esc(host)}">` : ""}
 <meta name="twitter:card" content="summary">
 ${opts.faviconUrl ? `<link rel="icon" href="/assets/favicon">` : ""}
+${fontLink(st)}
 <style>
 ${BASE_CSS.replace(/#1d4ed8/g, primary).replace(/#0f172a/g, secondary)}
+${styleCss(st)}
 ${formCss}
 ${editor ? EDITOR_CSS : ""}
 </style>

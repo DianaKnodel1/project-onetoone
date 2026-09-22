@@ -6,7 +6,8 @@ import {
   getLandingPage,
   saveLandingPage,
 } from "@/lib/landing-pages.functions";
-import { renderSectionsPreview } from "@/lib/landing-builder.functions";
+import { renderSectionsPreview, generateLandingDraft, generateLandingImage } from "@/lib/landing-builder.functions";
+import { listLandingTemplates, saveLandingTemplate, deleteLandingTemplate } from "@/lib/landing-templates.functions";
 import { supabase } from "@/integrations/supabase/client";
 import {
   SECTION_CATALOG,
@@ -14,8 +15,12 @@ import {
   sectionsFromTemplate,
   defaultSections,
   createSection,
+  FONT_PAIRS,
+  normalizeStyle,
+  defaultStyle,
   type LandingSection,
   type SectionField,
+  type LandingStyle,
 } from "@/lib/landing-sections";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Loader2, Save, ArrowUp, ArrowDown, Trash2, Plus, Layers, ExternalLink,
   Monitor, Smartphone, Undo2, Settings2, GripVertical, X, Upload,
+  Sparkles, Shuffle, Palette, BookmarkPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -65,6 +71,15 @@ type LandingListItem = {
 const EMPTY_BRANDING = {
   firmenname: "", primary_color: "#2563eb", secondary_color: "#1e40af",
   kontakt_email: "", telefon: "", seo_title: "", seo_description: "",
+  style: defaultStyle(),
+};
+
+type TemplateRow = {
+  id: string;
+  name: string;
+  description: string;
+  sections: LandingSection[];
+  style: Record<string, unknown>;
 };
 
 function LandingBaukastenPage() {
@@ -73,6 +88,10 @@ function LandingBaukastenPage() {
   const getFn = useServerFn(getLandingPage);
   const saveFn = useServerFn(saveLandingPage);
   const previewFn = useServerFn(renderSectionsPreview);
+  const aiFn = useServerFn(generateLandingDraft);
+  const tplListFn = useServerFn(listLandingTemplates);
+  const tplSaveFn = useServerFn(saveLandingTemplate);
+  const tplDelFn = useServerFn(deleteLandingTemplate);
 
   const [landings, setLandings] = useState<LandingListItem[]>([]);
   const [current, setCurrent] = useState<LandingRow | null>(null);
@@ -91,6 +110,10 @@ function LandingBaukastenPage() {
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [showAiDialog, setShowAiDialog] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [templates, setTemplates] = useState<TemplateRow[]>([]);
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const savedSnapshot = useRef<string>("");
@@ -115,6 +138,7 @@ function LandingBaukastenPage() {
     (async () => {
       try {
         await refreshList();
+        await refreshTemplates();
       } catch (e) {
         toast({ title: "Fehler", description: String((e as Error).message), variant: "destructive" });
       } finally {
@@ -174,6 +198,92 @@ function LandingBaukastenPage() {
     applyState(null, sectionsFromTemplate(templateId));
     setShowNewDialog(false);
     setShowSettings(true);
+  };
+
+  // ── Eigene Vorlagen ──────────────────────────────────────────────────────
+  const refreshTemplates = useCallback(async () => {
+    try {
+      const res = (await tplListFn()) as unknown as { rows: TemplateRow[] };
+      setTemplates(res.rows || []);
+    } catch {
+      setTemplates([]); // Tabelle evtl. noch nicht eingespielt — Baukasten bleibt nutzbar
+    }
+  }, [tplListFn]);
+
+  const startFromTemplate = (t: TemplateRow) => {
+    const secs = (Array.isArray(t.sections) ? t.sections : []).map((s) => ({
+      ...s,
+      id: `sec_${Math.random().toString(36).slice(2, 10)}`,
+    }));
+    applyState(null, secs.length ? secs : defaultSections());
+    setBranding((b) => ({ ...b, style: normalizeStyle(t.style) }));
+    setShowNewDialog(false);
+    setShowSettings(true);
+  };
+
+  const saveAsTemplate = async () => {
+    const name = window.prompt("Name der Vorlage:", branding.firmenname ? `Vorlage ${branding.firmenname}` : "Meine Vorlage");
+    if (!name?.trim()) return;
+    try {
+      await tplSaveFn({ data: { name: name.trim(), description: "", sections, style: normalizeStyle(branding.style) } as any });
+      toast({ title: "Vorlage gespeichert", description: "Du findest sie unter „Neue Seite“." });
+      await refreshTemplates();
+    } catch (e) {
+      toast({ title: "Vorlage nicht gespeichert", description: String((e as Error).message), variant: "destructive" });
+    }
+  };
+
+  const removeTemplate = async (t: TemplateRow) => {
+    if (!window.confirm(`Vorlage „${t.name}“ löschen?`)) return;
+    try {
+      await tplDelFn({ data: { id: t.id } });
+      await refreshTemplates();
+    } catch (e) {
+      toast({ title: "Löschen fehlgeschlagen", description: String((e as Error).message), variant: "destructive" });
+    }
+  };
+
+  // ── KI-Entwurf ───────────────────────────────────────────────────────────
+  const runAi = async (params: Record<string, string>) => {
+    setAiBusy(true);
+    try {
+      const res = (await aiFn({ data: { ...params, onlyStyle: false } as any })) as any;
+      const secs: LandingSection[] = (res.sections || []).map((s: LandingSection) => ({
+        ...s,
+        id: `sec_${Math.random().toString(36).slice(2, 10)}`,
+      }));
+      setSections(secs);
+      setSelectedId(secs[0]?.id || null);
+      setBranding((b) => ({
+        ...b,
+        firmenname: b.firmenname || params.firmenname || "",
+        style: normalizeStyle(res.style),
+        primary_color: normalizeStyle(res.style).primary,
+        secondary_color: normalizeStyle(res.style).accent,
+        seo_title: res.seo?.title || b.seo_title,
+        seo_description: res.seo?.description || b.seo_description,
+      }));
+      setShowAiDialog(false);
+      setShowNewDialog(false);
+      toast({ title: "Entwurf erstellt", description: "Prüfe die Texte und passe sie an, bevor du speicherst." });
+    } catch (e) {
+      toast({ title: "KI-Entwurf fehlgeschlagen", description: String((e as Error).message), variant: "destructive" });
+    } finally {
+      setAiBusy(false);
+    }
+  };
+
+  const shuffleStyle = async () => {
+    setAiBusy(true);
+    try {
+      const res = (await aiFn({ data: { onlyStyle: true } as any })) as any;
+      const st = normalizeStyle(res.style);
+      setBranding((b) => ({ ...b, style: st, primary_color: st.primary, secondary_color: st.accent }));
+    } catch (e) {
+      toast({ title: "Design nicht geändert", description: String((e as Error).message), variant: "destructive" });
+    } finally {
+      setAiBusy(false);
+    }
   };
 
   const discard = async () => {
@@ -239,6 +349,7 @@ function LandingBaukastenPage() {
       whatsapp_enabled: branding.whatsapp_enabled,
       impressum: branding.impressum, datenschutz: branding.datenschutz,
       seo_title: branding.seo_title, seo_description: branding.seo_description,
+      style: branding.style,
     }),
     [branding]
   );
@@ -318,7 +429,7 @@ function LandingBaukastenPage() {
       const payload: Record<string, unknown> = {
         slug: slug.trim(),
         theme_id: current?.theme_id || "theme-10",
-        flow_type: current?.flow_type || "fast",
+        flow_type: current?.flow_type || "classic",
         source_slug: current?.source_slug || "",
         is_published: current?.is_published ?? false,
         booking_mode: current?.booking_mode || "calendly",
@@ -402,6 +513,15 @@ function LandingBaukastenPage() {
         <Button variant="outline" size="sm" onClick={() => setShowSettings((v) => !v)}>
           <Settings2 className="h-4 w-4 mr-1" /> Grundeinstellungen
         </Button>
+        <Button variant="outline" size="sm" onClick={() => setShowAiDialog(true)} disabled={aiBusy}>
+          <Sparkles className="h-4 w-4 mr-1" /> Mit KI erstellen
+        </Button>
+        <Button variant="outline" size="sm" onClick={shuffleStyle} disabled={aiBusy}>
+          {aiBusy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Shuffle className="h-4 w-4 mr-1" />} Design neu würfeln
+        </Button>
+        <Button variant="outline" size="sm" onClick={saveAsTemplate} disabled={!sections.length}>
+          <BookmarkPlus className="h-4 w-4 mr-1" /> Als Vorlage speichern
+        </Button>
         <span className="text-xs text-muted-foreground ml-1">
           {dirty ? "Ungespeicherte Änderungen" : "Alles gespeichert"}
           {previewing && " · Vorschau wird aktualisiert…"}
@@ -422,15 +542,21 @@ function LandingBaukastenPage() {
       </div>
 
       {showSettings && (
-        <BasicSettings
-          branding={branding}
-          setBranding={setBranding}
-          slug={slug}
-          setSlug={setSlug}
-          calendlyUrl={calendlyUrl}
-          setCalendlyUrl={setCalendlyUrl}
-          onClose={() => setShowSettings(false)}
-        />
+        <>
+          <BasicSettings
+            branding={branding}
+            setBranding={setBranding}
+            slug={slug}
+            setSlug={setSlug}
+            calendlyUrl={calendlyUrl}
+            setCalendlyUrl={setCalendlyUrl}
+            onClose={() => setShowSettings(false)}
+          />
+          <StyleSettings
+            style={normalizeStyle(branding.style)}
+            onChange={(st) => setBranding({ ...branding, style: st, primary_color: st.primary, secondary_color: st.accent })}
+          />
+        </>
       )}
 
       {/* Arbeitsfläche */}
@@ -560,21 +686,66 @@ function LandingBaukastenPage() {
       {/* Neue Seite */}
       {showNewDialog && (
         <Overlay onClose={() => setShowNewDialog(false)} title="Neue Seite starten">
-          <div className="grid gap-2 sm:grid-cols-2">
-            {SECTION_TEMPLATES.map((t) => (
+          <div className="space-y-5">
+            <div>
               <button
-                key={t.id}
-                onClick={() => startNewPage(t.id)}
-                className="text-left border rounded-lg p-3 hover:border-primary hover:bg-accent transition"
+                onClick={() => { setShowNewDialog(false); setShowAiDialog(true); }}
+                className="w-full text-left border rounded-lg p-4 hover:border-primary hover:bg-accent transition"
               >
-                <div className="font-medium text-sm">{t.label}</div>
-                <div className="text-xs text-muted-foreground mt-1">{t.description}</div>
+                <div className="font-medium text-sm flex items-center gap-2"><Sparkles className="h-4 w-4" /> Mit KI erstellen</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Du beschreibst Firma, Stelle und Tonalität — die KI schreibt Texte und schlägt ein Design vor.
+                </div>
               </button>
-            ))}
+            </div>
+
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">Leer starten</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {SECTION_TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => startNewPage(t.id)}
+                    className="text-left border rounded-lg p-3 hover:border-primary hover:bg-accent transition"
+                  >
+                    <div className="font-medium text-sm">{t.label}</div>
+                    <div className="text-xs text-muted-foreground mt-1">{t.description}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {templates.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2">Aus eigener Vorlage</p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {templates.map((t) => (
+                    <div key={t.id} className="border rounded-lg p-3 flex items-start gap-2 hover:border-primary transition">
+                      <button className="text-left flex-1" onClick={() => startFromTemplate(t)}>
+                        <div className="font-medium text-sm">{t.name}</div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {(Array.isArray(t.sections) ? t.sections.length : 0)} Abschnitte
+                        </div>
+                      </button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeTemplate(t)}>
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           <p className="text-xs text-muted-foreground mt-3">
             Nach der Auswahl kannst du jeden Abschnitt frei ändern, verschieben oder löschen.
           </p>
+        </Overlay>
+      )}
+
+      {/* KI-Entwurf */}
+      {showAiDialog && (
+        <Overlay onClose={() => (aiBusy ? null : setShowAiDialog(false))} title="Seite mit KI erstellen">
+          <AiDialog busy={aiBusy} defaultCompany={branding.firmenname || ""} onSubmit={runAi} />
         </Overlay>
       )}
     </div>
@@ -687,8 +858,27 @@ function sanitizeFileName(name: string): string {
 function ImageField({ value, onChange }: { value: unknown; onChange: (v: string) => void }) {
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
   const url = String(value ?? "");
   const inputRef = useRef<HTMLInputElement>(null);
+  const imageFn = useServerFn(generateLandingImage);
+
+  const generate = async () => {
+    const prompt = window.prompt(
+      "Was soll auf dem Bild zu sehen sein?\n(Für echte Team- oder Arbeitsplatzfotos bitte eigene Bilder hochladen.)",
+      ""
+    );
+    if (!prompt?.trim()) return;
+    setAiBusy(true);
+    try {
+      const res = (await imageFn({ data: { prompt: prompt.trim() } })) as unknown as { url: string };
+      onChange(res.url);
+    } catch (e) {
+      toast({ title: "Bild nicht erzeugt", description: String((e as Error).message), variant: "destructive" });
+    } finally {
+      setAiBusy(false);
+    }
+  };
 
   const upload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -739,6 +929,10 @@ function ImageField({ value, onChange }: { value: unknown; onChange: (v: string)
         <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => inputRef.current?.click()}>
           {busy ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Upload className="h-3.5 w-3.5 mr-1.5" />}
           {busy ? "Lädt hoch…" : "Bild hochladen"}
+        </Button>
+        <Button type="button" variant="outline" size="sm" disabled={aiBusy} onClick={generate}>
+          {aiBusy ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 mr-1.5" />}
+          {aiBusy ? "Wird erzeugt…" : "Mit KI erzeugen"}
         </Button>
         {url && (
           <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")}>
@@ -795,6 +989,17 @@ function FieldEditor({ field, value, onChange }: { field: SectionField; value: u
       {field.kind === "image" && (
         <ImageField value={value} onChange={(v) => onChange(v)} />
       )}
+      {field.kind === "select" && (
+        <select
+          className="w-full border rounded-md px-3 py-2 bg-background text-sm"
+          value={String(value ?? field.options?.[0]?.value ?? "")}
+          onChange={(e) => onChange(e.target.value)}
+        >
+          {(field.options || []).map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+      )}
       {field.kind === "objects" && (
         <ObjectsField field={field} value={Array.isArray(value) ? (value as Record<string, string>[]) : []} onChange={onChange} />
       )}
@@ -846,5 +1051,153 @@ function ObjectsField({
         <Plus className="h-3.5 w-3.5 mr-1" /> {field.itemLabel || "Eintrag"} hinzufügen
       </Button>
     </div>
+  );
+}
+
+/** Eingaben für den KI-Entwurf. */
+function AiDialog({
+  busy, defaultCompany, onSubmit,
+}: {
+  busy: boolean;
+  defaultCompany: string;
+  onSubmit: (v: Record<string, string>) => void;
+}) {
+  const [v, setV] = useState({
+    firmenname: defaultCompany,
+    branche: "",
+    stelle: "",
+    ort: "",
+    tonalitaet: "locker und persönlich",
+    designrichtung: "",
+    besonderheiten: "",
+  });
+  const set = (k: string, val: string) => setV((p) => ({ ...p, [k]: val }));
+
+  return (
+    <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label className="text-xs">Firmenname</Label>
+          <Input value={v.firmenname} onChange={(e) => set("firmenname", e.target.value)} />
+        </div>
+        <div>
+          <Label className="text-xs">Branche</Label>
+          <Input value={v.branche} onChange={(e) => set("branche", e.target.value)} placeholder="z.B. Logistik, Pflege, Gastronomie" />
+        </div>
+        <div>
+          <Label className="text-xs">Gesuchte Stelle</Label>
+          <Input value={v.stelle} onChange={(e) => set("stelle", e.target.value)} placeholder="z.B. Lagerhelfer (m/w/d)" />
+        </div>
+        <div>
+          <Label className="text-xs">Ort / Region</Label>
+          <Input value={v.ort} onChange={(e) => set("ort", e.target.value)} />
+        </div>
+        <div>
+          <Label className="text-xs">Tonalität</Label>
+          <select
+            className="w-full border rounded-md px-3 py-2 bg-background text-sm"
+            value={v.tonalitaet}
+            onChange={(e) => set("tonalitaet", e.target.value)}
+          >
+            <option value="locker und persönlich">locker und persönlich</option>
+            <option value="sachlich und seriös">sachlich und seriös</option>
+            <option value="motivierend und direkt">motivierend und direkt</option>
+            <option value="ruhig und vertrauensvoll">ruhig und vertrauensvoll</option>
+          </select>
+        </div>
+        <div>
+          <Label className="text-xs">Design-Richtung (optional)</Label>
+          <Input value={v.designrichtung} onChange={(e) => set("designrichtung", e.target.value)} placeholder="z.B. dunkel und modern, warm, technisch" />
+        </div>
+      </div>
+      <div>
+        <Label className="text-xs">Besonderheiten — nur echte Angaben</Label>
+        <Textarea
+          rows={4}
+          value={v.besonderheiten}
+          onChange={(e) => set("besonderheiten", e.target.value)}
+          placeholder="z.B. Schichtzuschläge, Führerschein nötig, Einstieg ohne Erfahrung möglich"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          Die KI erfindet keine Zahlen, Auszeichnungen oder Kundenstimmen — alles, was drinstehen soll, gehört hierher.
+        </p>
+      </div>
+      <Button onClick={() => onSubmit(v)} disabled={busy} className="w-full">
+        {busy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+        {busy ? "Entwurf wird erstellt…" : "Entwurf erstellen"}
+      </Button>
+    </div>
+  );
+}
+
+/** Gestaltung der Seite: Farben, Schrift, Rundungen, Abstände. */
+function StyleSettings({ style, onChange }: { style: LandingStyle; onChange: (s: LandingStyle) => void }) {
+  const set = (patch: Partial<LandingStyle>) => onChange(normalizeStyle({ ...style, ...patch }));
+  const colorField = (key: keyof LandingStyle, label: string) => (
+    <div key={String(key)}>
+      <Label className="text-xs">{label}</Label>
+      <div className="flex gap-2">
+        <input
+          type="color"
+          className="h-9 w-12 rounded border"
+          value={String(style[key])}
+          onChange={(e) => set({ [key]: e.target.value } as Partial<LandingStyle>)}
+        />
+        <Input value={String(style[key])} onChange={(e) => set({ [key]: e.target.value } as Partial<LandingStyle>)} />
+      </div>
+    </div>
+  );
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2"><Palette className="h-4 w-4" /> Gestaltung</CardTitle>
+        <CardDescription>Farben, Schrift und Formen der ganzen Seite.</CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-4 md:grid-cols-3">
+        <div>
+          <Label className="text-xs">Hell oder dunkel</Label>
+          <select className="w-full border rounded-md px-3 py-2 bg-background text-sm"
+            value={style.mode} onChange={(e) => set({ mode: e.target.value as LandingStyle["mode"] })}>
+            <option value="light">Hell</option>
+            <option value="dark">Dunkel</option>
+          </select>
+        </div>
+        {colorField("primary", "Hauptfarbe")}
+        {colorField("accent", "Akzentfarbe")}
+        {colorField("bg", "Hintergrund")}
+        {colorField("surface", "Flächen / Karten")}
+        {colorField("ink", "Schriftfarbe")}
+        <div>
+          <Label className="text-xs">Schriftart</Label>
+          <select className="w-full border rounded-md px-3 py-2 bg-background text-sm"
+            value={style.fontPair} onChange={(e) => set({ fontPair: e.target.value })}>
+            {FONT_PAIRS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <Label className="text-xs">Ecken abrunden ({style.radius} px)</Label>
+          <input type="range" min={0} max={28} step={2} className="w-full"
+            value={style.radius} onChange={(e) => set({ radius: Number(e.target.value) })} />
+        </div>
+        <div>
+          <Label className="text-xs">Abstände</Label>
+          <select className="w-full border rounded-md px-3 py-2 bg-background text-sm"
+            value={style.density} onChange={(e) => set({ density: e.target.value as LandingStyle["density"] })}>
+            <option value="kompakt">kompakt</option>
+            <option value="normal">normal</option>
+            <option value="luftig">luftig</option>
+          </select>
+        </div>
+        <div>
+          <Label className="text-xs">Knopf-Form</Label>
+          <select className="w-full border rounded-md px-3 py-2 bg-background text-sm"
+            value={style.buttonShape} onChange={(e) => set({ buttonShape: e.target.value as LandingStyle["buttonShape"] })}>
+            <option value="pill">rund (Pille)</option>
+            <option value="rund">leicht gerundet</option>
+            <option value="eckig">eckig</option>
+          </select>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

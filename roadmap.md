@@ -27,3 +27,12 @@
 - [x] Eigenes Feld „Eigener Meta-Pixel-Code“ pro Landing Page (überschreibt Pixel-ID, Consent + Lead bleiben) — umgesetzt, wartet auf Deploy
 - [x] Vertrauen sichtbar machen (Zusage-Ansprechpartner + Firmenangaben, Begründungen an Ausweis-/Personal-Daten-Schritt, flexible Termin-Botschaft auf Landing) — umgesetzt, wartet auf Deploy
 - [x] WhatsApp-Bestätigung/Zusage-Umbau (Zusage-Karte ohne Auto-Redirect, WhatsApp-Hilfe, Registrierungs-Trichter in Analyse) — umgesetzt, wartet auf Deploy
+
+## Landing-Baukasten mit KI (23.09.)
+- [x] Flow vereinheitlicht: neue Seiten immer „Direkt", Vermittlung nur noch als Bestand sichtbar
+- [x] Design-Ebene (Farben, Schrift, Rundungen, Abstände, hell/dunkel, Hero-Varianten)
+- [x] KI-Entwurf (Texte + Abschnitte + Design) und „Design neu würfeln"
+- [x] KI-Bilder pro Bildfeld (Speicher: landing-media)
+- [x] Eigene Vorlagen (Tabelle landing_templates)
+- [ ] Deploy: git pull && bash scripts/deploy.sh (Migration 20260923000000_landing_templates.sql), danach bash scripts/sync-landing-server.sh
+- [ ] Live-Test: KI-Entwurf + KI-Bild mit hinterlegten KI-Zugangsdaten
