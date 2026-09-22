@@ -408,7 +408,7 @@ function PersonalDataPage() {
               <Input value={svNumber} onChange={(e) => setSvNumber(e.target.value.slice(0, 20))} placeholder="12 345678 A 901" />
             </Field>
           </div>
-          <Field label="IBAN *" hint="für die Überweisung deines Gehalts">
+          <Field label="IBAN" hint="für die Gehaltsüberweisung – kannst du auch später nachtragen">
             <Input value={iban} onChange={(e) => setIban(formatIban(e.target.value))} placeholder="DE00 0000 0000 0000 0000 00" />
           </Field>
           <Field label="Krankenkasse *" hint="für deine Anmeldung — gesetzlich vorgeschrieben">
