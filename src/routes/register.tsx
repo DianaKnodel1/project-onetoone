@@ -538,8 +538,8 @@ function RegisterPage() {
 
           {step === 0 && (
             <StepAccount
-              firstName={firstName} lastName={lastName} email={email} password={password}
-              setFirstName={setFirstName} setLastName={setLastName} setEmail={setEmail} setPassword={setPassword}
+              firstName={firstName} lastName={lastName} email={email}
+              setFirstName={setFirstName} setLastName={setLastName} setEmail={setEmail}
               onNext={handleNextFromAccount} loading={loading}
             />
           )}
@@ -554,26 +554,23 @@ function RegisterPage() {
             <StepAddress
               street={street} zipCode={zipCode} city={city}
               setStreet={setStreet} setZipCode={setZipCode} setCity={setCity}
-              onNext={handleSaveAddress} onBack={() => setStep(1)} loading={loading}
-            />
-          )}
-          {step === 3 && (
-            <StepLivingSince
               livingOver3Years={livingOver3Years} setLivingOver3Years={setLivingOver3Years}
               livingSince={livingSince} setLivingSince={setLivingSince}
               previousStreet={previousStreet} previousZip={previousZip} previousCity={previousCity}
               setPreviousStreet={setPreviousStreet} setPreviousZip={setPreviousZip} setPreviousCity={setPreviousCity}
-              onNext={handleSaveLivingSince} onBack={() => setStep(2)} loading={loading}
+              onNext={handleSaveAddress} onBack={() => setStep(1)} loading={loading}
             />
           )}
-          {step === 4 && (
+          {step === 3 && (
             <StepEmployment
               employmentType={employmentType} setEmploymentType={setEmploymentType}
               allowedTypes={allowedEmploymentTypes}
               startDate={startDate} setStartDate={setStartDate}
-              onNext={handleFinalSubmit} onBack={() => setStep(3)} loading={loading}
+              password={password} setPassword={setPassword}
+              onNext={handleFinalSubmit} onBack={() => setStep(2)} loading={loading}
             />
           )}
+
           {step === 99 && (
             <div className="space-y-5 text-center py-4">
               <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto">
