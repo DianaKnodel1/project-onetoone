@@ -335,10 +335,17 @@ function AdminBewerbungenPage() {
     { key: "no_show",     label: "Nicht erschienen",  emoji: "⚠️", phases: ["no_show"] },
     { key: "abgesagt",    label: "Abgesagt",          emoji: "🚫", phases: ["abgesagt"] },
     { key: "zusage",      label: "Zusage erteilt",    emoji: "✅", phases: ["angenommen"] },
+    // Nachfass-Liste: Zusage erteilt, aber noch kein Portal-Konto.
+    { key: "nachfassen",  label: "Zusage ohne Registrierung", emoji: "📲", phases: [] },
     { key: "abgelehnt",   label: "Abgelehnt",         emoji: "❌", phases: ["abgelehnt"] },
     { key: "onboarded",   label: "Onboarded",         emoji: "🚀", phases: ["registriert", "onboarding_komplett", "mitarbeiter_aktiv"] },
   ];
   const groupOf = (p: Phase): string => GROUPS.find(g => g.phases.includes(p))?.key ?? "alle";
+  const matchesGroup = (r: { phase: Phase; hasProfile: boolean }, key: string): boolean => {
+    if (key === "alle") return true;
+    if (key === "nachfassen") return r.phase === "angenommen" && !r.hasProfile;
+    return groupOf(r.phase) === key;
+  };
 
   // Grundmenge: Mandanten-Auswahl und Archiv-Schalter gelten für Chips UND Liste,
   // damit Zähler und Tabelle nie auseinanderlaufen.
