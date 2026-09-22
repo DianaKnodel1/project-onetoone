@@ -239,10 +239,10 @@ export default function AdminLayout() {
       <div className="min-h-screen flex w-full admin-layout">
         <AdminSidebar />
         <div className="flex-1 flex flex-col min-w-0 bg-background">
-          <header className="h-12 flex items-center border-b border-border bg-card px-5 gap-3 shrink-0">
-            <SidebarTrigger />
+          <header className="h-14 flex items-center border-b border-border bg-card px-4 sm:px-5 gap-3 shrink-0">
+            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
             <div className="h-4 w-px bg-border" />
-            <span className="text-xs font-heading font-semibold text-muted-foreground uppercase tracking-wider">
+            <span className="text-[11px] font-heading font-semibold text-muted-foreground uppercase tracking-[0.18em]">
               Admin Panel
             </span>
             <button
@@ -250,11 +250,12 @@ export default function AdminLayout() {
                 // Synthetic Cmd+K
                 window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
               }}
-              className="ml-4 hidden sm:flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground border border-border rounded-md px-2 py-1 transition-colors"
+              className="ml-2 hidden sm:flex items-center gap-2.5 h-8 w-56 lg:w-64 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg bg-muted/40 px-3 transition-colors hover:border-ring"
               title="Schnellsuche"
             >
-              <Search className="h-3.5 w-3.5" /> Suchen…
-              <kbd className="ml-2 text-[10px] bg-muted px-1 py-0.5 rounded">⌘K</kbd>
+              <Search className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">Suchen…</span>
+              <kbd className="ml-auto text-[10px] border border-border rounded px-1.5 py-0.5 bg-background shrink-0">⌘K</kbd>
             </button>
             <div className="ml-auto">
               <ThemeToggle />
