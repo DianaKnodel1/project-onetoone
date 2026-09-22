@@ -267,12 +267,13 @@ function InterviewPage() {
   // Vermittlungs-Domain und der Bewerber wuerde sich bei der falschen Firma
   // registrieren. Ohne Basis lieber gar kein Link.
   const portalBase = serverPortalBase || (portal || "").replace(/\/+$/, "");
-  // Ohne Token (z. B. Mailversand-Fehler) zeigt die Karte den Hinweis auf die E-Mail.
-  // Ohne Token (Mailfehler / kein Token gefunden) trotzdem zur Portal-Registrierung
-  // führen — der Bewerber landet so in jedem Fall auf der richtigen Seite.
+  // Kein Sackgassen-Zustand mehr: laesst sich keine Partner-Portal-Domain
+  // aufloesen, fuehrt der Knopf auf die Registrierung der aktuellen Domain —
+  // besser ein Weg weiter als gar keiner.
   const registerQuery = applicantEmail ? `?email=${encodeURIComponent(applicantEmail)}` : "";
-  const registerFallbackHref: string | null = portalBase
-    ? `${portalBase}/register${registerQuery}`
+  const fallbackBase = portalBase || pageOrigin || "";
+  const registerFallbackHref: string | null = fallbackBase
+    ? `${fallbackBase}/register${registerQuery}`
     : null;
 
 
