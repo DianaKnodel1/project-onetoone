@@ -16,7 +16,7 @@ import sharedFormCss from "../landing-themes/_shared/form-section.css?raw";
 import sharedFormJs from "../landing-themes/_shared/form-section.js?raw";
 
 // ── Typen ────────────────────────────────────────────────────────────────
-export type SectionFieldKind = "text" | "textarea" | "image" | "color" | "boolean" | "strings" | "objects";
+export type SectionFieldKind = "text" | "textarea" | "image" | "color" | "boolean" | "strings" | "objects" | "select";
 
 export type SectionField = {
   key: string;
@@ -27,6 +27,8 @@ export type SectionField = {
   /** nur kind="objects": Felder eines Listeneintrags */
   itemFields?: { key: string; label: string; kind: "text" | "textarea" | "image" }[];
   itemLabel?: string;
+  /** nur kind="select" */
+  options?: { value: string; label: string }[];
 };
 
 export type SectionTypeDef = {
