@@ -303,7 +303,7 @@ function LandingBaukastenPage() {
   // ── Speichern ────────────────────────────────────────────────────────────
   const save = async () => {
     if (!slug.trim()) {
-      toast({ title: "Kurzname fehlt", description: "Bitte unter „Grundeinstellungen" einen Kurzname (Slug) vergeben.", variant: "destructive" });
+      toast({ title: "Kurzname fehlt", description: "Bitte unter Grundeinstellungen einen Kurznamen (Slug) vergeben.", variant: "destructive" });
       setShowSettings(true);
       return;
     }
