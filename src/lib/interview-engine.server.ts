@@ -533,21 +533,18 @@ async function sendInviteInternal(
   const softErr = (mailData as any)?.error ? String((mailData as any).error) : null;
   if (mailErr || softErr) {
     const msg = mailErr?.message ?? softErr ?? "mail_failed";
-    // Mail-loser Betrieb ist eine bewusste Entscheidung, kein Fehler. Sonst
-    // stünde an jeder Zusage „Einladungsmail fehlgeschlagen".
-    const mailless = /mailless_mode|Mail-los/i.test(msg) || (mailData as any)?.reason === "mailless_mode";
-    if (mailless) {
-      await record("skipped", "Mail-loser Betrieb: Registrierung läuft direkt über den Zusage-Bildschirm");
-      return {
-        sent: false,
-        skipped: true,
-        reason: "mailless_mode" as const,
-        registration_link: registrationLink,
-      };
-    }
-    console.warn("[interview-engine] invitation mail failed:", msg);
-    await record("failed", msg);
-    return { sent: false, error: msg, registration_link: registrationLink };
+    // Das Portal versendet bewusst keine Mails mehr (send-guard: Mail-loser
+    // Betrieb). Ein geblockter Versand ist deshalb KEIN Fehler — sonst stünde
+    // an jeder Zusage „Einladungsmail fehlgeschlagen". Der Bewerber schließt
+    // die Registrierung direkt über den Zusage-Bildschirm ab.
+    console.warn("[interview-engine] invitation mail not sent:", msg);
+    await record("skipped", `kein Mailversand aktiv (${msg})`);
+    return {
+      sent: false,
+      skipped: true,
+      reason: "mailless_mode" as const,
+      registration_link: registrationLink,
+    };
   }
   await record("sent", null);
   await supabaseAdmin
