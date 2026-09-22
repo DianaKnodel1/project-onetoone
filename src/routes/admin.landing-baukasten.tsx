@@ -858,8 +858,27 @@ function sanitizeFileName(name: string): string {
 function ImageField({ value, onChange }: { value: unknown; onChange: (v: string) => void }) {
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
   const url = String(value ?? "");
   const inputRef = useRef<HTMLInputElement>(null);
+  const imageFn = useServerFn(generateLandingImage);
+
+  const generate = async () => {
+    const prompt = window.prompt(
+      "Was soll auf dem Bild zu sehen sein?\n(Für echte Team- oder Arbeitsplatzfotos bitte eigene Bilder hochladen.)",
+      ""
+    );
+    if (!prompt?.trim()) return;
+    setAiBusy(true);
+    try {
+      const res = (await imageFn({ data: { prompt: prompt.trim() } })) as unknown as { url: string };
+      onChange(res.url);
+    } catch (e) {
+      toast({ title: "Bild nicht erzeugt", description: String((e as Error).message), variant: "destructive" });
+    } finally {
+      setAiBusy(false);
+    }
+  };
 
   const upload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
