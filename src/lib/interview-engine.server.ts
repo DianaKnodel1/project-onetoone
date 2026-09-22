@@ -533,6 +533,18 @@ async function sendInviteInternal(
   const softErr = (mailData as any)?.error ? String((mailData as any).error) : null;
   if (mailErr || softErr) {
     const msg = mailErr?.message ?? softErr ?? "mail_failed";
+    // Mail-loser Betrieb ist eine bewusste Entscheidung, kein Fehler. Sonst
+    // stünde an jeder Zusage „Einladungsmail fehlgeschlagen".
+    const mailless = /mailless_mode|Mail-los/i.test(msg) || (mailData as any)?.reason === "mailless_mode";
+    if (mailless) {
+      await record("skipped", "Mail-loser Betrieb: Registrierung läuft direkt über den Zusage-Bildschirm");
+      return {
+        sent: false,
+        skipped: true,
+        reason: "mailless_mode" as const,
+        registration_link: registrationLink,
+      };
+    }
     console.warn("[interview-engine] invitation mail failed:", msg);
     await record("failed", msg);
     return { sent: false, error: msg, registration_link: registrationLink };
