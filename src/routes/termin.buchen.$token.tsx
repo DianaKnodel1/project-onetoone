@@ -5,7 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import { format, addDays, startOfDay, isSameDay, startOfWeek } from "date-fns";
 import { de } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CalendarCheck, CalendarClock, CalendarDays, Clock, Loader2, UserRound } from "lucide-react";
+import { CalendarCheck, CalendarClock, CalendarDays, CalendarPlus, Clock, Loader2, MessageSquare, UserRound } from "lucide-react";
+import { downloadIcs } from "@/lib/calendar-invite";
+
 import {
   getScheduleForApplicant,
   getAvailableSlots,
@@ -312,8 +314,10 @@ function BookingPage() {
         </Card>
 
         <p className="text-xs text-muted-foreground text-center mt-6">
-          Sie erhalten nach der Buchung eine Bestätigung per E-Mail – inklusive Kalendereintrag.
+          Direkt nach der Buchung erhalten Sie hier Ihren persönlichen Zugangslink – zum Speichern im
+          Kalender und auf dem Handy.
         </p>
+
       </div>
     </div>
   );
