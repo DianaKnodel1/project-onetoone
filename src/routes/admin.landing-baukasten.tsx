@@ -930,6 +930,10 @@ function ImageField({ value, onChange }: { value: unknown; onChange: (v: string)
           {busy ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Upload className="h-3.5 w-3.5 mr-1.5" />}
           {busy ? "Lädt hoch…" : "Bild hochladen"}
         </Button>
+        <Button type="button" variant="outline" size="sm" disabled={aiBusy} onClick={generate}>
+          {aiBusy ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 mr-1.5" />}
+          {aiBusy ? "Wird erzeugt…" : "Mit KI erzeugen"}
+        </Button>
         {url && (
           <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")}>
             <X className="h-3.5 w-3.5 mr-1" /> Entfernen
