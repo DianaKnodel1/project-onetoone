@@ -25,6 +25,7 @@ import { EmojiPicker } from "@/components/EmojiPicker";
 import { ChatAttachmentButton, AttachmentPreview, type ChatAttachment } from "@/components/ChatAttachmentButton";
 import { useServerFn } from "@tanstack/react-start";
 import { getAiSuggestion, logAiCorrection } from "@/lib/ai-chat-helper.functions";
+import { setEmployeeBlocked } from "@/lib/employee-block.functions";
 
 interface Conversation {
   user_id: string;
@@ -441,6 +442,16 @@ function AdminChatPage() {
   };
 
 
+
+  const toggleBlockedInChat = async (userId: string, blocked: boolean) => {
+    try {
+      await setEmployeeBlocked({ data: { user_id: userId, blocked } });
+      setConversations((prev) => prev.map((c) => (c.user_id === userId ? { ...c, blocked } : c)));
+      toast({ title: blocked ? "Mitarbeiter gesperrt" : "Mitarbeiter freigegeben" });
+    } catch (e: any) {
+      toast({ title: "Fehler", description: e?.message ?? "Aktion fehlgeschlagen", variant: "destructive" });
+    }
+  };
 
   const markUnread = async (userId: string) => {
     const { error } = await supabase
@@ -1286,6 +1297,15 @@ function AdminChatPage() {
                 )}
               </button>
               <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => toggleBlockedInChat(selectedUserId!, !selectedConv?.blocked)}
+                  className={`text-xs ${selectedConv?.blocked ? "text-emerald-600" : "text-muted-foreground hover:text-destructive"}`}
+                  title={selectedConv?.blocked ? "Zugang wieder freigeben" : "Zugang sperren"}
+                >
+                  <Lock className="h-3.5 w-3.5 mr-1" /> {selectedConv?.blocked ? "Freigeben" : "Sperren"}
+                </Button>
                 <Button
                   size="sm"
                   variant="ghost"
