@@ -542,15 +542,21 @@ function LandingBaukastenPage() {
       </div>
 
       {showSettings && (
-        <BasicSettings
-          branding={branding}
-          setBranding={setBranding}
-          slug={slug}
-          setSlug={setSlug}
-          calendlyUrl={calendlyUrl}
-          setCalendlyUrl={setCalendlyUrl}
-          onClose={() => setShowSettings(false)}
-        />
+        <>
+          <BasicSettings
+            branding={branding}
+            setBranding={setBranding}
+            slug={slug}
+            setSlug={setSlug}
+            calendlyUrl={calendlyUrl}
+            setCalendlyUrl={setCalendlyUrl}
+            onClose={() => setShowSettings(false)}
+          />
+          <StyleSettings
+            style={normalizeStyle(branding.style)}
+            onChange={(st) => setBranding({ ...branding, style: st, primary_color: st.primary, secondary_color: st.accent })}
+          />
+        </>
       )}
 
       {/* Arbeitsfläche */}
