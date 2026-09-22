@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   listLandingPages,
@@ -10,8 +10,8 @@ import { renderSectionsPreview } from "@/lib/landing-builder.functions";
 import {
   SECTION_CATALOG,
   defaultSections,
+  createSection,
   type LandingSection,
-  type SectionTypeDef,
   type SectionField,
 } from "@/lib/landing-sections";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -44,16 +44,19 @@ type LandingRow = {
   source_slug?: string;
   is_published?: boolean;
   booking_mode?: string;
-  calendly_url?: string;
-  branding?: Record<string, unknown>;
+  calendly_url?: string | null;
+  branding?: Record<string, unknown> | null;
   slots?: Record<string, string> | null;
   sections?: LandingSection[] | null;
   logo_url?: string | null;
 };
 
-function uid() {
-  return Math.random().toString(36).slice(2, 10);
-}
+type LandingListItem = {
+  id: string;
+  slug: string;
+  branding?: unknown;
+  is_published?: boolean;
+};
 
 function LandingBaukastenPage() {
   const { toast } = useToast();
@@ -62,7 +65,7 @@ function LandingBaukastenPage() {
   const saveFn = useServerFn(saveLandingPage);
   const previewFn = useServerFn(renderSectionsPreview);
 
-  const [landings, setLandings] = useState<{ id: string; slug: string; branding?: any; is_published?: boolean }[]>([]);
+  const [landings, setLandings] = useState<LandingListItem[]>([]);
   const [current, setCurrent] = useState<LandingRow | null>(null);
   const [sections, setSections] = useState<LandingSection[]>([]);
   const [branding, setBranding] = useState<Record<string, any>>({
@@ -71,19 +74,21 @@ function LandingBaukastenPage() {
   });
   const [slug, setSlug] = useState("");
   const [calendlyUrl, setCalendlyUrl] = useState("");
-  const [newLogoDataUrl, setNewLogoDataUrl] = useState<string | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [previewHtml, setPreviewHtml] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [addType, setAddType] = useState(SECTION_CATALOG[0].type);
 
+  const refreshList = useCallback(async () => {
+    const res = (await listFn()) as unknown as { rows: LandingListItem[] };
+    setLandings(res.rows || []);
+  }, [listFn]);
+
   useEffect(() => {
     (async () => {
       try {
-        const rows = await listFn({ data: {} });
-        setLandings((rows as any[]) || []);
+        await refreshList();
       } catch (e) {
         toast({ title: "Fehler", description: String((e as Error).message), variant: "destructive" });
       } finally {
@@ -95,7 +100,7 @@ function LandingBaukastenPage() {
 
   const loadLanding = useCallback(async (id: string) => {
     try {
-      const lp = (await getFn({ data: { id } })) as any as LandingRow;
+      const lp = (await getFn({ data: { id } })) as unknown as LandingRow;
       setCurrent(lp);
       setSlug(lp.slug || "");
       setCalendlyUrl(lp.calendly_url || "");
@@ -105,8 +110,6 @@ function LandingBaukastenPage() {
           ? (lp.sections as LandingSection[])
           : defaultSections()
       );
-      setNewLogoDataUrl(null);
-      setLogoPreview(lp.logo_url || null);
       setPreviewHtml("");
     } catch (e) {
       toast({ title: "Laden fehlgeschlagen", description: String((e as Error).message), variant: "destructive" });
@@ -119,8 +122,6 @@ function LandingBaukastenPage() {
     setCalendlyUrl("");
     setBranding({ firmenname: "", primary_color: "#2563eb", secondary_color: "#1e40af", kontakt_email: "", telefon: "", seo_title: "", seo_description: "" });
     setSections(defaultSections());
-    setNewLogoDataUrl(null);
-    setLogoPreview(null);
     setPreviewHtml("");
   };
 
@@ -147,11 +148,7 @@ function LandingBaukastenPage() {
       toast({ title: "Nur einmal möglich", description: `„${def.label}" kann nur einmal vorkommen.`, variant: "destructive" });
       return;
     }
-    const data: Record<string, unknown> = {};
-    for (const f of def.fields) {
-      data[f.key] = f.kind === "list" ? [] : f.kind === "objects" ? [] : "";
-    }
-    setSections((prev) => [...prev, { id: uid(), type: def.type, data }]);
+    setSections((prev) => [...prev, createSection(def.type)]);
   };
 
   // ── Vorschau ─────────────────────────────────────────────────────────────
@@ -164,10 +161,11 @@ function LandingBaukastenPage() {
           branding: {
             firmenname: branding.firmenname, primary_color: branding.primary_color,
             secondary_color: branding.secondary_color, kontakt_email: branding.kontakt_email,
-            telefon: branding.telefon, impressum: branding.impressum, datenschutz: branding.datenschutz,
+            telefon: branding.telefon, whatsapp_number: branding.whatsapp_number,
+            impressum: branding.impressum, datenschutz: branding.datenschutz,
             seo_title: branding.seo_title, seo_description: branding.seo_description,
           },
-          logo_url: newLogoDataUrl || logoPreview,
+          logo_url: current?.logo_url || null,
         },
       });
       setPreviewHtml(res.html);
@@ -199,12 +197,10 @@ function LandingBaukastenPage() {
         sections,
       };
       if (current?.id) payload.id = current.id;
-      if (newLogoDataUrl) payload.logo_data_url = newLogoDataUrl;
       const res = (await saveFn({ data: payload as any })) as any;
       const newId = res?.id || current?.id;
       toast({ title: "Gespeichert", description: "Landing-Seite wurde gespeichert." });
-      const rows = await listFn({ data: {} });
-      setLandings((rows as any[]) || []);
+      await refreshList();
       if (newId) await loadLanding(newId);
     } catch (e) {
       const msg = String((e as Error).message);
@@ -218,21 +214,6 @@ function LandingBaukastenPage() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const onLogoFile = (file: File | null) => {
-    if (!file) return;
-    if (file.size > 3_000_000) {
-      toast({ title: "Datei zu groß", description: "Logo bitte unter 3 MB.", variant: "destructive" });
-      return;
-    }
-    const r = new FileReader();
-    r.onload = () => {
-      const url = String(r.result);
-      setNewLogoDataUrl(url);
-      setLogoPreview(url);
-    };
-    r.readAsDataURL(file);
   };
 
   if (loading) {
@@ -271,7 +252,7 @@ function LandingBaukastenPage() {
             <option value="">— Neue Seite anlegen —</option>
             {landings.map((l) => (
               <option key={l.id} value={l.id}>
-                {(l.branding as any)?.firmenname || l.slug} ({l.slug}){l.is_published ? " · online" : ""}
+                {((l.branding as any)?.firmenname as string) || l.slug} ({l.slug}){l.is_published ? " · online" : ""}
               </option>
             ))}
           </select>
@@ -306,7 +287,7 @@ function LandingBaukastenPage() {
           </div>
           <div>
             <Label>Kontakt-E-Mail (im Bewerbungsformular)</Label>
-            <Input value={branding.kontakt_email || branding.email || ""} onChange={(e) => setBranding({ ...branding, kontakt_email: e.target.value })} />
+            <Input value={branding.kontakt_email || (branding.email as string) || ""} onChange={(e) => setBranding({ ...branding, kontakt_email: e.target.value })} />
           </div>
           <div>
             <Label>Telefon (im Bewerbungsformular)</Label>
@@ -323,13 +304,6 @@ function LandingBaukastenPage() {
           <div>
             <Label>Beschreibung (SEO)</Label>
             <Input value={branding.seo_description || ""} onChange={(e) => setBranding({ ...branding, seo_description: e.target.value })} />
-          </div>
-          <div className="md:col-span-2">
-            <Label>Logo</Label>
-            <div className="flex items-center gap-3 mt-1">
-              {logoPreview && <img src={logoPreview} alt="Logo" className="h-10 max-w-[160px] object-contain rounded border bg-white p-1" />}
-              <Input type="file" accept="image/*" onChange={(e) => onLogoFile(e.target.files?.[0] || null)} />
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -376,8 +350,8 @@ function LandingBaukastenPage() {
           {previewing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Eye className="h-4 w-4 mr-2" />}
           Vorschau aktualisieren
         </Button>
-        {current?.is_published && (
-          <a href={`https://${(branding.landing_domain as string) || ""}`} target="_blank" rel="noreferrer" className="inline-flex">
+        {current?.is_published && (branding.landing_domain as string) && (
+          <a href={`https://${branding.landing_domain as string}`} target="_blank" rel="noreferrer" className="inline-flex">
             <Button variant="ghost" size="sm"><ExternalLink className="h-4 w-4 mr-1" /> Live-Seite</Button>
           </a>
         )}
@@ -436,11 +410,16 @@ function SectionEditor({
   );
 }
 
+function FieldHint({ text }: { text?: string }) {
+  if (!text) return null;
+  return <p className="text-xs text-muted-foreground mt-1">{text}</p>;
+}
+
 function FieldEditor({ field, value, onChange }: { field: SectionField; value: unknown; onChange: (v: unknown) => void }) {
-  const wide = field.kind === "textarea" || field.kind === "list" || field.kind === "objects" || field.kind === "image";
+  const wide = field.kind === "textarea" || field.kind === "strings" || field.kind === "objects";
   return (
     <div className={cn(wide && "md:col-span-2")}>
-      <Label className="text-xs">{field.label}</Label>
+      {field.kind !== "boolean" && <Label className="text-xs">{field.label}</Label>}
       {field.kind === "text" && (
         <Input value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} placeholder={field.placeholder} />
       )}
@@ -453,38 +432,27 @@ function FieldEditor({ field, value, onChange }: { field: SectionField; value: u
           <Input value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} />
         </div>
       )}
-      {field.kind === "list" && (
+      {field.kind === "boolean" && (
+        <label className="flex items-center gap-2 text-sm mt-1">
+          <input type="checkbox" checked={Boolean(value)} onChange={(e) => onChange(e.target.checked)} />
+          {field.label}
+        </label>
+      )}
+      {field.kind === "strings" && (
         <Textarea
           rows={4}
           value={(Array.isArray(value) ? (value as string[]) : []).join("\n")}
           onChange={(e) => onChange(e.target.value.split("\n").map((l) => l.trim()).filter(Boolean))}
-          placeholder={"Eine Zeile = ein Punkt"}
+          placeholder="Eine Zeile = ein Punkt"
         />
       )}
-      {field.kind === "image" && <ImageField value={String(value ?? "")} onChange={onChange} />}
+      {field.kind === "image" && (
+        <Input value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} placeholder="https://…" />
+      )}
       {field.kind === "objects" && (
         <ObjectsField field={field} value={Array.isArray(value) ? (value as Record<string, string>[]) : []} onChange={onChange} />
       )}
-    </div>
-  );
-}
-
-function ImageField({ value, onChange }: { value: string; onChange: (v: unknown) => void }) {
-  const { toast } = useToast();
-  const onFile = (file: File | null) => {
-    if (!file) return;
-    if (file.size > 3_000_000) {
-      toast({ title: "Datei zu groß", description: "Bild bitte unter 3 MB.", variant: "destructive" });
-      return;
-    }
-    const r = new FileReader();
-    r.onload = () => onChange(String(r.result));
-    r.readAsDataURL(file);
-  };
-  return (
-    <div className="flex items-center gap-3 mt-1">
-      {value && <img src={value} alt="" className="h-12 max-w-[140px] object-contain rounded border bg-white p-1" />}
-      <Input type="file" accept="image/*" onChange={(e) => onFile(e.target.files?.[0] || null)} />
+      <FieldHint text={field.help} />
     </div>
   );
 }
@@ -506,23 +474,21 @@ function ObjectsField({
       {value.map((item, i) => (
         <div key={i} className="border rounded-md p-3 bg-background space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-xs text-muted-foreground">Eintrag {i + 1}</span>
+            <span className="text-xs text-muted-foreground">{field.itemLabel || "Eintrag"} {i + 1}</span>
             <Button variant="ghost" size="icon" onClick={() => onChange(value.filter((_, idx) => idx !== i))}>
               <Trash2 className="h-3.5 w-3.5 text-destructive" />
             </Button>
           </div>
-          {itemFields.map((inf) =>
-            inf.kind === "image" ? (
-              <ImageField key={inf.key} value={String(item[inf.key] ?? "")} onChange={(v) => setItem(i, inf.key, String(v ?? ""))} />
-            ) : (
-              <Input
-                key={inf.key}
-                value={String(item[inf.key] ?? "")}
-                onChange={(e) => setItem(i, inf.key, e.target.value)}
-                placeholder={inf.label}
-              />
-            )
-          )}
+          {itemFields.map((inf) => (
+            <div key={inf.key}>
+              <Label className="text-xs">{inf.label}</Label>
+              {inf.kind === "textarea" ? (
+                <Textarea rows={2} value={String(item[inf.key] ?? "")} onChange={(e) => setItem(i, inf.key, e.target.value)} />
+              ) : (
+                <Input value={String(item[inf.key] ?? "")} onChange={(e) => setItem(i, inf.key, e.target.value)} placeholder={inf.kind === "image" ? "https://…" : undefined} />
+              )}
+            </div>
+          ))}
         </div>
       ))}
       <Button
@@ -530,7 +496,7 @@ function ObjectsField({
         size="sm"
         onClick={() => onChange([...value, Object.fromEntries(itemFields.map((f) => [f.key, ""]))])}
       >
-        <Plus className="h-3.5 w-3.5 mr-1" /> Eintrag hinzufügen
+        <Plus className="h-3.5 w-3.5 mr-1" /> {field.itemLabel || "Eintrag"} hinzufügen
       </Button>
     </div>
   );
