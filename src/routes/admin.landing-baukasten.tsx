@@ -25,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import {
   Loader2, Save, ArrowUp, ArrowDown, Trash2, Plus, Layers, ExternalLink,
-  Monitor, Smartphone, Undo2, Settings2, GripVertical, X, Upload, ImageIcon,
+  Monitor, Smartphone, Undo2, Settings2, GripVertical, X, Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
