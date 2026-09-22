@@ -20,22 +20,25 @@ on conflict (id) do update
 grant select on storage.objects to anon, authenticated;
 grant insert, update, delete on storage.objects to authenticated;
 
+-- Idempotent: Policies ggf. neu anlegen (Rollen liegen in public.user_roles,
+-- geprüft über public.has_role — profiles hat KEINE role-Spalte).
+drop policy if exists "landing-media public read" on storage.objects;
+drop policy if exists "landing-media admin insert" on storage.objects;
+drop policy if exists "landing-media admin update" on storage.objects;
+drop policy if exists "landing-media admin delete" on storage.objects;
+
 -- Jeder darf Landing-Bilder lesen (öffentlich ausgelieferte Seiten).
 create policy "landing-media public read"
 on storage.objects for select
 using (bucket_id = 'landing-media');
 
--- Hochladen nur für Portal-Admins (gleiche Prüfung wie im Baukasten).
+-- Hochladen nur für Portal-Admins.
 create policy "landing-media admin insert"
 on storage.objects for insert
 to authenticated
 with check (
   bucket_id = 'landing-media'
-  and exists (
-    select 1 from public.profiles p
-    where p.user_id = auth.uid()
-      and p.role in ('admin', 'super_admin')
-  )
+  and public.has_role(auth.uid(), 'admin'::public.app_role)
 );
 
 create policy "landing-media admin update"
@@ -43,19 +46,11 @@ on storage.objects for update
 to authenticated
 using (
   bucket_id = 'landing-media'
-  and exists (
-    select 1 from public.profiles p
-    where p.user_id = auth.uid()
-      and p.role in ('admin', 'super_admin')
-  )
+  and public.has_role(auth.uid(), 'admin'::public.app_role)
 )
 with check (
   bucket_id = 'landing-media'
-  and exists (
-    select 1 from public.profiles p
-    where p.user_id = auth.uid()
-      and p.role in ('admin', 'super_admin')
-  )
+  and public.has_role(auth.uid(), 'admin'::public.app_role)
 );
 
 create policy "landing-media admin delete"
@@ -63,9 +58,5 @@ on storage.objects for delete
 to authenticated
 using (
   bucket_id = 'landing-media'
-  and exists (
-    select 1 from public.profiles p
-    where p.user_id = auth.uid()
-      and p.role in ('admin', 'super_admin')
-  )
+  and public.has_role(auth.uid(), 'admin'::public.app_role)
 );
