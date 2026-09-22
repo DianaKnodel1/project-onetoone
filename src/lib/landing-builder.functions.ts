@@ -13,17 +13,8 @@ const SectionSchema = z.object({
 
 const InputSchema = z.object({
   sections: z.array(SectionSchema).max(40),
-  branding: z.object({
-    firmenname: z.string().max(120).optional(),
-    primary_color: z.string().max(40).optional(),
-    secondary_color: z.string().max(40).optional(),
-    kontakt_email: z.string().max(200).optional(),
-    telefon: z.string().max(60).optional(),
-    impressum: z.string().max(20_000).optional(),
-    datenschutz: z.string().max(20_000).optional(),
-    seo_title: z.string().max(200).optional(),
-    seo_description: z.string().max(500).optional(),
-  }),
+  // Branding wird 1:1 an den Renderer durchgereicht (Farben, Kontakt, Impressum …)
+  branding: z.record(z.string(), z.any()).default({}),
   logo_url: z.string().max(500).nullable().optional(),
 });
 
