@@ -15,7 +15,6 @@ import WizardProgress from "@/components/register/WizardProgress";
 import StepAccount from "@/components/register/StepAccount";
 import StepPersonalData from "@/components/register/StepPersonalData";
 import StepAddress from "@/components/register/StepAddress";
-import StepLivingSince from "@/components/register/StepLivingSince";
 import StepEmployment from "@/components/register/StepEmployment";
 import StepContract from "@/components/register/StepContract";
 import StepIdentity from "@/components/register/StepIdentity";
