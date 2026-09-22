@@ -21,7 +21,7 @@ const rawPlugin = {
   },
 };
 
-esbuild.buildSync({
+await esbuild.build({
   entryPoints: ["src/lib/landing-sections.ts"],
   bundle: true,
   format: "esm",
