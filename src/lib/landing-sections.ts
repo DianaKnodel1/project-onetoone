@@ -209,6 +209,42 @@ export function defaultSections(): LandingSection[] {
   return ["hero", "stelle", "ablauf", "kontakt", "faq", "form"].map(createSection);
 }
 
+/** Startpunkte für „Neue Seite". */
+export type SectionTemplate = { id: string; label: string; description: string; types: string[] };
+
+export const SECTION_TEMPLATES: SectionTemplate[] = [
+  {
+    id: "klassisch",
+    label: "Klassische Bewerberseite",
+    description: "Titelbereich, Stelle, Ablauf, Ansprechpartner, FAQ, Formular.",
+    types: ["hero", "stelle", "ablauf", "kontakt", "faq", "form"],
+  },
+  {
+    id: "kurz",
+    label: "Kurze Seite",
+    description: "Nur Titelbereich und Bewerbungsformular — maximal schnell.",
+    types: ["hero", "form"],
+  },
+  {
+    id: "vertrauen",
+    label: "Seite mit Vertrauens-Teil",
+    description: "Titelbereich, Stelle, Partner-Logos, Ansprechpartner, FAQ, Formular.",
+    types: ["hero", "stelle", "logos", "kontakt", "faq", "form"],
+  },
+  {
+    id: "leer",
+    label: "Leere Seite",
+    description: "Nur das Bewerbungsformular — alles andere baust du selbst.",
+    types: ["form"],
+  },
+];
+
+export function sectionsFromTemplate(templateId: string): LandingSection[] {
+  const tpl = SECTION_TEMPLATES.find((t) => t.id === templateId) || SECTION_TEMPLATES[0];
+  return tpl.types.map(createSection);
+}
+
+
 // ── Renderer ─────────────────────────────────────────────────────────────
 function esc(s: unknown): string {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
