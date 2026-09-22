@@ -14,10 +14,14 @@ interface Props {
   allowedTypes?: string[];
   startDate: Date | undefined;
   setStartDate: (v: Date | undefined) => void;
+  /** Passwort steht bewusst am Ende — vorne wirkte es wie eine Mauer. */
+  password: string;
+  setPassword: (v: string) => void;
   onNext: () => void;
   onBack: () => void;
   loading: boolean;
 }
+
 
 const OPTIONS = [
   { value: "minijob", label: "Minijob", desc: "Bis 603 € / Monat, flexibel" },
