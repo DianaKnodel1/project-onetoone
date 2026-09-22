@@ -536,7 +536,14 @@ function RegisterPage() {
       <Card className={t.wizardCard}>
         <CardContent className="pt-8 pb-8 px-8">
 
+          {step > 0 && step < 4 && (
+            <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 px-4 py-2.5 text-xs text-foreground">
+              Weiter, wo Sie aufgehört haben – Ihre bisherigen Angaben sind gespeichert (Schritt {step + 1} von 4).
+            </div>
+          )}
+
           <WizardProgress step={step} />
+
 
           {step === 0 && (
             <StepAccount
