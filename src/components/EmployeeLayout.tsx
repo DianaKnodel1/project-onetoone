@@ -168,18 +168,16 @@ function EmployeeSidebar({
                         to={locked ? "#" : item.url}
                         end
                         className={cn(
-                          "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm",
-                          locked
-                            ? "text-sidebar-foreground/30 pointer-events-none cursor-not-allowed"
-                            : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                          "sidebar-nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
+                          locked && "text-sidebar-foreground/30 pointer-events-none cursor-not-allowed"
                         )}
-                        activeClassName={locked ? "" : "!bg-blue-600 !text-white font-semibold shadow-[0_2px_8px_-2px_rgba(37,99,235,0.45)] hover:!bg-blue-600"}
+                        activeClassName={locked ? "" : "active"}
                         onClick={(e: React.MouseEvent) => { if (locked) e.preventDefault(); }}
                       >
                         {locked ? (
-                          <Lock className="h-[18px] w-[18px] shrink-0" />
+                          <Lock className="h-[18px] w-[18px] shrink-0" strokeWidth={1.5} />
                         ) : (
-                          <item.icon className="h-[18px] w-[18px] shrink-0 text-sidebar-foreground/70" strokeWidth={2} />
+                          <item.icon className="h-[18px] w-[18px] shrink-0 text-sidebar-foreground/70" strokeWidth={1.5} />
                         )}
                         {!collapsed && <span className="flex-1">{item.title}</span>}
                         {!collapsed && item.dot && (
@@ -187,7 +185,7 @@ function EmployeeSidebar({
                             className={cn(
                               "h-2 w-2 rounded-full shrink-0",
                               item.dot === "orange" && "bg-orange-500",
-                              item.dot === "blue" && "bg-blue-500"
+                              item.dot === "blue" && "bg-primary"
                             )}
                           />
                         )}
@@ -206,21 +204,21 @@ function EmployeeSidebar({
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={signOut}
-                className="text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                className="text-sidebar-foreground/55 hover:text-sidebar-foreground hover:bg-sidebar-accent"
               >
-                <LogOut className="h-[18px] w-[18px] shrink-0" />
+                <LogOut className="h-[18px] w-[18px] shrink-0" strokeWidth={1.5} />
                 {!collapsed && <span className="text-sm">Abmelden</span>}
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={toggleSidebar}
-                className="text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                className="text-sidebar-foreground/55 hover:text-sidebar-foreground hover:bg-sidebar-accent"
               >
                 {collapsed ? (
-                  <ChevronsRight className="h-[18px] w-[18px] shrink-0" />
+                  <ChevronsRight className="h-[18px] w-[18px] shrink-0" strokeWidth={1.5} />
                 ) : (
-                  <ChevronsLeft className="h-[18px] w-[18px] shrink-0" />
+                  <ChevronsLeft className="h-[18px] w-[18px] shrink-0" strokeWidth={1.5} />
                 )}
                 {!collapsed && <span className="text-sm">Einklappen</span>}
               </SidebarMenuButton>
@@ -385,11 +383,11 @@ export default function EmployeeLayout() {
                       locked
                         ? "text-muted-foreground/40"
                         : isCurrent
-                        ? "text-blue-600 dark:text-blue-400"
+                        ? "text-primary font-semibold"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    {locked ? <Lock className="h-5 w-5" /> : <item.icon className="h-5 w-5" strokeWidth={2} />}
+                    {locked ? <Lock className="h-5 w-5" strokeWidth={1.5} /> : <item.icon className="h-5 w-5" strokeWidth={1.5} />}
                     <span className="leading-none truncate max-w-full px-1">{item.title}</span>
                     {item.dot && !locked && (
                       <span className={cn(
