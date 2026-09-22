@@ -2,7 +2,7 @@
 // Nur Vorschau-Rendering; das Speichern läuft über saveLandingPage.
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/lib/auth-guard";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { renderSectionsLanding, SECTION_CATALOG, type LandingSection } from "@/lib/landing-sections";
 
 const SectionSchema = z.object({
