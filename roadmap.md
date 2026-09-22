@@ -17,6 +17,7 @@
 
 ## Erledigt
 - [x] Landing-Baukasten: Abschnitts-Katalog + Renderer (`src/lib/landing-sections.ts`, Mirror `landing-server/sections-renderer.js`), Renderer-Branch in server.js/server.ts, Sync per Heartbeat/sync-Skript, Admin-Editor `/admin/landing-baukasten` mit Live-Vorschau — umgesetzt, wartet auf Deploy + Migration + Sync
+- [x] Baukasten visuell bedienbar: Klick/Bearbeiten direkt in der Vorschau (Overlay nur im Admin), „+"-Knöpfe zwischen Abschnitten, Ziehen zum Umsortieren, Vorlagen für neue Seiten, automatische Vorschau, Verwerfen-Knopf, Desktop/Handy-Umschalter
 - [x] Zwei-Minuten-Hinweis am ersten Bewerbungsaufruf und klare Datenerklärung vor dem Ausweis-Upload — umgesetzt, wartet auf Deploy
 - [x] Meta-Pixel-Infrastruktur (ID-Feld, PageView/Lead, Consent) — live
 - [x] /danke-Weiterleitung + Cache-Buster — live
