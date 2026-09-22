@@ -1,40 +1,47 @@
-# Verifikation nach dem erfolgreichen Deploy
+# Fix: Landing-Baukasten meldet „Admin-Rechte erforderlich“ obwohl Admin angemeldet
 
-## Ausgangslage
-- Deploy erfolgreich: Build grün, alle vier neuen Migrationen angewendet
-  (`20260922000000_landing_sections`, `20260922010000_landing_media_bucket`,
-  `20260922020000_sim_modul_und_sperre`, `20260922030000_sms_dedup_index_fix`).
-- Damit existieren die Sperr-Spalten (`profiles.is_blocked` usw.) und die
-  SMS-/Landing-Strukturen auf dem Backend. Der „Unbekannt“-Fix in der
-  Mitarbeiterliste ist mit dem Deploy live.
+## Ursache (bestätigt)
+- `src/lib/landing-builder.functions.ts` prüft die Admin-Rolle über
+  `profiles.role` — die Tabelle `profiles` hat aber gar keine Spalte `role`.
+  Rollen liegen in `user_roles` (Enum `app_role`). Dadurch schlägt die Prüfung
+  immer fehl → „Admin-Rechte erforderlich“, Vorschau bleibt leer.
+- Alle anderen Server-Funktionen (14 Stück, geprüft) nutzen bereits korrekt
+  `user_roles` — nur `landing-builder.functions.ts` ist betroffen. Derselbe
+  Fehler war zuvor schon in der Migration `20260922010000` aufgetreten und dort
+  repariert worden.
 
-## Schritt 1: Mitarbeiterliste prüfen (der eigentliche Fix)
-- Admin-Portal neu laden (Strg+Umschalt+R, hartes Neuladen).
-- Prüfungen, Termine und Mitarbeiter öffnen: Dort müssen jetzt echte Namen
-  statt „Unbekannt“ stehen.
-- Falls weiterhin „Unbekannt“ erscheint: Ich untersuche dann, welcher
-  konkrete Query noch scheitert (Datenbankabfrage gegen api.mb-portal.com),
-  und fixe gezielt nach.
+## Änderung
+- `requireAdmin()` in `src/lib/landing-builder.functions.ts` auf die
+  projektübliche Prüfung umstellen (identisch zu `employee-block.functions.ts`):
 
-## Schritt 2: SIM-Modul prüfen
-- Admin → SIM-Modul öffnen: Zwei-Spalten-Ansicht, Nummer hinzufügen mit
-  Anosim-Verbindungstest, Zuweisen/Entziehen an Mitarbeiter, Nachrichten mit
-  Code-Hervorhebung, Auto-Refresh alle 15 Sekunden.
-- Mitarbeiter-Seite (SMS): Nur Nachrichten ab Zuweisungszeitpunkt sichtbar.
+```text
+const { data, error } = await supabase
+  .from("user_roles")
+  .select("role")
+  .eq("user_id", userId)
+  .eq("role", "admin")
+  .maybeSingle();
+if (error) throw new Error(error.message);
+if (!data) throw new Error("Admin-Rechte erforderlich");
+```
 
-## Schritt 3: Sperren/Freigeben prüfen
-- Mitarbeiter sperren: rotes Badge, Name durchgestrichen im Chat.
-- Gesperrter Login: neutrale Meldung „E-Mail oder Passwort ist falsch“,
-  keine Registrierung mit gesperrter E-Mail.
-- Freigeben: Login wieder möglich.
+- Baukasten bleibt bewusst Admin-only (wie vereinbart), `admin_mitarbeiter`
+  bekommt keinen Zugriff.
 
-## Schritt 4: Landing-Baukasten prüfen
-- Landing-Builder öffnen: Abschnitte, direkter Bild-Upload (max. 5 MB),
-  „Text & Bild“-Abschnitt, Vorschau.
-- Bestehende Live-Landings unverändert aufrufen.
+## Verifikation
+- `bunx tsgo --noEmit` muss grün sein.
+- Keine weiteren `from("profiles").select("role")`-Stellen im Code (bereits
+  geprüft: keine).
 
-## Hinweis
-- „Landing-Server-Sync verzögert.“ im Deploy-Log betraf nur den Sync des
-  Landing-Servers auf .152; die Core-Dateien wurden übertragen. Falls eine
-  Landing-Änderung dort nicht sichtbar ist, nochmals
-  `bash scripts/sync-landing-server.sh` auf dem Server ausführen.
+## Deploy
+- `git push`, dann auf dem Server:
+  `cd /opt/apps/portal && git pull && bash scripts/deploy.sh`
+- Danach Landing-Baukasten neu laden: Seiten lassen sich wählen/erstellen,
+  Vorschau rendert, kein „Admin-Rechte erforderlich“ mehr.
+
+## Anschließend (aus dem bisherigen Verifikationsplan)
+- Prüfungen/Termine/Mitarbeiter: echte Namen statt „Unbekannt“.
+- SIM-Modul: Nummer hinzufügen, Zuweisen/Entziehen, Auto-Refresh.
+- Sperren/Freigeben: rotes Badge, durchgestrichener Name, neutraler Login-Fehler.
+- „Landing-Server-Sync verzögert.“ aus dem letzten Deploy: nur falls Landing-
+  Änderungen auf .152 nicht sichtbar sind, `bash scripts/sync-landing-server.sh`.
