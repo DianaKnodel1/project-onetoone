@@ -51,7 +51,7 @@ cd "$PROJECT_DIR"
 log "Landing-Server-Sync → $REMOTE:$REMOTE_DIR"
 
 # ── 1. Core-Dateien auf den Remote-Server kopieren ──────────────────────────
-for f in server.js legal-content.js package.json heartbeat.sh; do
+for f in server.js legal-content.js sections-renderer.js package.json heartbeat.sh; do
   src="$PROJECT_DIR/landing-server/$f"
   if [ ! -f "$src" ]; then
     warn "Quelldatei fehlt: $src — Sync abgebrochen"
@@ -63,6 +63,7 @@ done
 rsync -avz --checksum --no-perms \
   "$PROJECT_DIR/landing-server/server.js" \
   "$PROJECT_DIR/landing-server/legal-content.js" \
+  "$PROJECT_DIR/landing-server/sections-renderer.js" \
   "$PROJECT_DIR/landing-server/package.json" \
   "$PROJECT_DIR/landing-server/heartbeat.sh" \
   "$REMOTE:$REMOTE_DIR/"
