@@ -736,11 +736,11 @@ const server = Bun.serve({
       return new Response("asset not found", { status: 404 });
     }
     if (path === "/" || path === "/index.html") {
-      const { body, status } = renderHtml(row, host);
+      const { body, status } = await renderHtml(row, host);
       return new Response(body, { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache" } });
     }
     if (path === "/bewerben" || path === "/bewerben.html") {
-      const { body, status } = renderHtml(row, host, "apply");
+      const { body, status } = await renderHtml(row, host, "apply");
       return new Response(body, { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache" } });
     }
     if (path === "/danke" || path === "/danke.html") {
