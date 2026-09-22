@@ -165,8 +165,15 @@ export default function StepIdentity({ userId, onNext, onBack, loading }: Props)
       </div>
 
       <p className="text-xs text-muted-foreground">
+        Ein Handyfoto reicht völlig – wichtig ist nur, dass alle Ecken sichtbar und die Angaben lesbar sind.
         Deine Daten werden sicher gespeichert und nur für die Verifizierung verwendet.
       </p>
+
+      <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+        Ausweis gerade nicht zur Hand? Du kannst diesen Schritt später im Portal nachholen –
+        dein Teamleiter hilft dir dabei jederzeit im Chat.
+      </div>
+
 
       <div className="flex gap-3 pt-2">
         <Button variant="outline" onClick={onBack} className="flex-1 gap-1.5">
