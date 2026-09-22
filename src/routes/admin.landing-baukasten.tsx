@@ -225,7 +225,7 @@ function LandingBaukastenPage() {
     if (!name?.trim()) return;
     try {
       await tplSaveFn({ data: { name: name.trim(), description: "", sections, style: normalizeStyle(branding.style) } as any });
-      toast({ title: "Vorlage gespeichert", description: "Du findest sie unter „Neue Seite"." });
+      toast({ title: "Vorlage gespeichert", description: "Du findest sie unter „Neue Seite“." });
       await refreshTemplates();
     } catch (e) {
       toast({ title: "Vorlage nicht gespeichert", description: String((e as Error).message), variant: "destructive" });
@@ -233,7 +233,7 @@ function LandingBaukastenPage() {
   };
 
   const removeTemplate = async (t: TemplateRow) => {
-    if (!window.confirm(`Vorlage „${t.name}" löschen?`)) return;
+    if (!window.confirm(`Vorlage „${t.name}“ löschen?`)) return;
     try {
       await tplDelFn({ data: { id: t.id } });
       await refreshTemplates();
