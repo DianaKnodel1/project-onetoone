@@ -48,6 +48,8 @@ export const renderSectionsPreview = createServerFn({ method: "POST" })
       sections,
       branding: data.branding,
       logoUrl: data.logo_url ?? undefined,
+      editor: data.editor ?? false,
     });
     return { html };
   });
+
