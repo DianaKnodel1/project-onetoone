@@ -5,6 +5,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export type PollResult = {
   pulled: number;
   inserted: number;
+  /** Tatsächlich neu gespeicherte SMS (ohne Doppelte). */
+  new: number;
   channels_polled: number;
   errors: string[];
 };
