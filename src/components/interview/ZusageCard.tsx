@@ -1,7 +1,7 @@
 // Zusage-Screen: wird direkt im Portal angezeigt, sobald die KI eine Zusage
 // erteilt hat — optisch angelehnt an die „Willkommen im Team"-E-Mail.
 import { Button } from "@/components/ui/button";
-import { UserPlus, MessageCircle } from "lucide-react";
+import { UserPlus, MessageCircle, Send } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useWhatsAppSupport } from "@/hooks/use-whatsapp-support";
 import { useTenant } from "@/contexts/TenantContext";
@@ -15,7 +15,9 @@ export function ZusageCard({
   registrationLink,
   loginHref,
   className,
-  mailFailed,
+  // mailFailed wird nicht mehr genutzt (Mail-loser Betrieb) — Prop bleibt
+  // aus Kompatibilitaet bestehen und wird bewusst ignoriert.
+
 }: {
   company: string;
   primary: string;
@@ -36,6 +38,14 @@ export function ZusageCard({
     `Hallo, ich bin ${firstName || ""} und habe gerade die Zusage bekommen – ich brauche kurz Hilfe bei der Registrierung.`.replace(/\s+/g, " ").trim(),
   );
   const waHref = whatsapp.href ? `${whatsapp.href}?text=${waText}` : null;
+  // „Link sichern": der persönliche Registrierungslink wandert in den eigenen
+  // WhatsApp-Verlauf des Bewerbers — damit ist er auch morgen noch auffindbar.
+  const waLinkHref =
+    whatsapp.href && registrationLink
+      ? `${whatsapp.href}?text=${encodeURIComponent(
+          `Mein persönlicher Registrierungslink: ${registrationLink}`,
+        )}`
+      : null;
 
   // Echter Ansprechpartner + Firmenangaben aus den Mandanten-Daten.
   // Fehlen sie, bleibt die Karte leer — kein Fake-Inhalt.
@@ -131,29 +141,44 @@ export function ZusageCard({
           </a>
         </Button>
         <p className="text-xs text-muted-foreground">
-          Klicke oben, um deine Registrierung abzuschließen – dauert nur wenige Minuten.
+          Die Registrierung schließen Sie direkt hier ab – es dauert nur wenige
+          Minuten. Sie müssen auf keine E-Mail warten.
         </p>
+        {waLinkHref && (
+          <Button asChild variant="outline" size="lg" className="w-full font-semibold text-sm h-11">
+            <a href={waLinkHref} target="_blank" rel="noopener noreferrer">
+              <Send className="h-4 w-4 mr-2" />
+              Link per WhatsApp sichern (später weitermachen)
+            </a>
+          </Button>
+        )}
         {waHref && (
-          <Button asChild variant="outline" size="lg" className="w-full font-semibold text-base h-12">
+          <Button asChild variant="ghost" size="lg" className="w-full font-semibold text-sm h-11">
             <a href={waHref} target="_blank" rel="noopener noreferrer">
-              <MessageCircle className="h-5 w-5 mr-2" />
+              <MessageCircle className="h-4 w-4 mr-2" />
               Fragen? Schreib mir direkt per WhatsApp
             </a>
           </Button>
         )}
-        {mailFailed && (
-          <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
-            ✉️ Die Bestätigungs-E-Mail ist noch unterwegs. Nutzen Sie zur Sicherheit
-            direkt den Button oben — der Link funktioniert auch ohne E-Mail.
-          </div>
-        )}
         </>
       ) : (
-        <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 px-3 py-2 text-xs text-emerald-800 dark:text-emerald-200">
-          📬 Sie erhalten in wenigen Minuten eine E-Mail mit Ihrem persönlichen
-          Registrierungslink. Bitte auch den Spam-Ordner prüfen.
+        <div className="space-y-3">
+          <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 px-3 py-2 text-xs text-amber-800 dark:text-amber-200 text-left">
+            Ihre Registrierung können wir hier gerade nicht automatisch öffnen.
+            Melden Sie sich kurz bei uns – wir schicken Ihnen Ihren persönlichen
+            Zugang sofort zu.
+          </div>
+          {waHref && (
+            <Button asChild size="lg" className="w-full font-semibold text-base h-12" style={{ background: primary }}>
+              <a href={waHref} target="_blank" rel="noopener noreferrer">
+                <MessageCircle className="h-5 w-5 mr-2" />
+                Jetzt per WhatsApp melden
+              </a>
+            </Button>
+          )}
         </div>
       )}
+
 
       <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-border p-4 text-left">
         <p className="text-sm font-semibold mb-2">Bitte bereithalten</p>

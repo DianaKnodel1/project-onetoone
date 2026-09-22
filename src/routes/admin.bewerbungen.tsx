@@ -335,10 +335,17 @@ function AdminBewerbungenPage() {
     { key: "no_show",     label: "Nicht erschienen",  emoji: "⚠️", phases: ["no_show"] },
     { key: "abgesagt",    label: "Abgesagt",          emoji: "🚫", phases: ["abgesagt"] },
     { key: "zusage",      label: "Zusage erteilt",    emoji: "✅", phases: ["angenommen"] },
+    // Nachfass-Liste: Zusage erteilt, aber noch kein Portal-Konto.
+    { key: "nachfassen",  label: "Zusage ohne Registrierung", emoji: "📲", phases: [] },
     { key: "abgelehnt",   label: "Abgelehnt",         emoji: "❌", phases: ["abgelehnt"] },
     { key: "onboarded",   label: "Onboarded",         emoji: "🚀", phases: ["registriert", "onboarding_komplett", "mitarbeiter_aktiv"] },
   ];
   const groupOf = (p: Phase): string => GROUPS.find(g => g.phases.includes(p))?.key ?? "alle";
+  const matchesGroup = (r: { phase: Phase; hasProfile: boolean }, key: string): boolean => {
+    if (key === "alle") return true;
+    if (key === "nachfassen") return r.phase === "angenommen" && !r.hasProfile;
+    return groupOf(r.phase) === key;
+  };
 
   // Grundmenge: Mandanten-Auswahl und Archiv-Schalter gelten für Chips UND Liste,
   // damit Zähler und Tabelle nie auseinanderlaufen.
@@ -351,8 +358,10 @@ function AdminBewerbungenPage() {
     const c: Record<string, number> = { alle: scoped.length };
     for (const g of GROUPS) if (g.key !== "alle") c[g.key] = 0;
     for (const r of scoped) {
-      const g = groupOf(r.phase);
-      c[g] = (c[g] || 0) + 1;
+      for (const g of GROUPS) {
+        if (g.key === "alle") continue;
+        if (matchesGroup(r, g.key)) c[g.key] = (c[g.key] || 0) + 1;
+      }
     }
     return c;
   }, [scoped]);
@@ -362,7 +371,7 @@ function AdminBewerbungenPage() {
   const filterByGroup = useMemo(() => {
     const ql = q.trim().toLowerCase();
     return (groupKey: string) => scoped.filter(r => {
-      if (groupKey !== "alle" && groupOf(r.phase) !== groupKey) return false;
+      if (!matchesGroup(r, groupKey)) return false;
       if (!ql) return true;
       return (
         r.name?.toLowerCase().includes(ql) ||
@@ -642,6 +651,27 @@ function AdminBewerbungenPage() {
                         </td>
                         <td className="px-4 py-2.5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
+                            {tab === "nachfassen" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 gap-1.5 text-xs"
+                                onClick={() => {
+                                  const digits = (r.phone || "").replace(/[^\d]/g, "").replace(/^0/, "49");
+                                  const link = `${window.location.origin}/register${r.email && r.email !== "—" ? `?email=${encodeURIComponent(r.email)}` : ""}`;
+                                  const text = `Hallo ${r.name?.split(" ")[0] ?? ""}, herzlichen Glückwunsch zur Zusage! Hier geht es in 2 Minuten weiter zur Registrierung: ${link}`;
+                                  window.open(
+                                    digits
+                                      ? `https://wa.me/${digits}?text=${encodeURIComponent(text)}`
+                                      : `https://wa.me/?text=${encodeURIComponent(text)}`,
+                                    "_blank",
+                                    "noopener",
+                                  );
+                                }}
+                              >
+                                Per WhatsApp nachfassen
+                              </Button>
+                            )}
                             <Button variant="ghost" size="sm" onClick={() => navigate(`/admin/personen/${r.id}`)} className="h-7 gap-1.5 text-xs">
                               Öffnen <ExternalLink className="h-3 w-3" />
                             </Button>

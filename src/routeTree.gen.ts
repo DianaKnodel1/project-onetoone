@@ -75,6 +75,7 @@ import { Route as ApiPublicTtsTestRouteImport } from './routes/api/public/tts-te
 import { Route as ApiPublicSmsPollCronRouteImport } from './routes/api/public/sms-poll-cron'
 import { Route as ApiPublicLandingServerHeartbeatRouteImport } from './routes/api/public/landing-server-heartbeat'
 import { Route as ApiPublicLandingServerBootstrapRouteImport } from './routes/api/public/landing-server-bootstrap'
+import { Route as ApiPublicInvitePrefillRouteImport } from './routes/api/public/invite-prefill'
 import { Route as ApiPublicInterviewVoiceRouteImport } from './routes/api/public/interview-voice'
 import { Route as ApiPublicInterviewTestCreateRouteImport } from './routes/api/public/interview-test-create'
 import { Route as ApiPublicInterviewChatRouteImport } from './routes/api/public/interview-chat'
@@ -426,6 +427,11 @@ const ApiPublicLandingServerBootstrapRoute =
     path: '/api/public/landing-server-bootstrap',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicInvitePrefillRoute = ApiPublicInvitePrefillRouteImport.update({
+  id: '/api/public/invite-prefill',
+  path: '/api/public/invite-prefill',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicInterviewVoiceRoute = ApiPublicInterviewVoiceRouteImport.update({
   id: '/api/public/interview-voice',
   path: '/api/public/interview-voice',
@@ -608,6 +614,7 @@ export interface FileRoutesByFullPath {
   '/api/public/interview-chat': typeof ApiPublicInterviewChatRoute
   '/api/public/interview-test-create': typeof ApiPublicInterviewTestCreateRoute
   '/api/public/interview-voice': typeof ApiPublicInterviewVoiceRoute
+  '/api/public/invite-prefill': typeof ApiPublicInvitePrefillRoute
   '/api/public/landing-server-bootstrap': typeof ApiPublicLandingServerBootstrapRoute
   '/api/public/landing-server-heartbeat': typeof ApiPublicLandingServerHeartbeatRoute
   '/api/public/sms-poll-cron': typeof ApiPublicSmsPollCronRoute
@@ -693,6 +700,7 @@ export interface FileRoutesByTo {
   '/api/public/interview-chat': typeof ApiPublicInterviewChatRoute
   '/api/public/interview-test-create': typeof ApiPublicInterviewTestCreateRoute
   '/api/public/interview-voice': typeof ApiPublicInterviewVoiceRoute
+  '/api/public/invite-prefill': typeof ApiPublicInvitePrefillRoute
   '/api/public/landing-server-bootstrap': typeof ApiPublicLandingServerBootstrapRoute
   '/api/public/landing-server-heartbeat': typeof ApiPublicLandingServerHeartbeatRoute
   '/api/public/sms-poll-cron': typeof ApiPublicSmsPollCronRoute
@@ -781,6 +789,7 @@ export interface FileRoutesById {
   '/api/public/interview-chat': typeof ApiPublicInterviewChatRoute
   '/api/public/interview-test-create': typeof ApiPublicInterviewTestCreateRoute
   '/api/public/interview-voice': typeof ApiPublicInterviewVoiceRoute
+  '/api/public/invite-prefill': typeof ApiPublicInvitePrefillRoute
   '/api/public/landing-server-bootstrap': typeof ApiPublicLandingServerBootstrapRoute
   '/api/public/landing-server-heartbeat': typeof ApiPublicLandingServerHeartbeatRoute
   '/api/public/sms-poll-cron': typeof ApiPublicSmsPollCronRoute
@@ -869,6 +878,7 @@ export interface FileRouteTypes {
     | '/api/public/interview-chat'
     | '/api/public/interview-test-create'
     | '/api/public/interview-voice'
+    | '/api/public/invite-prefill'
     | '/api/public/landing-server-bootstrap'
     | '/api/public/landing-server-heartbeat'
     | '/api/public/sms-poll-cron'
@@ -954,6 +964,7 @@ export interface FileRouteTypes {
     | '/api/public/interview-chat'
     | '/api/public/interview-test-create'
     | '/api/public/interview-voice'
+    | '/api/public/invite-prefill'
     | '/api/public/landing-server-bootstrap'
     | '/api/public/landing-server-heartbeat'
     | '/api/public/sms-poll-cron'
@@ -1041,6 +1052,7 @@ export interface FileRouteTypes {
     | '/api/public/interview-chat'
     | '/api/public/interview-test-create'
     | '/api/public/interview-voice'
+    | '/api/public/invite-prefill'
     | '/api/public/landing-server-bootstrap'
     | '/api/public/landing-server-heartbeat'
     | '/api/public/sms-poll-cron'
@@ -1083,6 +1095,7 @@ export interface RootRouteChildren {
   ApiPublicInterviewChatRoute: typeof ApiPublicInterviewChatRoute
   ApiPublicInterviewTestCreateRoute: typeof ApiPublicInterviewTestCreateRoute
   ApiPublicInterviewVoiceRoute: typeof ApiPublicInterviewVoiceRoute
+  ApiPublicInvitePrefillRoute: typeof ApiPublicInvitePrefillRoute
   ApiPublicLandingServerBootstrapRoute: typeof ApiPublicLandingServerBootstrapRoute
   ApiPublicLandingServerHeartbeatRoute: typeof ApiPublicLandingServerHeartbeatRoute
   ApiPublicSmsPollCronRoute: typeof ApiPublicSmsPollCronRoute
@@ -1556,6 +1569,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLandingServerBootstrapRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/invite-prefill': {
+      id: '/api/public/invite-prefill'
+      path: '/api/public/invite-prefill'
+      fullPath: '/api/public/invite-prefill'
+      preLoaderRoute: typeof ApiPublicInvitePrefillRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/interview-voice': {
       id: '/api/public/interview-voice'
       path: '/api/public/interview-voice'
@@ -1858,6 +1878,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicInterviewChatRoute: ApiPublicInterviewChatRoute,
   ApiPublicInterviewTestCreateRoute: ApiPublicInterviewTestCreateRoute,
   ApiPublicInterviewVoiceRoute: ApiPublicInterviewVoiceRoute,
+  ApiPublicInvitePrefillRoute: ApiPublicInvitePrefillRoute,
   ApiPublicLandingServerBootstrapRoute: ApiPublicLandingServerBootstrapRoute,
   ApiPublicLandingServerHeartbeatRoute: ApiPublicLandingServerHeartbeatRoute,
   ApiPublicSmsPollCronRoute: ApiPublicSmsPollCronRoute,

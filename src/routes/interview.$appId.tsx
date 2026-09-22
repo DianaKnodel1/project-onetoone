@@ -65,10 +65,27 @@ function InterviewPage() {
   const [ended, setEnded] = useState(false);
   const [appStatus, setAppStatus] = useState<string | null>(null);
   const [registrationLink, setRegistrationLink] = useState<string | null>(null);
+  // Aktuelle Domain (erst nach dem Laden im Browser verfuegbar).
+  const [pageOrigin, setPageOrigin] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setPageOrigin(window.location.origin.replace(/\/+$/, ""));
+    // Bereits erhaltenen Registrierungslink wiederherstellen — der Bewerber
+    // soll nach einem Reload nicht vor einer leeren Zusage stehen.
+    try {
+      const saved = window.localStorage.getItem(`zusage_link_${appId}`);
+      if (saved) setRegistrationLink(saved);
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // Link dauerhaft im Browser merken.
+  useEffect(() => {
+    if (!registrationLink || typeof window === "undefined") return;
+    try { window.localStorage.setItem(`zusage_link_${appId}`, registrationLink); } catch { /* ignore */ }
+  }, [registrationLink, appId]);
   // E-Mail des Bewerbers: erlaubt die Registrierung direkt nach der Zusage,
   // ohne auf eine Mail mit Token zu warten (Feld ist vorbefüllt).
   const [applicantEmail, setApplicantEmail] = useState<string | null>(null);
-  const [inviteMailFailed, setInviteMailFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [consent, setConsent] = useState(false);
   const [startedAt, setStartedAt] = useState<number | null>(null);
@@ -229,7 +246,6 @@ function InterviewPage() {
       if (data.application_status) setAppStatus(data.application_status);
       const im = (data as any)?.invite_mail;
       if (im?.registration_link) setRegistrationLink(im.registration_link);
-      if (im && im.sent === false) setInviteMailFailed(true);
     } catch (e: any) {
       setError(e?.message ?? "Unbekannter Fehler");
     } finally {
@@ -249,7 +265,6 @@ function InterviewPage() {
       if (data?.application_status) setAppStatus(data.application_status);
       const im = (data as any)?.invite_mail;
       if (im?.registration_link) setRegistrationLink(im.registration_link);
-      if (im && im.sent === false) setInviteMailFailed(true);
       setEnded(true);
     } catch (e: any) {
       setError(e?.message ?? "Unbekannter Fehler");
@@ -267,12 +282,13 @@ function InterviewPage() {
   // Vermittlungs-Domain und der Bewerber wuerde sich bei der falschen Firma
   // registrieren. Ohne Basis lieber gar kein Link.
   const portalBase = serverPortalBase || (portal || "").replace(/\/+$/, "");
-  // Ohne Token (z. B. Mailversand-Fehler) zeigt die Karte den Hinweis auf die E-Mail.
-  // Ohne Token (Mailfehler / kein Token gefunden) trotzdem zur Portal-Registrierung
-  // führen — der Bewerber landet so in jedem Fall auf der richtigen Seite.
+  // Kein Sackgassen-Zustand mehr: laesst sich keine Partner-Portal-Domain
+  // aufloesen, fuehrt der Knopf auf die Registrierung der aktuellen Domain —
+  // besser ein Weg weiter als gar keiner.
   const registerQuery = applicantEmail ? `?email=${encodeURIComponent(applicantEmail)}` : "";
-  const registerFallbackHref: string | null = portalBase
-    ? `${portalBase}/register${registerQuery}`
+  const fallbackBase = portalBase || pageOrigin || "";
+  const registerFallbackHref: string | null = fallbackBase
+    ? `${fallbackBase}/register${registerQuery}`
     : null;
 
 
@@ -410,7 +426,6 @@ function InterviewPage() {
                 primary={primary}
                 recruiter={recruiterName}
                 registrationLink={registrationLink ?? registerFallbackHref}
-                mailFailed={inviteMailFailed}
                 loginHref={`${portalBase}/login`}
               />
             </div>

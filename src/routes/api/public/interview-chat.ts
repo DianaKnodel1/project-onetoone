@@ -515,6 +515,12 @@ export const Route = createFileRoute("/api/public/interview-chat")({
           let inviteMail: any = { sent: false, skipped: true, reason: "no_ai_invite" };
           if (result.recommendation === "invite") {
             inviteMail = await sendRegistrationInviteAfterAiAccept(app as any, request);
+            // Der Link ist im Mail-losen Betrieb der einzige Weg weiter —
+            // deshalb immer mitliefern, auch wenn kein Mailversand stattfand.
+            if (!inviteMail?.registration_link) {
+              const link = await getExistingRegistrationLink(app as any, request);
+              if (link) inviteMail = { ...(inviteMail ?? {}), registration_link: link };
+            }
             await supabaseAdmin.rpc("advance_application_stage", {
               _application_id: applicationId,
               _to_stage: "vermittlung_zusage",
@@ -595,6 +601,10 @@ export const Route = createFileRoute("/api/public/interview-chat")({
         let inviteMail: any = undefined;
         if (ended && updates.interview_recommendation === "invite") {
           inviteMail = await sendRegistrationInviteAfterAiAccept(app as any, request);
+          if (!inviteMail?.registration_link) {
+            const link = await getExistingRegistrationLink(app as any, request);
+            if (link) inviteMail = { ...(inviteMail ?? {}), registration_link: link };
+          }
           await supabaseAdmin.rpc("advance_application_stage", {
             _application_id: applicationId,
             _to_stage: "vermittlung_zusage",

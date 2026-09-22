@@ -183,8 +183,25 @@ function RegisterPage() {
           setTenantFromInvitation(true);
         }
       }
+      // Name und Telefon aus der Bewerbung übernehmen — der Bewerber hat das
+      // alles schon eingetippt, im ersten Schritt bleibt nur das Passwort.
+      try {
+        const res = await fetch("/api/public/invite-prefill", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+        const pre = await res.json().catch(() => null);
+        if (pre?.ok) {
+          if (pre.first_name) setFirstName((cur) => cur || pre.first_name);
+          if (pre.last_name) setLastName((cur) => cur || pre.last_name);
+          if (pre.phone) setPhone((cur) => cur || pre.phone);
+          if (pre.email) setEmail((cur) => cur || pre.email);
+        }
+      } catch { /* Vorbefüllung ist optional */ }
     })();
   }, [token]);
+
 
   // Step 8 — Optional
   const [taxNumber, setTaxNumber] = useState("");

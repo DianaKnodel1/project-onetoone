@@ -289,7 +289,11 @@ function VoiceInterviewPage() {
     const primaryColor = branding?.primary_color || "#2563eb";
 
     if (rec === "invite") {
-      const registerUrl = endResult?.invite_mail?.registration_link ?? null;
+      // Ohne persoenlichen Link trotzdem weiterfuehren: Registrierung auf der
+      // aktuellen Domain. Eine Zusage darf nie in einer Sackgasse enden.
+      const fallbackRegister =
+        typeof window !== "undefined" ? `${window.location.origin.replace(/\/+$/, "")}/register` : null;
+      const registerUrl = endResult?.invite_mail?.registration_link ?? fallbackRegister;
       return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-slate-100 p-4">
           <div className="max-w-xl w-full">
@@ -299,7 +303,6 @@ function VoiceInterviewPage() {
               recruiter={config?.recruiterName ?? "Martin Schneider"}
               firstName={firstName}
               registrationLink={registerUrl}
-              mailFailed={endResult?.invite_mail ? endResult.invite_mail.sent === false : false}
             />
           </div>
         </div>
