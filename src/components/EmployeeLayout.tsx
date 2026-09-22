@@ -393,7 +393,7 @@ export default function EmployeeLayout() {
                       <span className={cn(
                         "absolute top-1.5 right-[calc(50%-14px)] h-2 w-2 rounded-full",
                         item.dot === "orange" && "bg-orange-500",
-                        item.dot === "blue" && "bg-blue-500"
+                        item.dot === "blue" && "bg-primary"
                       )} />
                     )}
                   </NavLink>
