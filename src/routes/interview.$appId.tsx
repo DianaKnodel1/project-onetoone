@@ -246,7 +246,6 @@ function InterviewPage() {
       if (data.application_status) setAppStatus(data.application_status);
       const im = (data as any)?.invite_mail;
       if (im?.registration_link) setRegistrationLink(im.registration_link);
-      if (im && im.sent === false) setInviteMailFailed(true);
     } catch (e: any) {
       setError(e?.message ?? "Unbekannter Fehler");
     } finally {
@@ -266,7 +265,6 @@ function InterviewPage() {
       if (data?.application_status) setAppStatus(data.application_status);
       const im = (data as any)?.invite_mail;
       if (im?.registration_link) setRegistrationLink(im.registration_link);
-      if (im && im.sent === false) setInviteMailFailed(true);
       setEnded(true);
     } catch (e: any) {
       setError(e?.message ?? "Unbekannter Fehler");
