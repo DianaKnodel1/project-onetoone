@@ -213,7 +213,10 @@ function PersonalDataPage() {
     }
   };
 
-  const requiredFilled = !!(fullName.trim() && birthDate && birthPlace.trim() && nationality.trim() && street.trim() && zip.trim() && city.trim() && iban.trim() && taxNumber.trim() && svNumber.trim() && healthInsurance && currentActivity);
+  // IBAN darf nachgereicht werden – sie ist erst zur ersten Abrechnung nötig
+  // und blockierte bisher das komplette Speichern.
+  const requiredFilled = !!(fullName.trim() && birthDate && birthPlace.trim() && nationality.trim() && street.trim() && zip.trim() && city.trim() && taxNumber.trim() && svNumber.trim() && healthInsurance && currentActivity);
+
 
   const handleSave = async () => {
     if (!user) return;
