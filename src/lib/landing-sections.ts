@@ -55,6 +55,14 @@ export const SECTION_CATALOG: SectionTypeDef[] = [
       { key: "subtitle", label: "Untertitel", kind: "textarea" },
       { key: "ctaText", label: "Knopf-Text", kind: "text", placeholder: "Jetzt bewerben" },
       { key: "imageUrl", label: "Bild (optional)", kind: "image", help: "Bild direkt hochladen oder Bild-URL einfügen." },
+      {
+        key: "variant", label: "Darstellung", kind: "select",
+        options: [
+          { value: "split", label: "Text links, Bild rechts" },
+          { value: "centered", label: "Zentriert, Bild darunter" },
+          { value: "cover", label: "Bild als Hintergrund" },
+        ],
+      },
     ],
     defaults: () => ({
       kicker: "",
@@ -62,6 +70,7 @@ export const SECTION_CATALOG: SectionTypeDef[] = [
       subtitle: "Wir bringen dich in einen sicheren Job bei geprüften Unternehmen in deiner Region. Ohne lange Bewerbungsunterlagen.",
       ctaText: "Jetzt bewerben",
       imageUrl: "",
+      variant: "split",
     }),
   },
   {
