@@ -97,17 +97,17 @@ function AdminSidebar() {
           <NavLink
             to={item.url}
             end={item.end}
-            className="relative flex! flex-row! flex-nowrap! items-center! gap-2.5 px-2.5 h-auto! min-h-9 rounded-lg text-[12.5px] font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors overflow-hidden whitespace-nowrap"
-            activeClassName="bg-blue-600! text-white! shadow-[0_2px_8px_-2px_rgba(37,99,235,0.45)] hover:bg-blue-600!"
+            className="sidebar-nav-link flex! flex-row! flex-nowrap! items-center! gap-2.5 px-2.5 h-auto! min-h-9 rounded-lg text-[12.5px] font-medium overflow-hidden whitespace-nowrap"
+            activeClassName="active!"
           >
-            <item.icon className="h-[17px] w-[17px] shrink-0" strokeWidth={1.75} />
+            <item.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.5} />
             {!collapsed && <span className="truncate min-w-0">{item.title}</span>}
             {count > 0 && (
               <span
                 className={
                   collapsed
-                    ? "absolute top-1 right-1 inline-flex h-3.5 min-w-[14px] px-1 rounded-full bg-rose-500 text-white text-[9px] font-medium items-center justify-center leading-none"
-                    : "ml-auto inline-flex h-[18px] min-w-[18px] w-auto px-1.5 rounded-full bg-rose-500 text-white text-[10px] font-semibold items-center justify-center leading-none shrink-0"
+                    ? "sidebar-badge absolute top-1 right-1 inline-flex h-3.5 min-w-[14px] px-1 rounded-full text-[9px] font-semibold items-center justify-center leading-none"
+                    : "sidebar-badge ml-auto inline-flex h-[18px] min-w-[18px] w-auto px-1.5 rounded-full text-[10px] font-semibold items-center justify-center leading-none shrink-0"
                 }
               >
                 {count > 99 ? "99+" : count}
@@ -123,14 +123,19 @@ function AdminSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar">
       <SidebarContent className="flex flex-col h-full">
         {/* Brand */}
-        <div className={collapsed ? "px-2 py-4 flex justify-center" : "px-4 py-4 flex items-center gap-2.5"}>
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 grid place-items-center text-white text-sm font-bold shadow-sm shrink-0">
+        <div className={collapsed ? "px-2 py-4 flex justify-center border-b border-sidebar-border" : "px-4 py-4 flex items-center gap-2.5 border-b border-sidebar-border"}>
+          <div className="h-8 w-8 rounded-lg bg-primary grid place-items-center text-primary-foreground text-sm font-bold shrink-0">
             A
           </div>
           {!collapsed && (
-            <span className="text-[15px] font-bold text-sidebar-foreground tracking-tight">
-              {isAdmin ? "ADMIN" : "TEAM"}
-            </span>
+            <div className="flex flex-col leading-tight min-w-0">
+              <span className="text-[15px] font-bold text-sidebar-foreground tracking-tight">
+                {isAdmin ? "ADMIN" : "TEAM"}
+              </span>
+              <span className="text-[9px] font-medium tracking-[0.18em] uppercase text-muted-foreground">
+                Management
+              </span>
+            </div>
           )}
         </div>
 
@@ -163,10 +168,10 @@ function AdminSidebar() {
               <Collapsible key={grp.label} open={open} onOpenChange={() => toggleGroup(grp.label)}>
                 <SidebarGroup className="py-1">
                   <CollapsibleTrigger className="w-full">
-                    <SidebarGroupLabel className="w-full flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40 px-2.5 mb-1 cursor-pointer hover:text-sidebar-foreground/70">
+                    <SidebarGroupLabel className="w-full flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-sidebar-foreground/40 px-2.5 mb-1.5 mt-2 cursor-pointer hover:text-sidebar-foreground/70">
                       <span className="truncate">{grp.label}</span>
                       {!open && groupBadge > 0 && (
-                        <span className="ml-1 inline-flex h-[15px] min-w-[15px] px-1 rounded-full bg-rose-500 text-white text-[9px] font-semibold items-center justify-center leading-none">
+                        <span className="ml-1 inline-flex h-[15px] min-w-[15px] px-1 sidebar-badge rounded-full text-[9px] font-semibold items-center justify-center leading-none">
                           {groupBadge > 99 ? "99+" : groupBadge}
                         </span>
                       )}
@@ -191,9 +196,9 @@ function AdminSidebar() {
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={signOut}
-                className="text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent text-[12.5px] font-medium gap-3 py-2"
+                className="text-sidebar-foreground/55 hover:text-sidebar-foreground hover:bg-sidebar-accent text-[12.5px] font-medium gap-3 py-2"
               >
-                <LogOut className="h-[17px] w-[17px] shrink-0" strokeWidth={1.75} />
+                <LogOut className="h-[18px] w-[18px] shrink-0" strokeWidth={1.5} />
                 {!collapsed && <span>Abmelden</span>}
               </SidebarMenuButton>
             </SidebarMenuItem>
