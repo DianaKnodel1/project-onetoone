@@ -312,8 +312,8 @@ function RegisterPage() {
 
 
   /**
-   * Finaler Submit: Account & Profil werden ERST jetzt angelegt – nach allen 5 Schritten.
-   * Vorher wird nichts in der DB erzeugt → keine halbfertigen Karteileichen.
+   * Finaler Submit: Account & Profil werden ERST jetzt angelegt – nach allen
+   * vier Schritten. Das Passwort wird bewusst erst hier abgefragt.
    */
   const handleFinalSubmit = async () => {
     if (!employmentType) {
@@ -324,6 +324,11 @@ function RegisterPage() {
       toast({ title: "Fehler", description: "Bitte wähle ein Startdatum.", variant: "destructive" });
       return;
     }
+    if (password.length < 6) {
+      toast({ title: "Passwort zu kurz", description: "Bitte mindestens 6 Zeichen wählen.", variant: "destructive" });
+      return;
+    }
+
     if (!tenantId) {
       toast({ title: "Fehler", description: "Tenant konnte nicht ermittelt werden. Bitte lade die Seite neu.", variant: "destructive" });
       return;
