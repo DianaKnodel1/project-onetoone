@@ -738,6 +738,13 @@ export function renderSectionsLanding(opts: {
   const secondary = secondaryOf(branding);
   const host = String(opts.host || branding.landing_domain || "").replace(/^www\./, "");
   const editor = Boolean(opts.editor);
+  // Design-Ebene: wenn keine eigene Gestaltung hinterlegt ist, greifen die
+  // bisherigen Farben aus dem Branding — bestehende Seiten sehen unverändert aus.
+  const st = normalizeStyle(
+    branding.style && typeof branding.style === "object"
+      ? { primary, accent: secondary, ...(branding.style as Record<string, any>) }
+      : { primary, accent: secondary }
+  );
 
   const list = Array.isArray(opts.sections) ? opts.sections : [];
   const bodyParts: string[] = [];
