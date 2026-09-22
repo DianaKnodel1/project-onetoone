@@ -29,7 +29,7 @@ const OPTIONS = [
   { value: "vollzeit", label: "Vollzeit", desc: "40 Stunden / Woche" },
 ];
 
-export default function StepEmployment({ employmentType, setEmploymentType, allowedTypes, startDate, setStartDate, onNext, onBack, loading }: Props) {
+export default function StepEmployment({ employmentType, setEmploymentType, allowedTypes, startDate, setStartDate, password, setPassword, onNext, onBack, loading }: Props) {
   const minDate = addDays(startOfDay(new Date()), 7);
   const options = OPTIONS.filter((o) => !allowedTypes?.length || allowedTypes.includes(o.value));
 
