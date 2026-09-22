@@ -358,8 +358,10 @@ function AdminBewerbungenPage() {
     const c: Record<string, number> = { alle: scoped.length };
     for (const g of GROUPS) if (g.key !== "alle") c[g.key] = 0;
     for (const r of scoped) {
-      const g = groupOf(r.phase);
-      c[g] = (c[g] || 0) + 1;
+      for (const g of GROUPS) {
+        if (g.key === "alle") continue;
+        if (matchesGroup(r, g.key)) c[g.key] = (c[g.key] || 0) + 1;
+      }
     }
     return c;
   }, [scoped]);
@@ -369,7 +371,7 @@ function AdminBewerbungenPage() {
   const filterByGroup = useMemo(() => {
     const ql = q.trim().toLowerCase();
     return (groupKey: string) => scoped.filter(r => {
-      if (groupKey !== "alle" && groupOf(r.phase) !== groupKey) return false;
+      if (!matchesGroup(r, groupKey)) return false;
       if (!ql) return true;
       return (
         r.name?.toLowerCase().includes(ql) ||
