@@ -2,6 +2,8 @@
 
 ## Offen
 - [ ] Deploy ausstehend (betrifft ALLE umgesetzten Punkte unten): `git pull && bash scripts/deploy.sh` + Landing-Sync auf dem Server
+- [ ] Vor dem ersten Baukasten-Speichern: Migration `supabase/manual-migrations/20260922000000_landing_sections.sql` einspielen (sonst schlägt Speichern/Resync fehl)
+- [ ] Landing-Sync inkl. neuer Datei: `bash scripts/sync-landing-server.sh` schiebt jetzt auch `sections-renderer.js` (Baukasten-Renderer) auf Server 1
 - [ ] WhatsApp-Nummer + aktiv-Schalter im Admin (pro Mandant) hinterlegen — sonst bleiben alle WhatsApp-Knöpfe unsichtbar
 - [ ] Supabase-Auth: „Confirm email“ prüfen/deaktivieren (eigene Mails sind aus; Registrierung darf nicht an Bestätigungsmail hängen)
 - [ ] Basislinie sichern: `DAYS=90 bash scripts/analyze-no-shows.sh --local` (nur SELECTs), Ausgabe abspeichern
@@ -14,6 +16,7 @@
 - Alte Theme-Defaults mit erfundenen Kennzahlen/Stimmen bereinigen (Social Proof verworfen)
 
 ## Erledigt
+- [x] Landing-Baukasten: Abschnitts-Katalog + Renderer (`src/lib/landing-sections.ts`, Mirror `landing-server/sections-renderer.js`), Renderer-Branch in server.js/server.ts, Sync per Heartbeat/sync-Skript, Admin-Editor `/admin/landing-baukasten` mit Live-Vorschau — umgesetzt, wartet auf Deploy + Migration + Sync
 - [x] Zwei-Minuten-Hinweis am ersten Bewerbungsaufruf und klare Datenerklärung vor dem Ausweis-Upload — umgesetzt, wartet auf Deploy
 - [x] Meta-Pixel-Infrastruktur (ID-Feld, PageView/Lead, Consent) — live
 - [x] /danke-Weiterleitung + Cache-Buster — live

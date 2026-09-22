@@ -53,6 +53,21 @@ const SaveInput = z.object({
   theme_id: z.string().min(1).max(40),
   branding: BrandingSchema,
   slots: z.record(z.string(), z.string().max(20_000)).default({}),
+  // Baukasten-Abschnitte (Renderer: landing-server/sections-renderer.js).
+  // Wird das Feld nicht mitgeschickt, bleibt der vorhandene Wert unverändert.
+  sections: z
+    .array(
+      z
+        .object({
+          id: z.string().max(60),
+          type: z.string().max(40),
+          data: z.record(z.string(), z.any()),
+        })
+        .passthrough()
+    )
+    .max(40)
+    .nullable()
+    .optional(),
   flow_type: z.enum(["classic", "fast", "broker"]).default("classic"),
   source_slug: z.string().max(120).default(""),
   is_published: z.boolean().default(true),
@@ -168,6 +183,7 @@ export const saveLandingPage = createServerFn({ method: "POST" })
         recruiter_name: recruiterName,
       },
       slots: data.slots,
+      ...(data.sections !== undefined ? { sections: data.sections } : {}),
       flow_type: data.flow_type,
       source_slug: data.source_slug || null,
       is_published: data.is_published,

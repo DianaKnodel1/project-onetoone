@@ -62,22 +62,32 @@ resync_themes() {
     done
   done
 
-  # Renderer-Dateien zusätzlich syncen (server.js braucht legal-content.js; nur gemeinsam austauschen)
+  # Renderer-Dateien zusätzlich syncen (server.js braucht legal-content.js und
+  # ggf. sections-renderer.js; nur gemeinsam austauschen)
   local UPDATED=false
-  if curl_with_retry "$SERVER_FILES_BASE/server.js" /opt/landing-server/server.js.new 3     && curl_with_retry "$SERVER_FILES_BASE/legal-content.js" /opt/landing-server/legal-content.js.new 3; then
-    if grep -q 'legal-content.js' /opt/landing-server/server.js.new; then
+  if curl_with_retry "$SERVER_FILES_BASE/server.js" /opt/landing-server/server.js.new 3 \
+    && curl_with_retry "$SERVER_FILES_BASE/legal-content.js" /opt/landing-server/legal-content.js.new 3; then
+    # Baukasten-Renderer mitaustauschen, wenn das neue server.js ihn referenziert
+    if grep -q 'sections-renderer\.js' /opt/landing-server/server.js.new; then
+      curl_with_retry "$SERVER_FILES_BASE/sections-renderer.js" /opt/landing-server/sections-renderer.js.new 3 || true
+    fi
+    if grep -q 'legal-content.js' /opt/landing-server/server.js.new \
+      && { ! grep -q 'sections-renderer\.js' /opt/landing-server/server.js.new || [ -s /opt/landing-server/sections-renderer.js.new ]; }; then
       mv /opt/landing-server/legal-content.js.new /opt/landing-server/legal-content.js
+      if [ -s /opt/landing-server/sections-renderer.js.new ]; then
+        mv /opt/landing-server/sections-renderer.js.new /opt/landing-server/sections-renderer.js
+      fi
       mv /opt/landing-server/server.js.new /opt/landing-server/server.js
-      chown landing:landing /opt/landing-server/server.js /opt/landing-server/legal-content.js 2>/dev/null || true
-      log "server.js + legal-content.js aktualisiert"
+      chown landing:landing /opt/landing-server/server.js /opt/landing-server/legal-content.js /opt/landing-server/sections-renderer.js 2>/dev/null || true
+      log "Renderer-Dateien aktualisiert"
       UPDATED=true
     else
-      log "server.js sieht unerwartet aus — überspringe Renderer-Update"
-      rm -f /opt/landing-server/server.js.new /opt/landing-server/legal-content.js.new
+      log "server.js unerwartet bzw. sections-renderer.js fehlt — überspringe Renderer-Update"
+      rm -f /opt/landing-server/server.js.new /opt/landing-server/legal-content.js.new /opt/landing-server/sections-renderer.js.new
     fi
   else
     log "Download von server.js/legal-content.js fehlgeschlagen — Renderer-Dateien bleiben unverändert"
-    rm -f /opt/landing-server/server.js.new /opt/landing-server/legal-content.js.new
+    rm -f /opt/landing-server/server.js.new /opt/landing-server/legal-content.js.new /opt/landing-server/sections-renderer.js.new
   fi
 
   # Renderer nur neustarten, wenn wir wirklich neue Dateien bekommen haben ODER ein Theme-Update stattfand

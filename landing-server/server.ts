@@ -35,7 +35,7 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   process.exit(1);
 }
 
-const LANDING_SELECT = "id,slug,domain,tenant_id,theme_id,branding,slots,logo_url,favicon_url,flow_type,source_slug,is_published,linked_fasttrack_landing_id,linked_fasttrack:landing_pages!linked_fasttrack_landing_id(domain)";
+const LANDING_SELECT = "id,slug,domain,tenant_id,theme_id,branding,slots,sections,logo_url,favicon_url,flow_type,source_slug,is_published,linked_fasttrack_landing_id,linked_fasttrack:landing_pages!linked_fasttrack_landing_id(domain)";
 
 // ── Themes von Disk laden (einmal beim Start) ────────────────────────────
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -431,7 +431,36 @@ function versionThemeAssets(html: string): string {
     .replace(/\bsrc=["'](?:\.\/|\/)?script\.js["']/gi, `src="/script.js?v=${v}"`);
 }
 
-function renderHtml(row: LandingRow, host: string, mode?: string): { body: string; status: number } {
+// Baukasten-Renderer (Abschnitte statt festem Theme) — Mirror-Datei
+// sections-renderer.js liegt neben dieser Datei (autogeneriert).
+let sectionsRendererMod: any = null;
+async function getSectionsRenderer(): Promise<any> {
+  if (sectionsRendererMod) return sectionsRendererMod;
+  try {
+    sectionsRendererMod = await import("./sections-renderer.js");
+  } catch (e) {
+    console.warn("[landing-server] sections-renderer.js nicht ladbar:", (e as Error)?.message);
+    sectionsRendererMod = { renderSectionsLanding: null };
+  }
+  return sectionsRendererMod;
+}
+
+async function renderHtml(row: LandingRow, host: string, mode?: string): Promise<{ body: string; status: number }> {
+  // Baukasten-Landings (sections gesetzt) haben Vorrang vor dem Theme.
+  if (Array.isArray((row as any).sections) && (row as any).sections.length) {
+    const mod = await getSectionsRenderer();
+    if (typeof mod.renderSectionsLanding === "function") {
+      let shtml = mod.renderSectionsLanding({
+        sections: (row as any).sections,
+        branding: row.branding || {},
+        host,
+        logoUrl: row.logo_url,
+        faviconUrl: row.favicon_url,
+      });
+      shtml = injectLandingConfig(shtml, row, mode);
+      return { body: shtml, status: 200 };
+    }
+  }
   const theme = THEMES[row.theme_id];
   if (!theme) return { body: `Theme nicht gefunden: ${row.theme_id}`, status: 500 };
   const slots = { ...(row.slots || {}) };
@@ -707,11 +736,11 @@ const server = Bun.serve({
       return new Response("asset not found", { status: 404 });
     }
     if (path === "/" || path === "/index.html") {
-      const { body, status } = renderHtml(row, host);
+      const { body, status } = await renderHtml(row, host);
       return new Response(body, { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache" } });
     }
     if (path === "/bewerben" || path === "/bewerben.html") {
-      const { body, status } = renderHtml(row, host, "apply");
+      const { body, status } = await renderHtml(row, host, "apply");
       return new Response(body, { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache" } });
     }
     if (path === "/danke" || path === "/danke.html") {

@@ -42,6 +42,7 @@ import { Route as AdminPersonenRouteImport } from './routes/admin.personen'
 import { Route as AdminPartnerCompaniesRouteImport } from './routes/admin.partner-companies'
 import { Route as AdminMitarbeiterRouteImport } from './routes/admin.mitarbeiter'
 import { Route as AdminLandingGeneratorRouteImport } from './routes/admin.landing-generator'
+import { Route as AdminLandingBaukastenRouteImport } from './routes/admin.landing-baukasten'
 import { Route as AdminKycRouteImport } from './routes/admin.kyc'
 import { Route as AdminInfrastructureRouteImport } from './routes/admin.infrastructure'
 import { Route as AdminDomainsRouteImport } from './routes/admin.domains'
@@ -256,6 +257,11 @@ const AdminMitarbeiterRoute = AdminMitarbeiterRouteImport.update({
 const AdminLandingGeneratorRoute = AdminLandingGeneratorRouteImport.update({
   id: '/landing-generator',
   path: '/landing-generator',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLandingBaukastenRoute = AdminLandingBaukastenRouteImport.update({
+  id: '/landing-baukasten',
+  path: '/landing-baukasten',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminKycRoute = AdminKycRouteImport.update({
@@ -563,6 +569,7 @@ export interface FileRoutesByFullPath {
   '/admin/domains': typeof AdminDomainsRoute
   '/admin/infrastructure': typeof AdminInfrastructureRoute
   '/admin/kyc': typeof AdminKycRoute
+  '/admin/landing-baukasten': typeof AdminLandingBaukastenRoute
   '/admin/landing-generator': typeof AdminLandingGeneratorRoute
   '/admin/mitarbeiter': typeof AdminMitarbeiterRoute
   '/admin/partner-companies': typeof AdminPartnerCompaniesRoute
@@ -647,6 +654,7 @@ export interface FileRoutesByTo {
   '/admin/domains': typeof AdminDomainsRoute
   '/admin/infrastructure': typeof AdminInfrastructureRoute
   '/admin/kyc': typeof AdminKycRoute
+  '/admin/landing-baukasten': typeof AdminLandingBaukastenRoute
   '/admin/landing-generator': typeof AdminLandingGeneratorRoute
   '/admin/mitarbeiter': typeof AdminMitarbeiterRoute
   '/admin/partner-companies': typeof AdminPartnerCompaniesRoute
@@ -734,6 +742,7 @@ export interface FileRoutesById {
   '/admin/domains': typeof AdminDomainsRoute
   '/admin/infrastructure': typeof AdminInfrastructureRoute
   '/admin/kyc': typeof AdminKycRoute
+  '/admin/landing-baukasten': typeof AdminLandingBaukastenRoute
   '/admin/landing-generator': typeof AdminLandingGeneratorRoute
   '/admin/mitarbeiter': typeof AdminMitarbeiterRoute
   '/admin/partner-companies': typeof AdminPartnerCompaniesRoute
@@ -821,6 +830,7 @@ export interface FileRouteTypes {
     | '/admin/domains'
     | '/admin/infrastructure'
     | '/admin/kyc'
+    | '/admin/landing-baukasten'
     | '/admin/landing-generator'
     | '/admin/mitarbeiter'
     | '/admin/partner-companies'
@@ -905,6 +915,7 @@ export interface FileRouteTypes {
     | '/admin/domains'
     | '/admin/infrastructure'
     | '/admin/kyc'
+    | '/admin/landing-baukasten'
     | '/admin/landing-generator'
     | '/admin/mitarbeiter'
     | '/admin/partner-companies'
@@ -991,6 +1002,7 @@ export interface FileRouteTypes {
     | '/admin/domains'
     | '/admin/infrastructure'
     | '/admin/kyc'
+    | '/admin/landing-baukasten'
     | '/admin/landing-generator'
     | '/admin/mitarbeiter'
     | '/admin/partner-companies'
@@ -1311,6 +1323,13 @@ declare module '@tanstack/react-router' {
       path: '/landing-generator'
       fullPath: '/admin/landing-generator'
       preLoaderRoute: typeof AdminLandingGeneratorRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/landing-baukasten': {
+      id: '/admin/landing-baukasten'
+      path: '/landing-baukasten'
+      fullPath: '/admin/landing-baukasten'
+      preLoaderRoute: typeof AdminLandingBaukastenRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/kyc': {
@@ -1748,6 +1767,7 @@ interface AdminRouteChildren {
   AdminDomainsRoute: typeof AdminDomainsRoute
   AdminInfrastructureRoute: typeof AdminInfrastructureRoute
   AdminKycRoute: typeof AdminKycRoute
+  AdminLandingBaukastenRoute: typeof AdminLandingBaukastenRoute
   AdminLandingGeneratorRoute: typeof AdminLandingGeneratorRoute
   AdminMitarbeiterRoute: typeof AdminMitarbeiterRoute
   AdminPartnerCompaniesRoute: typeof AdminPartnerCompaniesRoute
@@ -1783,6 +1803,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminDomainsRoute: AdminDomainsRoute,
   AdminInfrastructureRoute: AdminInfrastructureRoute,
   AdminKycRoute: AdminKycRoute,
+  AdminLandingBaukastenRoute: AdminLandingBaukastenRoute,
   AdminLandingGeneratorRoute: AdminLandingGeneratorRoute,
   AdminMitarbeiterRoute: AdminMitarbeiterRoute,
   AdminPartnerCompaniesRoute: AdminPartnerCompaniesRoute,
