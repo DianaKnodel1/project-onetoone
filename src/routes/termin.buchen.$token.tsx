@@ -5,7 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import { format, addDays, startOfDay, isSameDay, startOfWeek } from "date-fns";
 import { de } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CalendarCheck, CalendarClock, CalendarDays, Clock, Loader2, UserRound } from "lucide-react";
+import { CalendarCheck, CalendarClock, CalendarDays, CalendarPlus, Clock, Loader2, MessageSquare, UserRound } from "lucide-react";
+import { downloadIcs } from "@/lib/calendar-invite";
+
 import {
   getScheduleForApplicant,
   getAvailableSlots,
@@ -312,8 +314,10 @@ function BookingPage() {
         </Card>
 
         <p className="text-xs text-muted-foreground text-center mt-6">
-          Sie erhalten nach der Buchung eine Bestätigung per E-Mail – inklusive Kalendereintrag.
+          Direkt nach der Buchung erhalten Sie hier Ihren persönlichen Zugangslink – zum Speichern im
+          Kalender und auf dem Handy.
         </p>
+
       </div>
     </div>
   );
@@ -359,17 +363,48 @@ function BookingConfirmed(props: {
               </div>
             </div>
 
+            <div className="grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() =>
+                  downloadIcs(
+                    {
+                      title: `Bewerbungsgespräch${props.tenantName ? ` – ${props.tenantName}` : ""}`,
+                      description: `Ihr Gespräch findet online statt. Diese Seite jederzeit wieder öffnen:\n${cancelUrl}`,
+                      location: cancelUrl,
+                      start,
+                      end,
+                      reminderMinutes: 30,
+                    },
+                    "bewerbungsgespraech.ics",
+                  )
+                }
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+              >
+                <CalendarPlus className="h-4 w-4" />
+                Termin in meinen Kalender
+              </button>
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(`Mein Bewerbungsgespräch am ${format(start, "EEEE, d. MMMM 'um' HH:mm 'Uhr'", { locale: de })}. Meine Terminseite: ${cancelUrl}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-md border bg-background px-4 py-2.5 text-sm font-medium hover:bg-muted"
+              >
+                <MessageSquare className="h-4 w-4" />
+                Termin per WhatsApp sichern
+              </a>
+            </div>
+
             <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm leading-relaxed">
               <div className="mb-2 font-semibold text-foreground">Wichtiger Hinweis zur Teilnahme</div>
               <p className="text-muted-foreground">
-                Ihr <strong className="text-foreground">Interview</strong> findet online statt. Die Teilnahme
-                erfolgt über Ihren persönlichen Zugangslink, den Sie soeben per E-Mail erhalten
-                haben; ein Telefonanruf erfolgt nicht. Bitte öffnen Sie den Link zur vereinbarten
-                Uhrzeit – er bleibt dauerhaft gültig, eine Installation ist nicht erforderlich.
+                Ihr <strong className="text-foreground">Interview</strong> findet online statt – ein
+                Telefonanruf erfolgt nicht. Alles, was Sie brauchen, finden Sie auf Ihrer Terminseite:
+                Dort wird kurz vor Beginn der Startknopf freigeschaltet.
               </p>
               <p className="mt-3 text-muted-foreground">
-                Kommt die E-Mail nicht an, schauen Sie bitte im Spam-Ordner nach. Der Termin liegt
-                als Kalendereintrag bei – zum Speichern in Outlook, Google oder Apple.
+                Speichern Sie sich den Termin am besten jetzt im Kalender – dann erinnert Sie Ihr
+                Handy rechtzeitig daran.
               </p>
             </div>
 
@@ -377,10 +412,11 @@ function BookingConfirmed(props: {
               <div className="mb-2 font-semibold text-foreground">Und danach?</div>
               <ol className="space-y-1.5 text-muted-foreground">
                 <li>1. Gespräch führen (ca. {Math.round((end.getTime() - start.getTime()) / 60000)} Minuten)</li>
-                <li>2. Zusage per E-Mail erhalten</li>
+                <li>2. Zusage direkt im Anschluss an das Gespräch</li>
                 <li>3. Im Mitarbeiter-Portal registrieren – erst danach können wir Sie einsetzen</li>
               </ol>
             </div>
+
 
             {props.eventDescription && (
               <div className="rounded-md border border-border bg-muted/40 p-4 text-sm whitespace-pre-wrap leading-relaxed">

@@ -1,14 +1,14 @@
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, UserPlus, IdCard, MapPin, Home, Briefcase } from "lucide-react";
+import { CheckCircle2, UserPlus, IdCard, MapPin, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
-  { label: "Konto", icon: UserPlus },
+  { label: "Start", icon: UserPlus },
   { label: "Person", icon: IdCard },
   { label: "Adresse", icon: MapPin },
-  { label: "Wohndauer", icon: Home },
   { label: "Job", icon: Briefcase },
 ];
+
 
 interface Props {
   step: number;

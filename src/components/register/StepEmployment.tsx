@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ArrowLeft, Briefcase, CheckCircle2, CalendarDays } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowRight, ArrowLeft, Briefcase, CheckCircle2, CalendarDays, Lock } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -14,10 +16,14 @@ interface Props {
   allowedTypes?: string[];
   startDate: Date | undefined;
   setStartDate: (v: Date | undefined) => void;
+  /** Passwort steht bewusst am Ende — vorne wirkte es wie eine Mauer. */
+  password: string;
+  setPassword: (v: string) => void;
   onNext: () => void;
   onBack: () => void;
   loading: boolean;
 }
+
 
 const OPTIONS = [
   { value: "minijob", label: "Minijob", desc: "Bis 603 € / Monat, flexibel" },
@@ -25,7 +31,7 @@ const OPTIONS = [
   { value: "vollzeit", label: "Vollzeit", desc: "40 Stunden / Woche" },
 ];
 
-export default function StepEmployment({ employmentType, setEmploymentType, allowedTypes, startDate, setStartDate, onNext, onBack, loading }: Props) {
+export default function StepEmployment({ employmentType, setEmploymentType, allowedTypes, startDate, setStartDate, password, setPassword, onNext, onBack, loading }: Props) {
   const minDate = addDays(startOfDay(new Date()), 7);
   const options = OPTIONS.filter((o) => !allowedTypes?.length || allowedTypes.includes(o.value));
 
@@ -91,10 +97,27 @@ export default function StepEmployment({ employmentType, setEmploymentType, allo
         <p className="text-[10px] text-muted-foreground">Mindestens 7 Tage in der Zukunft</p>
       </div>
 
-      <Button onClick={onNext} disabled={loading || !employmentType || !startDate} className="w-full h-12 text-base font-semibold gap-2">
+      <div className="space-y-1.5 pt-2 border-t">
+        <label className="text-sm font-medium text-foreground flex items-center gap-1.5">
+          <Lock className="h-3.5 w-3.5" /> Passwort für Ihren Zugang *
+        </label>
+        <Input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Mindestens 6 Zeichen"
+          className="h-11"
+        />
+        <p className="text-[11px] text-muted-foreground">
+          Damit melden Sie sich künftig im Portal an – letzter Schritt, dann sind Sie fertig.
+        </p>
+      </div>
+
+      <Button onClick={onNext} disabled={loading || !employmentType || !startDate || password.length < 6} className="w-full h-12 text-base font-semibold gap-2">
         {loading ? "Account wird erstellt…" : "Registrierung abschließen"}
         {!loading && <ArrowRight className="h-4 w-4" />}
       </Button>
+
       <Button variant="ghost" size="sm" onClick={onBack} className="w-full text-muted-foreground gap-1">
         <ArrowLeft className="h-3.5 w-3.5" /> Zurück
       </Button>

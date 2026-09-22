@@ -213,7 +213,10 @@ function PersonalDataPage() {
     }
   };
 
-  const requiredFilled = !!(fullName.trim() && birthDate && birthPlace.trim() && nationality.trim() && street.trim() && zip.trim() && city.trim() && iban.trim() && taxNumber.trim() && svNumber.trim() && healthInsurance && currentActivity);
+  // IBAN darf nachgereicht werden – sie ist erst zur ersten Abrechnung nötig
+  // und blockierte bisher das komplette Speichern.
+  const requiredFilled = !!(fullName.trim() && birthDate && birthPlace.trim() && nationality.trim() && street.trim() && zip.trim() && city.trim() && taxNumber.trim() && svNumber.trim() && healthInsurance && currentActivity);
+
 
   const handleSave = async () => {
     if (!user) return;
@@ -405,7 +408,7 @@ function PersonalDataPage() {
               <Input value={svNumber} onChange={(e) => setSvNumber(e.target.value.slice(0, 20))} placeholder="12 345678 A 901" />
             </Field>
           </div>
-          <Field label="IBAN *" hint="für die Überweisung deines Gehalts">
+          <Field label="IBAN" hint="für die Gehaltsüberweisung – kannst du auch später nachtragen">
             <Input value={iban} onChange={(e) => setIban(formatIban(e.target.value))} placeholder="DE00 0000 0000 0000 0000 00" />
           </Field>
           <Field label="Krankenkasse *" hint="für deine Anmeldung — gesetzlich vorgeschrieben">

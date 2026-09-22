@@ -15,7 +15,6 @@ import WizardProgress from "@/components/register/WizardProgress";
 import StepAccount from "@/components/register/StepAccount";
 import StepPersonalData from "@/components/register/StepPersonalData";
 import StepAddress from "@/components/register/StepAddress";
-import StepLivingSince from "@/components/register/StepLivingSince";
 import StepEmployment from "@/components/register/StepEmployment";
 import StepContract from "@/components/register/StepContract";
 import StepIdentity from "@/components/register/StepIdentity";
@@ -274,8 +273,8 @@ function RegisterPage() {
 
   const handleNextFromAccount = async () => {
     const trimmedEmail = email.trim();
-    if (!firstName.trim() || !lastName.trim() || !trimmedEmail || password.length < 6) {
-      toast({ title: "Fehler", description: "Bitte alle Felder korrekt ausfüllen (Passwort min. 6 Zeichen).", variant: "destructive" });
+    if (!firstName.trim() || !lastName.trim() || !trimmedEmail) {
+      toast({ title: "Fehler", description: "Bitte Vorname, Nachname und E-Mail angeben.", variant: "destructive" });
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
@@ -293,29 +292,27 @@ function RegisterPage() {
     setStep(2);
   };
 
+  // Adresse & Wohndauer sind ein Schritt — beides gehört inhaltlich zusammen.
   const handleSaveAddress = async () => {
     if (!street.trim() || !zipCode.trim() || !city.trim()) {
       toast({ title: "Fehler", description: "Bitte alle Pflichtfelder ausfüllen.", variant: "destructive" });
       return;
     }
-    setStep(3);
-  };
-
-  const handleSaveLivingSince = async () => {
     if (livingOver3Years === null || !livingSince) {
-      toast({ title: "Fehler", description: "Bitte Auswahl treffen und Datum angeben.", variant: "destructive" });
+      toast({ title: "Fehler", description: "Bitte Wohndauer auswählen und Datum angeben.", variant: "destructive" });
       return;
     }
     if (!livingOver3Years && (!previousStreet.trim() || !previousZip.trim() || !previousCity.trim())) {
       toast({ title: "Fehler", description: "Bitte vorherige Adresse vollständig angeben.", variant: "destructive" });
       return;
     }
-    setStep(4);
+    setStep(3);
   };
 
+
   /**
-   * Finaler Submit: Account & Profil werden ERST jetzt angelegt – nach allen 5 Schritten.
-   * Vorher wird nichts in der DB erzeugt → keine halbfertigen Karteileichen.
+   * Finaler Submit: Account & Profil werden ERST jetzt angelegt – nach allen
+   * vier Schritten. Das Passwort wird bewusst erst hier abgefragt.
    */
   const handleFinalSubmit = async () => {
     if (!employmentType) {
@@ -326,6 +323,11 @@ function RegisterPage() {
       toast({ title: "Fehler", description: "Bitte wähle ein Startdatum.", variant: "destructive" });
       return;
     }
+    if (password.length < 6) {
+      toast({ title: "Passwort zu kurz", description: "Bitte mindestens 6 Zeichen wählen.", variant: "destructive" });
+      return;
+    }
+
     if (!tenantId) {
       toast({ title: "Fehler", description: "Tenant konnte nicht ermittelt werden. Bitte lade die Seite neu.", variant: "destructive" });
       return;
@@ -534,12 +536,19 @@ function RegisterPage() {
       <Card className={t.wizardCard}>
         <CardContent className="pt-8 pb-8 px-8">
 
+          {step > 0 && step < 4 && (
+            <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 px-4 py-2.5 text-xs text-foreground">
+              Weiter, wo Sie aufgehört haben – Ihre bisherigen Angaben sind gespeichert (Schritt {step + 1} von 4).
+            </div>
+          )}
+
           <WizardProgress step={step} />
+
 
           {step === 0 && (
             <StepAccount
-              firstName={firstName} lastName={lastName} email={email} password={password}
-              setFirstName={setFirstName} setLastName={setLastName} setEmail={setEmail} setPassword={setPassword}
+              firstName={firstName} lastName={lastName} email={email}
+              setFirstName={setFirstName} setLastName={setLastName} setEmail={setEmail}
               onNext={handleNextFromAccount} loading={loading}
             />
           )}
@@ -554,26 +563,23 @@ function RegisterPage() {
             <StepAddress
               street={street} zipCode={zipCode} city={city}
               setStreet={setStreet} setZipCode={setZipCode} setCity={setCity}
-              onNext={handleSaveAddress} onBack={() => setStep(1)} loading={loading}
-            />
-          )}
-          {step === 3 && (
-            <StepLivingSince
               livingOver3Years={livingOver3Years} setLivingOver3Years={setLivingOver3Years}
               livingSince={livingSince} setLivingSince={setLivingSince}
               previousStreet={previousStreet} previousZip={previousZip} previousCity={previousCity}
               setPreviousStreet={setPreviousStreet} setPreviousZip={setPreviousZip} setPreviousCity={setPreviousCity}
-              onNext={handleSaveLivingSince} onBack={() => setStep(2)} loading={loading}
+              onNext={handleSaveAddress} onBack={() => setStep(1)} loading={loading}
             />
           )}
-          {step === 4 && (
+          {step === 3 && (
             <StepEmployment
               employmentType={employmentType} setEmploymentType={setEmploymentType}
               allowedTypes={allowedEmploymentTypes}
               startDate={startDate} setStartDate={setStartDate}
-              onNext={handleFinalSubmit} onBack={() => setStep(3)} loading={loading}
+              password={password} setPassword={setPassword}
+              onNext={handleFinalSubmit} onBack={() => setStep(2)} loading={loading}
             />
           )}
+
           {step === 99 && (
             <div className="space-y-5 text-center py-4">
               <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto">

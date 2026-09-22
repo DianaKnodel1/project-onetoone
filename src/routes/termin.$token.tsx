@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Loader2, CalendarX, CalendarClock, CalendarCheck, MessageSquare, CheckCircle2 } from "lucide-react";
+import { Loader2, CalendarX, CalendarClock, CalendarCheck, CalendarPlus, MessageSquare, CheckCircle2 } from "lucide-react";
+import { downloadIcs } from "@/lib/calendar-invite";
+
 import {
   getAppointmentByCancelToken,
   cancelAppointment,
@@ -147,10 +149,12 @@ function CancelPage() {
 
             <InterviewStart
               startsAt={start}
+              endsAt={end}
               applicationId={a.application_id ?? null}
               landingSlug={a.landing_slug ?? null}
               interviewStatus={a.interview_status ?? null}
             />
+
 
             <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
               <div className="flex items-start gap-3">
@@ -248,15 +252,18 @@ function Center({ title, children }: { title: string; children: React.ReactNode 
 // Server-Gate in /api/public/interview-chat.
 function InterviewStart({
   startsAt,
+  endsAt,
   applicationId,
   landingSlug,
   interviewStatus,
 }: {
   startsAt: Date;
+  endsAt: Date;
   applicationId: string | null;
   landingSlug: string | null;
   interviewStatus: string | null;
 }) {
+
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -321,9 +328,41 @@ function InterviewStart({
           Gespräch startet in {countdown}
         </div>
       )}
+      <div className="grid gap-2 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={() =>
+            downloadIcs(
+              {
+                title: "Ihr Bewerbungsgespräch",
+                description: `Ihr persönlicher Zugangslink zum Gespräch:\n${interviewUrl}`,
+                location: interviewUrl,
+                start: startsAt,
+                end: endsAt,
+                reminderMinutes: 30,
+              },
+              "bewerbungsgespraech.ics",
+            )
+          }
+          className="inline-flex items-center justify-center gap-2 rounded-md border bg-background px-4 py-2.5 text-sm font-medium hover:bg-muted"
+        >
+          <CalendarPlus className="h-4 w-4" />
+          Termin in meinen Kalender
+        </button>
+        <a
+          href={`https://wa.me/?text=${encodeURIComponent(`Mein Bewerbungsgespräch am ${format(startsAt, "EEEE, d. MMMM 'um' HH:mm 'Uhr'", { locale: de })}. Zugangslink: ${interviewUrl}`)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 rounded-md border bg-background px-4 py-2.5 text-sm font-medium hover:bg-muted"
+        >
+          <MessageSquare className="h-4 w-4" />
+          Link per WhatsApp sichern
+        </a>
+      </div>
       <p className="text-xs text-muted-foreground">
-        Sie erhalten den Link zusätzlich rund 30 Minuten vor dem Termin per E-Mail.
+        Diese Seite können Sie jederzeit wieder öffnen – Ihr Zugangslink steht immer hier.
       </p>
+
     </div>
   );
 }

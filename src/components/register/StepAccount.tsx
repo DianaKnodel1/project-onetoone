@@ -7,16 +7,14 @@ interface Props {
   firstName: string;
   lastName: string;
   email: string;
-  password: string;
   setFirstName: (v: string) => void;
   setLastName: (v: string) => void;
   setEmail: (v: string) => void;
-  setPassword: (v: string) => void;
   onNext: () => void;
   loading: boolean;
 }
 
-export default function StepAccount({ firstName, lastName, email, password, setFirstName, setLastName, setEmail, setPassword, onNext, loading }: Props) {
+export default function StepAccount({ firstName, lastName, email, setFirstName, setLastName, setEmail, onNext, loading }: Props) {
   const { tenant } = useTenant();
   const supportEmail = tenant?.company_email || tenant?.sender_email || "support@cac-vermittlung.de";
   return (
@@ -44,14 +42,14 @@ export default function StepAccount({ firstName, lastName, email, password, setF
         <label className="text-sm font-medium text-foreground">E-Mail *</label>
         <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="max@beispiel.de" className="h-11" />
       </div>
-      <div className="space-y-1.5">
-        <label className="text-sm font-medium text-foreground">Passwort *</label>
-        <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min. 6 Zeichen" className="h-11" />
-      </div>
+      <p className="text-xs text-muted-foreground text-center">
+        Ein Passwort legen Sie ganz am Ende fest – jetzt geht es erst einmal ohne weiter.
+      </p>
       <Button onClick={onNext} disabled={loading} className="w-full h-12 text-base font-semibold gap-2">
-        {loading ? "Wird erstellt…" : "Weiter"}
+        {loading ? "Bitte warten…" : "Los geht's"}
         {!loading && <ArrowRight className="h-4 w-4" />}
       </Button>
+
       <div className="pt-2 flex flex-col items-center gap-2 text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5">
           <LifeBuoy className="h-3.5 w-3.5" />

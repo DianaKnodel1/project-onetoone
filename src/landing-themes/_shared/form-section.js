@@ -197,6 +197,20 @@
         .catch(function(){renderRange();showError('Netzwerkfehler bei der Buchung.');});
     }
 
+    // Kalendereintrag (.ics) lokal erzeugen – ohne Mailversand ist das die
+    // einzige Erinnerung, die der Bewerber auf dem Handy bekommt.
+    function icsPad(n){return String(n).padStart(2,'0');}
+    function icsDate(d){return d.getUTCFullYear()+icsPad(d.getUTCMonth()+1)+icsPad(d.getUTCDate())+'T'+icsPad(d.getUTCHours())+icsPad(d.getUTCMinutes())+icsPad(d.getUTCSeconds())+'Z';}
+    function icsEsc(s){return String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');}
+    function downloadIcs(start,end,title,desc,loc){
+      var body=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Mitarbeiter-Portal//Termin//DE','CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT','UID:'+Date.now()+'@portal','DTSTAMP:'+icsDate(new Date()),'DTSTART:'+icsDate(start),'DTEND:'+icsDate(end),'SUMMARY:'+icsEsc(title),'DESCRIPTION:'+icsEsc(desc||''),'LOCATION:'+icsEsc(loc||''),'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+icsEsc(title),'TRIGGER:-PT30M','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
+      var blob=new Blob([body],{type:'text/calendar;charset=utf-8'});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement('a');a.href=url;a.download='bewerbungsgespraech.ics';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      setTimeout(function(){URL.revokeObjectURL(url);},2000);
+    }
+
     function renderConfirmed(bk){
       container.innerHTML='';
       var wrap=document.createElement('div');wrap.style.cssText='text-align:center;padding:12px 4px;';
@@ -210,14 +224,39 @@
       mail.textContent='Ihre Bewerbung ist eingegangen. Alle weiteren Details finden Sie direkt hier im Portal.';
       wrap.appendChild(chk);wrap.appendChild(h2);wrap.appendChild(when);wrap.appendChild(mail);
 
+      // Terminseite im Portal (Link merken, Gespräch starten, umbuchen)
+      var portalOrigin='';
+      try{portalOrigin=apiBase();}catch(_){portalOrigin='';}
+      var terminUrl=(bk.cancel_token&&portalOrigin)?(portalOrigin+'/termin/'+bk.cancel_token):'';
+
+      var actions=document.createElement('div');
+      actions.style.cssText='display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:0 auto 14px;max-width:560px;';
+      var cal=document.createElement('button');
+      cal.type='button';
+      cal.textContent='📅 Termin in meinen Kalender';
+      cal.style.cssText='flex:1 1 220px;padding:11px 16px;border-radius:9px;border:0;background:#2563eb;color:#fff;font-size:14px;font-weight:600;cursor:pointer;';
+      cal.onclick=function(){downloadIcs(start,end,'Bewerbungsgespräch','Ihr Gespräch findet online statt.'+(terminUrl?('\nIhre Terminseite: '+terminUrl):''),terminUrl);};
+      actions.appendChild(cal);
+      if(terminUrl){
+        var wa=document.createElement('a');
+        wa.href='https://wa.me/?text='+encodeURIComponent('Mein Bewerbungsgespräch: '+fmtDayLong.format(start)+' um '+fmtTime.format(start)+' Uhr. Meine Terminseite: '+terminUrl);
+        wa.target='_blank';wa.rel='noopener noreferrer';
+        wa.textContent='Termin per WhatsApp sichern';
+        wa.style.cssText='flex:1 1 220px;padding:11px 16px;border-radius:9px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;font-size:14px;font-weight:600;text-decoration:none;';
+        actions.appendChild(wa);
+      }
+      wrap.appendChild(actions);
+
       var next=document.createElement('div');
       next.style.cssText='margin:4px auto 0;padding:16px 18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;text-align:left;font-size:13.5px;line-height:1.6;color:#0f172a;max-width:560px;';
       next.innerHTML='<strong>So geht es weiter:</strong>'
-        + '<div style="margin-top:8px;">1. Den Termin im Kalender vormerken.</div>'
-        + '<div style="margin-top:4px;">2. Zur vereinbarten Zeit über den Button hier im Portal am Gespräch teilnehmen.</div>'
+        + '<div style="margin-top:8px;">1. Termin im Kalender speichern – Ihr Handy erinnert Sie dann rechtzeitig.</div>'
+        + '<div style="margin-top:4px;">2. Zur vereinbarten Zeit über den Button auf Ihrer Terminseite am Gespräch teilnehmen.</div>'
         + '<div style="margin-top:4px;">3. Bei einer Zusage schließen Sie Ihre Registrierung direkt im Anschluss ab.</div>'
-        + '<div style="margin-top:10px;color:#475569;">Sollten Sie den Termin nicht wahrnehmen können, geben Sie uns bitte rechtzeitig über das Portal Bescheid.</div>';
+        + (terminUrl?('<div style="margin-top:10px;">Ihre Terminseite: <a href="'+terminUrl+'" style="color:#2563eb;" target="_blank" rel="noopener noreferrer">jederzeit hier öffnen</a></div>'):'')
+        + '<div style="margin-top:10px;color:#475569;">Sollten Sie den Termin nicht wahrnehmen können, geben Sie uns bitte rechtzeitig über Ihre Terminseite Bescheid.</div>';
       wrap.appendChild(next);
+
 
       if(state.schedule && state.schedule.event_description){
         var desc=document.createElement('div');
@@ -305,7 +344,7 @@
       pc.appendChild(pd);box.appendChild(pc);
       var hr=document.createElement('hr');hr.style.cssText='border:0;border-top:1px solid #e2e8f0;margin:18px 0;';box.appendChild(hr);
       var nextH=document.createElement('h4');nextH.textContent='Wie geht es jetzt weiter?';nextH.style.cssText='margin:0 0 8px;font-size:17px;font-weight:700;';
-      var nextP=document.createElement('p');nextP.textContent='Sie wählen jetzt Ihren Wunschtermin. Direkt danach erhalten Sie eine Bestätigung per E-Mail, dazu eine Erinnerung am Vortag und kurz vor dem Gespräch.';nextP.style.cssText='margin:0 0 16px;color:#475569;font-size:14px;line-height:1.55;';
+      var nextP=document.createElement('p');nextP.textContent='Sie wählen jetzt Ihren Wunschtermin. Direkt danach können Sie ihn in Ihren Kalender übernehmen – Ihr Handy erinnert Sie dann rechtzeitig.';nextP.style.cssText='margin:0 0 16px;color:#475569;font-size:14px;line-height:1.55;';
       box.appendChild(nextH);box.appendChild(nextP);
       // Calendly sitzt IMMER vor dem Termin. Kein Portal-/Fallback-Link mehr –
       // fehlt der Calendly-Link, ist die Landing Page falsch konfiguriert.
