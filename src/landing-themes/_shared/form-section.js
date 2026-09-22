@@ -344,7 +344,7 @@
       pc.appendChild(pd);box.appendChild(pc);
       var hr=document.createElement('hr');hr.style.cssText='border:0;border-top:1px solid #e2e8f0;margin:18px 0;';box.appendChild(hr);
       var nextH=document.createElement('h4');nextH.textContent='Wie geht es jetzt weiter?';nextH.style.cssText='margin:0 0 8px;font-size:17px;font-weight:700;';
-      var nextP=document.createElement('p');nextP.textContent='Sie wählen jetzt Ihren Wunschtermin. Direkt danach erhalten Sie eine Bestätigung per E-Mail, dazu eine Erinnerung am Vortag und kurz vor dem Gespräch.';nextP.style.cssText='margin:0 0 16px;color:#475569;font-size:14px;line-height:1.55;';
+      var nextP=document.createElement('p');nextP.textContent='Sie wählen jetzt Ihren Wunschtermin. Direkt danach können Sie ihn in Ihren Kalender übernehmen – Ihr Handy erinnert Sie dann rechtzeitig.';nextP.style.cssText='margin:0 0 16px;color:#475569;font-size:14px;line-height:1.55;';
       box.appendChild(nextH);box.appendChild(nextP);
       // Calendly sitzt IMMER vor dem Termin. Kein Portal-/Fallback-Link mehr –
       // fehlt der Calendly-Link, ist die Landing Page falsch konfiguriert.
