@@ -138,6 +138,7 @@ function LandingBaukastenPage() {
     (async () => {
       try {
         await refreshList();
+        await refreshTemplates();
       } catch (e) {
         toast({ title: "Fehler", description: String((e as Error).message), variant: "destructive" });
       } finally {
