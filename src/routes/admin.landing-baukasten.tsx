@@ -71,6 +71,15 @@ type LandingListItem = {
 const EMPTY_BRANDING = {
   firmenname: "", primary_color: "#2563eb", secondary_color: "#1e40af",
   kontakt_email: "", telefon: "", seo_title: "", seo_description: "",
+  style: defaultStyle(),
+};
+
+type TemplateRow = {
+  id: string;
+  name: string;
+  description: string;
+  sections: LandingSection[];
+  style: Record<string, unknown>;
 };
 
 function LandingBaukastenPage() {
