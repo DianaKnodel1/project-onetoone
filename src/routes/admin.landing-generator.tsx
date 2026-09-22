@@ -1331,42 +1331,22 @@ document.addEventListener('submit', function(e){
                   "Vermittlung" bleibt nur sichtbar, wenn eine Bestandsseite
                   noch auf broker steht (Bearbeitung von Altseiten). */}
               <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
-                <Label className="text-xs font-semibold">Bewerbungs-Flow</Label>
-                <div className={cn("grid gap-2", branding.flow_type === "broker" ? "sm:grid-cols-2" : "")}>
-                  <button
-                    type="button"
-                    onClick={() => { setBranding((b) => ({ ...b, flow_type: "fast" })); applyModeCopy("fast"); }}
-                    className={cn(
-                      "text-left rounded-md border-2 p-3 transition-all text-xs",
-                      branding.flow_type === "fast"
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/40",
-                    )}
-                  >
-                    <div className="font-semibold mb-1">⚡ Einheitlich (Fast-Track)</div>
-                    <p className="text-muted-foreground text-[11px]">
-                      Bewerbung, Terminbuchung und Portal laufen auf <strong>derselben Domain</strong> — kein Markenwechsel für den Bewerber. Calendly-Link und Portal-URL dieser Firma hinterlegen.
-                    </p>
-                  </button>
-                  {branding.flow_type === "broker" && (
-                    <button
-                      type="button"
-                      onClick={() => { setBranding((b) => ({ ...b, flow_type: "broker" })); applyModeCopy("broker"); }}
-                      className="text-left rounded-md border-2 border-primary bg-primary/5 p-3 text-xs"
-                    >
-                      <div className="font-semibold mb-1">🤝 Vermittlung (Bestand)</div>
-                      <p className="text-muted-foreground text-[11px]">
-                        Alte Vermittlungsseite: leitet zum Calendly der verknüpften Fast-Track-Firma weiter. Für neue Seiten nicht mehr vorgesehen.
-                      </p>
-                    </button>
-                  )}
-                </div>
+                <Label className="text-xs font-semibold">Bewerbungs-Weg</Label>
+                {branding.flow_type === "broker" ? (
+                  <p className="text-[11px] text-muted-foreground">
+                    🤝 <strong>Bestandsseite „Vermittlung“</strong> — leitet weiter zur verknüpften Firma. Für neue Seiten gibt es diesen Weg nicht mehr; bestehende Seiten laufen unverändert weiter.
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground">
+                    ✅ <strong>Direkte Bewerbung</strong> — Bewerbung, Termin und Portal laufen auf derselben Seite, ohne Weiterleitung zu einer anderen Firma. Calendly-Link und Portal-URL dieser Firma hinterlegen.
+                  </p>
+                )}
                 <button
                   type="button"
                   onClick={() => applyModeCopy(branding.flow_type, false)}
                   className="text-[11px] underline text-muted-foreground hover:text-foreground"
                 >
-                  Standard-Texte für diesen Modus einsetzen (überschreibt Hero-Texte)
+                  Standard-Texte einsetzen (überschreibt Hero-Texte)
                 </button>
               </div>
 
