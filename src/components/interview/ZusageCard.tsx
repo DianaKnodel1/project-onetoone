@@ -1,7 +1,7 @@
 // Zusage-Screen: wird direkt im Portal angezeigt, sobald die KI eine Zusage
 // erteilt hat — optisch angelehnt an die „Willkommen im Team"-E-Mail.
 import { Button } from "@/components/ui/button";
-import { UserPlus, MessageCircle } from "lucide-react";
+import { UserPlus, MessageCircle, Send } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useWhatsAppSupport } from "@/hooks/use-whatsapp-support";
 import { useTenant } from "@/contexts/TenantContext";
@@ -36,6 +36,14 @@ export function ZusageCard({
     `Hallo, ich bin ${firstName || ""} und habe gerade die Zusage bekommen – ich brauche kurz Hilfe bei der Registrierung.`.replace(/\s+/g, " ").trim(),
   );
   const waHref = whatsapp.href ? `${whatsapp.href}?text=${waText}` : null;
+  // „Link sichern": der persönliche Registrierungslink wandert in den eigenen
+  // WhatsApp-Verlauf des Bewerbers — damit ist er auch morgen noch auffindbar.
+  const waLinkHref =
+    whatsapp.href && registrationLink
+      ? `${whatsapp.href}?text=${encodeURIComponent(
+          `Mein persönlicher Registrierungslink: ${registrationLink}`,
+        )}`
+      : null;
 
   // Echter Ansprechpartner + Firmenangaben aus den Mandanten-Daten.
   // Fehlen sie, bleibt die Karte leer — kein Fake-Inhalt.
