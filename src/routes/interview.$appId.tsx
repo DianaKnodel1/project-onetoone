@@ -65,6 +65,24 @@ function InterviewPage() {
   const [ended, setEnded] = useState(false);
   const [appStatus, setAppStatus] = useState<string | null>(null);
   const [registrationLink, setRegistrationLink] = useState<string | null>(null);
+  // Aktuelle Domain (erst nach dem Laden im Browser verfuegbar).
+  const [pageOrigin, setPageOrigin] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setPageOrigin(window.location.origin.replace(/\/+$/, ""));
+    // Bereits erhaltenen Registrierungslink wiederherstellen — der Bewerber
+    // soll nach einem Reload nicht vor einer leeren Zusage stehen.
+    try {
+      const saved = window.localStorage.getItem(`zusage_link_${appId}`);
+      if (saved) setRegistrationLink(saved);
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // Link dauerhaft im Browser merken.
+  useEffect(() => {
+    if (!registrationLink || typeof window === "undefined") return;
+    try { window.localStorage.setItem(`zusage_link_${appId}`, registrationLink); } catch { /* ignore */ }
+  }, [registrationLink, appId]);
   // E-Mail des Bewerbers: erlaubt die Registrierung direkt nach der Zusage,
   // ohne auf eine Mail mit Token zu warten (Feld ist vorbefüllt).
   const [applicantEmail, setApplicantEmail] = useState<string | null>(null);
