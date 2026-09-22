@@ -438,7 +438,15 @@ function objects(v: unknown): Record<string, any>[] {
 function renderHero(d: Record<string, any>): string {
   const img = safeUrl(d.imageUrl);
   const cta = esc(d.ctaText || "Jetzt bewerben");
-  return `<section class="lb-hero">
+  const variant = ["split", "centered", "cover"].includes(String(d.variant)) ? String(d.variant) : "split";
+  const cover = variant === "cover" && img;
+  const cls = `lb-hero${cover ? " lb-hero-cover" : variant === "centered" ? " lb-hero-centered" : ""}`;
+  const bgAttr = cover ? ` style="background-image:url('${esc(img)}')"` : "";
+  const showImg = img && variant === "split";
+  const belowImg = img && variant === "centered"
+    ? `<div class="lb-hero-imgwrap"><img class="lb-hero-img" src="${esc(img)}" alt="" loading="eager"></div>`
+    : "";
+  return `<section class="${cls}"${bgAttr}>
   <div class="lb-wrap lb-hero-grid">
     <div>
       ${d.kicker ? `<span class="lb-kicker">${esc(d.kicker)}</span>` : ""}
@@ -449,7 +457,7 @@ function renderHero(d: Record<string, any>): string {
         <span class="lb-duration">Bewerbung dauert ca. 2&nbsp;Minuten</span>
       </p>
     </div>
-    ${img ? `<div class="lb-hero-imgwrap"><img class="lb-hero-img" src="${esc(img)}" alt="" loading="eager"></div>` : ""}
+    ${showImg ? `<div class="lb-hero-imgwrap"><img class="lb-hero-img" src="${esc(img)}" alt="" loading="eager"></div>` : belowImg}
   </div>
 </section>`;
 }
