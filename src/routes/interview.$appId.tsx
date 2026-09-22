@@ -86,7 +86,6 @@ function InterviewPage() {
   // E-Mail des Bewerbers: erlaubt die Registrierung direkt nach der Zusage,
   // ohne auf eine Mail mit Token zu warten (Feld ist vorbefüllt).
   const [applicantEmail, setApplicantEmail] = useState<string | null>(null);
-  const [inviteMailFailed, setInviteMailFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [consent, setConsent] = useState(false);
   const [startedAt, setStartedAt] = useState<number | null>(null);
