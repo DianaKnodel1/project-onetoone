@@ -513,6 +513,15 @@ function LandingBaukastenPage() {
         <Button variant="outline" size="sm" onClick={() => setShowSettings((v) => !v)}>
           <Settings2 className="h-4 w-4 mr-1" /> Grundeinstellungen
         </Button>
+        <Button variant="outline" size="sm" onClick={() => setShowAiDialog(true)} disabled={aiBusy}>
+          <Sparkles className="h-4 w-4 mr-1" /> Mit KI erstellen
+        </Button>
+        <Button variant="outline" size="sm" onClick={shuffleStyle} disabled={aiBusy}>
+          {aiBusy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Shuffle className="h-4 w-4 mr-1" />} Design neu würfeln
+        </Button>
+        <Button variant="outline" size="sm" onClick={saveAsTemplate} disabled={!sections.length}>
+          <BookmarkPlus className="h-4 w-4 mr-1" /> Als Vorlage speichern
+        </Button>
         <span className="text-xs text-muted-foreground ml-1">
           {dirty ? "Ungespeicherte Änderungen" : "Alles gespeichert"}
           {previewing && " · Vorschau wird aktualisiert…"}
