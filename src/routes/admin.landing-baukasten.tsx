@@ -88,6 +88,10 @@ function LandingBaukastenPage() {
   const getFn = useServerFn(getLandingPage);
   const saveFn = useServerFn(saveLandingPage);
   const previewFn = useServerFn(renderSectionsPreview);
+  const aiFn = useServerFn(generateLandingDraft);
+  const tplListFn = useServerFn(listLandingTemplates);
+  const tplSaveFn = useServerFn(saveLandingTemplate);
+  const tplDelFn = useServerFn(deleteLandingTemplate);
 
   const [landings, setLandings] = useState<LandingListItem[]>([]);
   const [current, setCurrent] = useState<LandingRow | null>(null);
@@ -193,6 +197,92 @@ function LandingBaukastenPage() {
     applyState(null, sectionsFromTemplate(templateId));
     setShowNewDialog(false);
     setShowSettings(true);
+  };
+
+  // ── Eigene Vorlagen ──────────────────────────────────────────────────────
+  const refreshTemplates = useCallback(async () => {
+    try {
+      const res = (await tplListFn()) as unknown as { rows: TemplateRow[] };
+      setTemplates(res.rows || []);
+    } catch {
+      setTemplates([]); // Tabelle evtl. noch nicht eingespielt — Baukasten bleibt nutzbar
+    }
+  }, [tplListFn]);
+
+  const startFromTemplate = (t: TemplateRow) => {
+    const secs = (Array.isArray(t.sections) ? t.sections : []).map((s) => ({
+      ...s,
+      id: `sec_${Math.random().toString(36).slice(2, 10)}`,
+    }));
+    applyState(null, secs.length ? secs : defaultSections());
+    setBranding((b) => ({ ...b, style: normalizeStyle(t.style) }));
+    setShowNewDialog(false);
+    setShowSettings(true);
+  };
+
+  const saveAsTemplate = async () => {
+    const name = window.prompt("Name der Vorlage:", branding.firmenname ? `Vorlage ${branding.firmenname}` : "Meine Vorlage");
+    if (!name?.trim()) return;
+    try {
+      await tplSaveFn({ data: { name: name.trim(), description: "", sections, style: normalizeStyle(branding.style) } as any });
+      toast({ title: "Vorlage gespeichert", description: "Du findest sie unter „Neue Seite"." });
+      await refreshTemplates();
+    } catch (e) {
+      toast({ title: "Vorlage nicht gespeichert", description: String((e as Error).message), variant: "destructive" });
+    }
+  };
+
+  const removeTemplate = async (t: TemplateRow) => {
+    if (!window.confirm(`Vorlage „${t.name}" löschen?`)) return;
+    try {
+      await tplDelFn({ data: { id: t.id } });
+      await refreshTemplates();
+    } catch (e) {
+      toast({ title: "Löschen fehlgeschlagen", description: String((e as Error).message), variant: "destructive" });
+    }
+  };
+
+  // ── KI-Entwurf ───────────────────────────────────────────────────────────
+  const runAi = async (params: Record<string, string>) => {
+    setAiBusy(true);
+    try {
+      const res = (await aiFn({ data: { ...params, onlyStyle: false } as any })) as any;
+      const secs: LandingSection[] = (res.sections || []).map((s: LandingSection) => ({
+        ...s,
+        id: `sec_${Math.random().toString(36).slice(2, 10)}`,
+      }));
+      setSections(secs);
+      setSelectedId(secs[0]?.id || null);
+      setBranding((b) => ({
+        ...b,
+        firmenname: b.firmenname || params.firmenname || "",
+        style: normalizeStyle(res.style),
+        primary_color: normalizeStyle(res.style).primary,
+        secondary_color: normalizeStyle(res.style).accent,
+        seo_title: res.seo?.title || b.seo_title,
+        seo_description: res.seo?.description || b.seo_description,
+      }));
+      setShowAiDialog(false);
+      setShowNewDialog(false);
+      toast({ title: "Entwurf erstellt", description: "Prüfe die Texte und passe sie an, bevor du speicherst." });
+    } catch (e) {
+      toast({ title: "KI-Entwurf fehlgeschlagen", description: String((e as Error).message), variant: "destructive" });
+    } finally {
+      setAiBusy(false);
+    }
+  };
+
+  const shuffleStyle = async () => {
+    setAiBusy(true);
+    try {
+      const res = (await aiFn({ data: { onlyStyle: true } as any })) as any;
+      const st = normalizeStyle(res.style);
+      setBranding((b) => ({ ...b, style: st, primary_color: st.primary, secondary_color: st.accent }));
+    } catch (e) {
+      toast({ title: "Design nicht geändert", description: String((e as Error).message), variant: "destructive" });
+    } finally {
+      setAiBusy(false);
+    }
   };
 
   const discard = async () => {
