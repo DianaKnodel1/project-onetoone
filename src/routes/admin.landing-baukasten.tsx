@@ -680,21 +680,66 @@ function LandingBaukastenPage() {
       {/* Neue Seite */}
       {showNewDialog && (
         <Overlay onClose={() => setShowNewDialog(false)} title="Neue Seite starten">
-          <div className="grid gap-2 sm:grid-cols-2">
-            {SECTION_TEMPLATES.map((t) => (
+          <div className="space-y-5">
+            <div>
               <button
-                key={t.id}
-                onClick={() => startNewPage(t.id)}
-                className="text-left border rounded-lg p-3 hover:border-primary hover:bg-accent transition"
+                onClick={() => { setShowNewDialog(false); setShowAiDialog(true); }}
+                className="w-full text-left border rounded-lg p-4 hover:border-primary hover:bg-accent transition"
               >
-                <div className="font-medium text-sm">{t.label}</div>
-                <div className="text-xs text-muted-foreground mt-1">{t.description}</div>
+                <div className="font-medium text-sm flex items-center gap-2"><Sparkles className="h-4 w-4" /> Mit KI erstellen</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Du beschreibst Firma, Stelle und Tonalität — die KI schreibt Texte und schlägt ein Design vor.
+                </div>
               </button>
-            ))}
+            </div>
+
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">Leer starten</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {SECTION_TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => startNewPage(t.id)}
+                    className="text-left border rounded-lg p-3 hover:border-primary hover:bg-accent transition"
+                  >
+                    <div className="font-medium text-sm">{t.label}</div>
+                    <div className="text-xs text-muted-foreground mt-1">{t.description}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {templates.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2">Aus eigener Vorlage</p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {templates.map((t) => (
+                    <div key={t.id} className="border rounded-lg p-3 flex items-start gap-2 hover:border-primary transition">
+                      <button className="text-left flex-1" onClick={() => startFromTemplate(t)}>
+                        <div className="font-medium text-sm">{t.name}</div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {(Array.isArray(t.sections) ? t.sections.length : 0)} Abschnitte
+                        </div>
+                      </button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeTemplate(t)}>
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           <p className="text-xs text-muted-foreground mt-3">
             Nach der Auswahl kannst du jeden Abschnitt frei ändern, verschieben oder löschen.
           </p>
+        </Overlay>
+      )}
+
+      {/* KI-Entwurf */}
+      {showAiDialog && (
+        <Overlay onClose={() => (aiBusy ? null : setShowAiDialog(false))} title="Seite mit KI erstellen">
+          <AiDialog busy={aiBusy} defaultCompany={branding.firmenname || ""} onSubmit={runAi} />
         </Overlay>
       )}
     </div>
