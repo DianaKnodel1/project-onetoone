@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState } from "@/components/EmptyState";
-import { Users, Search, ExternalLink, Check, X, Trash2, UserPlus, Copy, MessageCircle, Download } from "lucide-react";
+import { Users, Search, ExternalLink, Check, X, Trash2, UserPlus, Copy, MessageCircle, Download, Lock, LockOpen } from "lucide-react";
+import { setEmployeeBlocked } from "@/lib/employee-block.functions";
 import { contactRowsToCsv, downloadCsv, splitName, dateStamp } from "@/lib/csv-export";
 
 import { TableSkeleton, PageHeaderSkeleton } from "@/components/SkeletonLoaders";
@@ -76,6 +77,7 @@ function AdminMitarbeiterPage() {
           city: p.city || app?.city || null,
           tenantId: p.tenant_id ?? app?.tenant_id ?? null,
           status: p.status as EmployeeStatus,
+          blocked: !!p.is_blocked,
           onboarding: p.onboarding_status as keyof typeof ONBOARDING_STATUS_CONFIG,
           createdAt: p.created_at,
           contractSigned: !!p.contract_signed_at,
@@ -180,6 +182,19 @@ function AdminMitarbeiterPage() {
       toast.error(e?.message ?? "Bulk-Löschen fehlgeschlagen");
     } finally {
       setBulkBusy(false);
+    }
+  }
+
+  async function toggleBlocked(userId: string, blocked: boolean) {
+    setBusy(userId);
+    try {
+      await setEmployeeBlocked({ data: { user_id: userId, blocked } });
+      toast.success(blocked ? "Mitarbeiter gesperrt" : "Mitarbeiter freigegeben");
+      await loadData();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Fehler");
+    } finally {
+      setBusy(null);
     }
   }
 
@@ -322,9 +337,14 @@ function AdminMitarbeiterPage() {
                           <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleOne(r.id)} aria-label="Auswählen" />
                         </td>
                         <td className="px-4 py-3 font-medium">
-                          <div>{r.name}</div>
-                          <div className="text-[10px] text-muted-foreground font-normal mt-0.5">
+                          <div className={r.blocked ? "line-through text-destructive" : ""}>{r.name}</div>
+                          <div className="text-[10px] text-muted-foreground font-normal mt-0.5 flex items-center gap-1">
                             <span className={`inline-block px-1.5 py-0.5 rounded ${st?.color}`}>{st?.label}</span>
+                            {r.blocked && (
+                              <span className="inline-block px-1.5 py-0.5 rounded bg-destructive/15 text-destructive font-medium">
+                                Gesperrt
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">{r.email}</td>
@@ -359,6 +379,15 @@ function AdminMitarbeiterPage() {
                             )}
                             <Button variant="ghost" size="sm" onClick={() => navigate(`/admin/personen/${r.id}`)} className="h-7 gap-1.5 text-xs">
                               Öffnen <ExternalLink className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="ghost" size="sm"
+                              disabled={busy === r.id}
+                              onClick={() => toggleBlocked(r.id, !r.blocked)}
+                              className={`h-7 gap-1 text-xs ${r.blocked ? "text-emerald-600" : "text-destructive"}`}
+                              title={r.blocked ? "Zugang wieder freigeben" : "Zugang sperren"}
+                            >
+                              {r.blocked ? <><LockOpen className="h-3 w-3" /> Freigeben</> : <><Lock className="h-3 w-3" /> Sperren</>}
                             </Button>
                             <DeleteEmployeeButton userId={r.id} name={r.name} onDeleted={loadData} />
                           </div>
