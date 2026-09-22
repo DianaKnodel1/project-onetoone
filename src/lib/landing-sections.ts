@@ -209,6 +209,42 @@ export function defaultSections(): LandingSection[] {
   return ["hero", "stelle", "ablauf", "kontakt", "faq", "form"].map(createSection);
 }
 
+/** Startpunkte für „Neue Seite". */
+export type SectionTemplate = { id: string; label: string; description: string; types: string[] };
+
+export const SECTION_TEMPLATES: SectionTemplate[] = [
+  {
+    id: "klassisch",
+    label: "Klassische Bewerberseite",
+    description: "Titelbereich, Stelle, Ablauf, Ansprechpartner, FAQ, Formular.",
+    types: ["hero", "stelle", "ablauf", "kontakt", "faq", "form"],
+  },
+  {
+    id: "kurz",
+    label: "Kurze Seite",
+    description: "Nur Titelbereich und Bewerbungsformular — maximal schnell.",
+    types: ["hero", "form"],
+  },
+  {
+    id: "vertrauen",
+    label: "Seite mit Vertrauens-Teil",
+    description: "Titelbereich, Stelle, Partner-Logos, Ansprechpartner, FAQ, Formular.",
+    types: ["hero", "stelle", "logos", "kontakt", "faq", "form"],
+  },
+  {
+    id: "leer",
+    label: "Leere Seite",
+    description: "Nur das Bewerbungsformular — alles andere baust du selbst.",
+    types: ["form"],
+  },
+];
+
+export function sectionsFromTemplate(templateId: string): LandingSection[] {
+  const tpl = SECTION_TEMPLATES.find((t) => t.id === templateId) || SECTION_TEMPLATES[0];
+  return tpl.types.map(createSection);
+}
+
+
 // ── Renderer ─────────────────────────────────────────────────────────────
 function esc(s: unknown): string {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -450,6 +486,64 @@ a{color:var(--lb-primary)}
 .lb-footer a:hover{text-decoration:underline}
 `;
 
+// ── Editor-Overlay (nur Vorschau im Admin, nie auf der Live-Seite) ───────
+const EDITOR_CSS = `
+[data-lb-sec]{position:relative}
+[data-lb-sec]:hover{outline:2px dashed rgba(37,99,235,.55);outline-offset:-2px}
+[data-lb-sec].lb-ed-active{outline:2px solid #2563eb;outline-offset:-2px}
+.lb-ed-bar{position:absolute;top:8px;right:8px;z-index:9999;display:none;gap:6px;background:#0f172a;border-radius:999px;padding:5px 8px;box-shadow:0 8px 24px -8px rgba(0,0,0,.5)}
+[data-lb-sec]:hover>.lb-ed-bar,[data-lb-sec].lb-ed-active>.lb-ed-bar{display:flex}
+.lb-ed-bar button{all:unset;cursor:pointer;color:#fff;font:600 12px/1 system-ui,sans-serif;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.12)}
+.lb-ed-bar button:hover{background:#2563eb}
+.lb-ed-bar .lb-ed-del:hover{background:#dc2626}
+.lb-ed-label{position:absolute;top:8px;left:8px;z-index:9998;display:none;background:#2563eb;color:#fff;font:600 11px/1 system-ui,sans-serif;padding:5px 9px;border-radius:999px}
+[data-lb-sec]:hover>.lb-ed-label,[data-lb-sec].lb-ed-active>.lb-ed-label{display:block}
+.lb-ed-add{position:relative;height:0;z-index:9997}
+.lb-ed-add button{all:unset;cursor:pointer;position:absolute;left:50%;top:-14px;transform:translateX(-50%);width:28px;height:28px;border-radius:50%;background:#2563eb;color:#fff;font:700 17px/26px system-ui,sans-serif;text-align:center;opacity:0;transition:opacity .15s;box-shadow:0 6px 18px -6px rgba(37,99,235,.9)}
+.lb-ed-add:hover button,.lb-ed-add button:focus{opacity:1}
+body.lb-ed-body a{pointer-events:none}
+`;
+
+const EDITOR_JS = `
+(function(){
+  function send(msg){ parent.postMessage(Object.assign({source:"lb-editor"},msg),"*"); }
+  document.body.classList.add("lb-ed-body");
+  document.addEventListener("click",function(e){
+    var btn=e.target.closest("[data-lb-act]");
+    if(btn){
+      e.preventDefault(); e.stopPropagation();
+      send({action:btn.getAttribute("data-lb-act"),id:btn.getAttribute("data-lb-id"),index:Number(btn.getAttribute("data-lb-index"))});
+      return;
+    }
+    var sec=e.target.closest("[data-lb-sec]");
+    if(sec){ e.preventDefault(); send({action:"select",id:sec.getAttribute("data-lb-sec")}); }
+  },true);
+  window.addEventListener("message",function(ev){
+    var d=ev.data||{};
+    if(d.source!=="lb-parent") return;
+    document.querySelectorAll("[data-lb-sec]").forEach(function(el){ el.classList.remove("lb-ed-active"); });
+    if(d.action==="highlight"&&d.id){
+      var el=document.querySelector('[data-lb-sec="'+d.id+'"]');
+      if(el){ el.classList.add("lb-ed-active"); el.scrollIntoView({behavior:"smooth",block:"center"}); }
+    }
+  });
+})();
+`;
+
+function editorWrap(html: string, sec: LandingSection, index: number, total: number, label: string): string {
+  const id = esc(sec.id);
+  const btn = (act: string, text: string, cls = "") =>
+    `<button type="button" class="${cls}" data-lb-act="${act}" data-lb-id="${id}" data-lb-index="${index}">${text}</button>`;
+  const bar = `<div class="lb-ed-bar">
+    ${btn("edit", "Bearbeiten")}
+    ${index > 0 ? btn("up", "↑") : ""}
+    ${index < total - 1 ? btn("down", "↓") : ""}
+    ${btn("delete", "Löschen", "lb-ed-del")}
+  </div>`;
+  const addBefore = `<div class="lb-ed-add">${btn("add", "+")}</div>`;
+  return `${addBefore}<div data-lb-sec="${id}" data-lb-index="${index}"><div class="lb-ed-label">${esc(label)}</div>${bar}${html}</div>`;
+}
+
 // ── Seitenaufbau ─────────────────────────────────────────────────────────
 export function renderSectionsLanding(opts: {
   sections: LandingSection[];
@@ -457,33 +551,52 @@ export function renderSectionsLanding(opts: {
   host?: string;
   logoUrl?: string | null;
   faviconUrl?: string | null;
+  /** nur Admin-Vorschau: Abschnitte markieren + Bearbeiten-Overlay einblenden */
+  editor?: boolean;
 }): string {
   const branding = opts.branding || {};
   const firm = String(branding.firmenname || "");
   const primary = primaryOf(branding);
   const secondary = secondaryOf(branding);
   const host = String(opts.host || branding.landing_domain || "").replace(/^www\./, "");
+  const editor = Boolean(opts.editor);
 
+  const list = Array.isArray(opts.sections) ? opts.sections : [];
   const bodyParts: string[] = [];
   let hasForm = false;
-  for (const sec of opts.sections || []) {
+  list.forEach((sec, i) => {
     const d = sec?.data || {};
+    let html = "";
     switch (sec?.type) {
-      case "hero": bodyParts.push(renderHero(d)); break;
-      case "stelle": bodyParts.push(renderStelle(d)); break;
-      case "ablauf": bodyParts.push(renderAblauf(d)); break;
-      case "faq": bodyParts.push(renderFaq(d)); break;
-      case "logos": bodyParts.push(renderLogos(d)); break;
-      case "kontakt": bodyParts.push(renderKontakt(d, branding)); break;
-      case "freitext": bodyParts.push(renderFreitext(d)); break;
-      case "bild": bodyParts.push(renderBild(d)); break;
+      case "hero": html = renderHero(d); break;
+      case "stelle": html = renderStelle(d); break;
+      case "ablauf": html = renderAblauf(d); break;
+      case "faq": html = renderFaq(d); break;
+      case "logos": html = renderLogos(d); break;
+      case "kontakt": html = renderKontakt(d, branding); break;
+      case "freitext": html = renderFreitext(d); break;
+      case "bild": html = renderBild(d); break;
       case "form":
-        if (!hasForm) { bodyParts.push(renderForm(branding)); hasForm = true; }
+        if (!hasForm) { html = renderForm(branding); hasForm = true; }
         break;
     }
-  }
+    if (!html && editor) {
+      const def = SECTION_CATALOG.find((x) => x.type === sec?.type);
+      html = `<section class="lb-section"><div class="lb-wrap lb-center"><p class="lb-p">„${esc(def?.label || sec?.type)}" ist noch leer — bitte Inhalte ergänzen.</p></div></section>`;
+    }
+    if (!html) return;
+    if (editor) {
+      const def = SECTION_CATALOG.find((x) => x.type === sec?.type);
+      bodyParts.push(editorWrap(html, sec, i, list.length, def?.label || String(sec?.type || "")));
+    } else {
+      bodyParts.push(html);
+    }
+  });
   // Sicherheitsnetz: eine Landing ohne Formular bringt nichts — anhängen.
-  if (!hasForm) bodyParts.push(renderForm(branding));
+  if (!hasForm && !editor) bodyParts.push(renderForm(branding));
+  if (editor) {
+    bodyParts.push(`<div class="lb-ed-add"><button type="button" data-lb-act="add" data-lb-id="" data-lb-index="${list.length}">+</button></div>`);
+  }
 
   const brand = opts.logoUrl
     ? `<img src="/assets/logo" alt="${esc(firm)}">`
@@ -511,6 +624,7 @@ ${opts.faviconUrl ? `<link rel="icon" href="/assets/favicon">` : ""}
 <style>
 ${BASE_CSS.replace(/#1d4ed8/g, primary).replace(/#0f172a/g, secondary)}
 ${formCss}
+${editor ? EDITOR_CSS : ""}
 </style>
 </head>
 <body>
@@ -526,7 +640,8 @@ ${bodyParts.join("\n")}
   ${addr ? `<span>${esc(addr)}</span>` : ""}
   <span><a href="/impressum.html">Impressum</a> &nbsp;·&nbsp; <a href="/datenschutz.html">Datenschutz</a></span>
 </div></footer>
-<script>${formJs}</script>
+${editor ? `<script>${EDITOR_JS}</script>` : `<script>${formJs}</script>`}
 </body>
 </html>`;
 }
+

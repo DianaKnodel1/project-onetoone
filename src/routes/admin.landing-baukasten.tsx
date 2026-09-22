@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   listLandingPages,
@@ -9,6 +9,8 @@ import {
 import { renderSectionsPreview } from "@/lib/landing-builder.functions";
 import {
   SECTION_CATALOG,
+  SECTION_TEMPLATES,
+  sectionsFromTemplate,
   defaultSections,
   createSection,
   type LandingSection,
@@ -21,7 +23,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Loader2, Save, Eye, ArrowUp, ArrowDown, Trash2, Plus, Layers, ExternalLink,
+  Loader2, Save, ArrowUp, ArrowDown, Trash2, Plus, Layers, ExternalLink,
+  Monitor, Smartphone, Undo2, Settings2, GripVertical, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -58,6 +61,11 @@ type LandingListItem = {
   is_published?: boolean;
 };
 
+const EMPTY_BRANDING = {
+  firmenname: "", primary_color: "#2563eb", secondary_color: "#1e40af",
+  kontakt_email: "", telefon: "", seo_title: "", seo_description: "",
+};
+
 function LandingBaukastenPage() {
   const { toast } = useToast();
   const listFn = useServerFn(listLandingPages);
@@ -68,18 +76,35 @@ function LandingBaukastenPage() {
   const [landings, setLandings] = useState<LandingListItem[]>([]);
   const [current, setCurrent] = useState<LandingRow | null>(null);
   const [sections, setSections] = useState<LandingSection[]>([]);
-  const [branding, setBranding] = useState<Record<string, any>>({
-    firmenname: "", primary_color: "#2563eb", secondary_color: "#1e40af",
-    kontakt_email: "", telefon: "", seo_title: "", seo_description: "",
-  });
+  const [branding, setBranding] = useState<Record<string, any>>({ ...EMPTY_BRANDING });
   const [slug, setSlug] = useState("");
   const [calendlyUrl, setCalendlyUrl] = useState("");
   const [previewHtml, setPreviewHtml] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewing, setPreviewing] = useState(false);
-  const [addType, setAddType] = useState(SECTION_CATALOG[0].type);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const [dirty, setDirty] = useState(false);
+  const [addAt, setAddAt] = useState<number | null>(null);
+  const [showNewDialog, setShowNewDialog] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const savedSnapshot = useRef<string>("");
+
+  const selected = useMemo(
+    () => sections.find((s) => s.id === selectedId) || null,
+    [sections, selectedId]
+  );
+
+  const snapshot = useCallback(
+    () => JSON.stringify({ sections, branding, slug, calendlyUrl }),
+    [sections, branding, slug, calendlyUrl]
+  );
+
+  // ── Liste laden ──────────────────────────────────────────────────────────
   const refreshList = useCallback(async () => {
     const res = (await listFn()) as unknown as { rows: LandingListItem[] };
     setLandings(res.rows || []);
@@ -98,31 +123,62 @@ function LandingBaukastenPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Ungespeicherte Änderungen ────────────────────────────────────────────
+  useEffect(() => {
+    setDirty(savedSnapshot.current !== "" && savedSnapshot.current !== snapshot());
+  }, [snapshot]);
+
+  useEffect(() => {
+    const onLeave = (e: BeforeUnloadEvent) => {
+      if (!dirty) return;
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onLeave);
+    return () => window.removeEventListener("beforeunload", onLeave);
+  }, [dirty]);
+
+  const confirmLeave = () =>
+    !dirty || window.confirm("Es gibt ungespeicherte Änderungen. Trotzdem fortfahren?");
+
+  // ── Laden / Neu ──────────────────────────────────────────────────────────
+  const applyState = (lp: LandingRow | null, secs: LandingSection[]) => {
+    setCurrent(lp);
+    setSlug(lp?.slug || "");
+    setCalendlyUrl(lp?.calendly_url || "");
+    const b = lp ? { telefon: "", kontakt_email: "", ...(lp.branding || {}) } : { ...EMPTY_BRANDING };
+    setBranding(b);
+    setSections(secs);
+    setSelectedId(secs[0]?.id || null);
+    savedSnapshot.current = JSON.stringify({
+      sections: secs, branding: b, slug: lp?.slug || "", calendlyUrl: lp?.calendly_url || "",
+    });
+    setDirty(false);
+  };
+
   const loadLanding = useCallback(async (id: string) => {
     try {
       const lp = (await getFn({ data: { id } })) as unknown as LandingRow;
-      setCurrent(lp);
-      setSlug(lp.slug || "");
-      setCalendlyUrl(lp.calendly_url || "");
-      setBranding({ telefon: "", kontakt_email: "", ...(lp.branding || {}) });
-      setSections(
-        Array.isArray(lp.sections) && lp.sections.length
-          ? (lp.sections as LandingSection[])
-          : defaultSections()
+      applyState(
+        lp,
+        Array.isArray(lp.sections) && lp.sections.length ? (lp.sections as LandingSection[]) : defaultSections()
       );
-      setPreviewHtml("");
     } catch (e) {
       toast({ title: "Laden fehlgeschlagen", description: String((e as Error).message), variant: "destructive" });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getFn, toast]);
 
-  const newLanding = () => {
-    setCurrent(null);
-    setSlug("");
-    setCalendlyUrl("");
-    setBranding({ firmenname: "", primary_color: "#2563eb", secondary_color: "#1e40af", kontakt_email: "", telefon: "", seo_title: "", seo_description: "" });
-    setSections(defaultSections());
-    setPreviewHtml("");
+  const startNewPage = (templateId: string) => {
+    applyState(null, sectionsFromTemplate(templateId));
+    setShowNewDialog(false);
+    setShowSettings(true);
+  };
+
+  const discard = async () => {
+    if (!window.confirm("Alle Änderungen seit dem letzten Speichern verwerfen?")) return;
+    if (current?.id) await loadLanding(current.id);
+    else applyState(null, defaultSections());
   };
 
   // ── Abschnitte bearbeiten ────────────────────────────────────────────────
@@ -139,47 +195,121 @@ function LandingBaukastenPage() {
       return next;
     });
 
-  const removeSection = (id: string) => setSections((prev) => prev.filter((s) => s.id !== id));
+  const reorder = (from: number, to: number) =>
+    setSections((prev) => {
+      if (from === to || from < 0 || to < 0 || from >= prev.length || to >= prev.length) return prev;
+      const next = [...prev];
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return next;
+    });
 
-  const addSection = () => {
-    const def = SECTION_CATALOG.find((d) => d.type === addType);
+  const removeSection = (id: string) => {
+    const def = SECTION_CATALOG.find((d) => d.type === sections.find((s) => s.id === id)?.type);
+    if (!window.confirm(`Abschnitt „${def?.label || "Abschnitt"}" wirklich löschen?`)) return;
+    setSections((prev) => prev.filter((s) => s.id !== id));
+    setSelectedId((cur) => (cur === id ? null : cur));
+  };
+
+  const insertSection = (type: string, at: number) => {
+    const def = SECTION_CATALOG.find((d) => d.type === type);
     if (!def) return;
     if (def.unique && sections.some((s) => s.type === def.type)) {
       toast({ title: "Nur einmal möglich", description: `„${def.label}" kann nur einmal vorkommen.`, variant: "destructive" });
       return;
     }
-    setSections((prev) => [...prev, createSection(def.type)]);
+    const sec = createSection(type);
+    setSections((prev) => {
+      const next = [...prev];
+      next.splice(Math.max(0, Math.min(at, prev.length)), 0, sec);
+      return next;
+    });
+    setSelectedId(sec.id);
+    setAddAt(null);
   };
 
-  // ── Vorschau ─────────────────────────────────────────────────────────────
-  const refreshPreview = async () => {
-    setPreviewing(true);
-    try {
-      const res = await previewFn({
-        data: {
-          sections,
-          branding: {
-            firmenname: branding.firmenname, primary_color: branding.primary_color,
-            secondary_color: branding.secondary_color, kontakt_email: branding.kontakt_email,
-            telefon: branding.telefon, whatsapp_number: branding.whatsapp_number,
-            impressum: branding.impressum, datenschutz: branding.datenschutz,
-            seo_title: branding.seo_title, seo_description: branding.seo_description,
+  // ── Vorschau (automatisch, entprellt) ────────────────────────────────────
+  const brandingForPreview = useMemo(
+    () => ({
+      firmenname: branding.firmenname, primary_color: branding.primary_color,
+      secondary_color: branding.secondary_color, kontakt_email: branding.kontakt_email,
+      email: branding.kontakt_email || branding.email,
+      telefon: branding.telefon, whatsapp_number: branding.whatsapp_number,
+      whatsapp_enabled: branding.whatsapp_enabled,
+      impressum: branding.impressum, datenschutz: branding.datenschutz,
+      seo_title: branding.seo_title, seo_description: branding.seo_description,
+    }),
+    [branding]
+  );
+
+  useEffect(() => {
+    if (loading) return;
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      setPreviewing(true);
+      try {
+        const res = await previewFn({
+          data: {
+            sections,
+            branding: brandingForPreview,
+            logo_url: current?.logo_url || null,
+            editor: true,
           },
-          logo_url: current?.logo_url || null,
-        },
-      });
-      setPreviewHtml(res.html);
-    } catch (e) {
-      toast({ title: "Vorschau fehlgeschlagen", description: String((e as Error).message), variant: "destructive" });
-    } finally {
-      setPreviewing(false);
-    }
-  };
+        });
+        if (!cancelled) setPreviewHtml(res.html);
+      } catch (e) {
+        if (!cancelled) {
+          toast({ title: "Vorschau fehlgeschlagen", description: String((e as Error).message), variant: "destructive" });
+        }
+      } finally {
+        if (!cancelled) setPreviewing(false);
+      }
+    }, 450);
+    return () => { cancelled = true; clearTimeout(t); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sections, brandingForPreview, current?.logo_url, loading]);
+
+  // ── Klicks aus der Vorschau entgegennehmen ───────────────────────────────
+  useEffect(() => {
+    const onMsg = (ev: MessageEvent) => {
+      const d = ev.data as { source?: string; action?: string; id?: string; index?: number };
+      if (!d || d.source !== "lb-editor") return;
+      switch (d.action) {
+        case "select":
+        case "edit":
+          if (d.id) setSelectedId(d.id);
+          break;
+        case "up": if (d.id) moveSection(d.id, -1); break;
+        case "down": if (d.id) moveSection(d.id, 1); break;
+        case "delete": if (d.id) removeSection(d.id); break;
+        case "add": setAddAt(typeof d.index === "number" ? d.index : sections.length); break;
+      }
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sections]);
+
+  // Auswahl in der Vorschau hervorheben
+  useEffect(() => {
+    const win = iframeRef.current?.contentWindow;
+    if (!win) return;
+    const t = setTimeout(() => {
+      win.postMessage({ source: "lb-parent", action: "highlight", id: selectedId }, "*");
+    }, 120);
+    return () => clearTimeout(t);
+  }, [selectedId, previewHtml]);
 
   // ── Speichern ────────────────────────────────────────────────────────────
   const save = async () => {
     if (!slug.trim()) {
-      toast({ title: "Slug fehlt", description: "Bitte einen Slug (Kurzname) vergeben.", variant: "destructive" });
+      toast({ title: "Kurzname fehlt", description: "Bitte unter Grundeinstellungen einen Kurznamen (Slug) vergeben.", variant: "destructive" });
+      setShowSettings(true);
+      return;
+    }
+    if (!current?.id && landings.some((l) => l.slug === slug.trim())) {
+      toast({ title: "Kurzname schon vergeben", description: "Es gibt bereits eine Seite mit diesem Kurznamen.", variant: "destructive" });
+      setShowSettings(true);
       return;
     }
     setSaving(true);
@@ -202,6 +332,7 @@ function LandingBaukastenPage() {
       toast({ title: "Gespeichert", description: "Landing-Seite wurde gespeichert." });
       await refreshList();
       if (newId) await loadLanding(newId);
+      else savedSnapshot.current = snapshot();
     } catch (e) {
       const msg = String((e as Error).message);
       toast({
@@ -220,193 +351,316 @@ function LandingBaukastenPage() {
     return <div className="flex justify-center p-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
   }
 
+  const selectedDef = selected ? SECTION_CATALOG.find((d) => d.type === selected.type) : null;
+
   return (
-    <div className="space-y-6 p-4 md:p-8 max-w-6xl mx-auto">
+    <div className="p-4 md:p-6 space-y-4">
+      {/* Kopfzeile */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2"><Layers className="h-6 w-6" /> Landing-Baukasten</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Seiten frei aus Abschnitten zusammenstellen — ohne festes Design. Bestehende Seiten bleiben unverändert, bis du sie hier lädst und speicherst.
+            Klick in der Vorschau auf einen Abschnitt, um ihn zu bearbeiten. Bestehende Seiten bleiben unverändert, bis du sie hier speicherst.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Link to="/admin/landing-generator">
-            <Button variant="outline" size="sm">Zum klassischen Generator</Button>
-          </Link>
-          <Button variant="outline" size="sm" onClick={newLanding}><Plus className="h-4 w-4 mr-1" /> Neue Seite</Button>
-        </div>
-      </div>
-
-      {/* Auswahl */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Landing-Seite wählen</CardTitle>
-          <CardDescription>Seiten mit Abschnitten öffnen sich im Baukasten-Modus; klassische Seiten bekommen beim ersten Speichern eine Startvorlage.</CardDescription>
-        </CardHeader>
-        <CardContent>
+        <div className="flex flex-wrap items-center gap-2">
           <select
-            className="w-full border rounded-md px-3 py-2 bg-background"
+            className="border rounded-md px-3 py-2 bg-background text-sm max-w-[280px]"
             value={current?.id || ""}
-            onChange={(e) => (e.target.value ? loadLanding(e.target.value) : newLanding())}
+            onChange={(e) => {
+              if (!confirmLeave()) return;
+              if (e.target.value) loadLanding(e.target.value);
+              else setShowNewDialog(true);
+            }}
           >
-            <option value="">— Neue Seite anlegen —</option>
+            <option value="">— Seite wählen —</option>
             {landings.map((l) => (
               <option key={l.id} value={l.id}>
                 {((l.branding as any)?.firmenname as string) || l.slug} ({l.slug}){l.is_published ? " · online" : ""}
               </option>
             ))}
           </select>
-        </CardContent>
-      </Card>
+          <Button variant="outline" size="sm" onClick={() => { if (confirmLeave()) setShowNewDialog(true); }}>
+            <Plus className="h-4 w-4 mr-1" /> Neue Seite
+          </Button>
+          <Link to="/admin/landing-generator">
+            <Button variant="ghost" size="sm">Klassischer Generator</Button>
+          </Link>
+        </div>
+      </div>
 
-      {/* Grundeinstellungen */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Grundeinstellungen</CardTitle></CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <div>
-            <Label>Firmenname</Label>
-            <Input value={branding.firmenname || ""} onChange={(e) => setBranding({ ...branding, firmenname: e.target.value })} />
-          </div>
-          <div>
-            <Label>Slug (Kurzname, z. B. firma-stadt)</Label>
-            <Input value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))} />
-          </div>
-          <div>
-            <Label>Hauptfarbe</Label>
-            <div className="flex gap-2">
-              <input type="color" className="h-9 w-12 rounded border" value={branding.primary_color || "#2563eb"} onChange={(e) => setBranding({ ...branding, primary_color: e.target.value })} />
-              <Input value={branding.primary_color || ""} onChange={(e) => setBranding({ ...branding, primary_color: e.target.value })} />
-            </div>
-          </div>
-          <div>
-            <Label>Akzentfarbe</Label>
-            <div className="flex gap-2">
-              <input type="color" className="h-9 w-12 rounded border" value={branding.secondary_color || "#1e40af"} onChange={(e) => setBranding({ ...branding, secondary_color: e.target.value })} />
-              <Input value={branding.secondary_color || ""} onChange={(e) => setBranding({ ...branding, secondary_color: e.target.value })} />
-            </div>
-          </div>
-          <div>
-            <Label>Kontakt-E-Mail (im Bewerbungsformular)</Label>
-            <Input value={branding.kontakt_email || (branding.email as string) || ""} onChange={(e) => setBranding({ ...branding, kontakt_email: e.target.value })} />
-          </div>
-          <div>
-            <Label>Telefon (im Bewerbungsformular)</Label>
-            <Input value={branding.telefon || ""} onChange={(e) => setBranding({ ...branding, telefon: e.target.value })} />
-          </div>
-          <div className="md:col-span-2">
-            <Label>Calendly-Link (für die Terminbuchung nach der Bewerbung)</Label>
-            <Input value={calendlyUrl} onChange={(e) => setCalendlyUrl(e.target.value)} placeholder="https://calendly.com/…" />
-          </div>
-          <div>
-            <Label>Browser-Titel (SEO)</Label>
-            <Input value={branding.seo_title || ""} onChange={(e) => setBranding({ ...branding, seo_title: e.target.value })} />
-          </div>
-          <div>
-            <Label>Beschreibung (SEO)</Label>
-            <Input value={branding.seo_description || ""} onChange={(e) => setBranding({ ...branding, seo_description: e.target.value })} />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Abschnitte */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Abschnitte ({sections.length})</CardTitle>
-          <CardDescription>Reihenfolge mit den Pfeilen ändern, Inhalte direkt in den Feldern bearbeiten.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {sections.map((s, idx) => (
-            <SectionEditor
-              key={s.id}
-              section={s}
-              index={idx}
-              total={sections.length}
-              onChange={(patch) => updateSection(s.id, patch)}
-              onMove={(dir) => moveSection(s.id, dir)}
-              onRemove={() => removeSection(s.id)}
-            />
-          ))}
-
-          <div className="flex gap-2 pt-2 border-t">
-            <select className="border rounded-md px-3 py-2 bg-background flex-1" value={addType} onChange={(e) => setAddType(e.target.value)}>
-              {SECTION_CATALOG.map((d) => (
-                <option key={d.type} value={d.type} disabled={d.unique && sections.some((s) => s.type === d.type)}>
-                  {d.label}{d.unique ? " (1×)" : ""}
-                </option>
-              ))}
-            </select>
-            <Button variant="outline" onClick={addSection}><Plus className="h-4 w-4 mr-1" /> Hinzufügen</Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Aktionen + Vorschau */}
-      <div className="flex flex-wrap gap-2">
-        <Button onClick={save} disabled={saving}>
+      {/* Werkzeugleiste */}
+      <div className="flex flex-wrap items-center gap-2 border rounded-lg p-2 bg-muted/30">
+        <Button onClick={save} disabled={saving} size="sm">
           {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
           Speichern
         </Button>
-        <Button variant="outline" onClick={refreshPreview} disabled={previewing}>
-          {previewing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Eye className="h-4 w-4 mr-2" />}
-          Vorschau aktualisieren
+        <Button variant="outline" size="sm" onClick={discard} disabled={!dirty}>
+          <Undo2 className="h-4 w-4 mr-1" /> Verwerfen
         </Button>
-        {current?.is_published && (branding.landing_domain as string) && (
-          <a href={`https://${branding.landing_domain as string}`} target="_blank" rel="noreferrer" className="inline-flex">
-            <Button variant="ghost" size="sm"><ExternalLink className="h-4 w-4 mr-1" /> Live-Seite</Button>
-          </a>
-        )}
+        <Button variant="outline" size="sm" onClick={() => setShowSettings((v) => !v)}>
+          <Settings2 className="h-4 w-4 mr-1" /> Grundeinstellungen
+        </Button>
+        <span className="text-xs text-muted-foreground ml-1">
+          {dirty ? "Ungespeicherte Änderungen" : "Alles gespeichert"}
+          {previewing && " · Vorschau wird aktualisiert…"}
+        </span>
+        <div className="ml-auto flex items-center gap-1">
+          <Button variant={device === "desktop" ? "secondary" : "ghost"} size="sm" onClick={() => setDevice("desktop")}>
+            <Monitor className="h-4 w-4 mr-1" /> Desktop
+          </Button>
+          <Button variant={device === "mobile" ? "secondary" : "ghost"} size="sm" onClick={() => setDevice("mobile")}>
+            <Smartphone className="h-4 w-4 mr-1" /> Handy
+          </Button>
+          {current?.is_published && (branding.landing_domain as string) && (
+            <a href={`https://${branding.landing_domain as string}`} target="_blank" rel="noreferrer" className="inline-flex">
+              <Button variant="ghost" size="sm"><ExternalLink className="h-4 w-4 mr-1" /> Live</Button>
+            </a>
+          )}
+        </div>
       </div>
 
-      {previewHtml && (
-        <Card>
-          <CardHeader><CardTitle className="text-base">Vorschau</CardTitle></CardHeader>
-          <CardContent>
-            <iframe title="Vorschau" srcDoc={previewHtml} className="w-full h-[70vh] rounded-md border bg-white" />
+      {showSettings && (
+        <BasicSettings
+          branding={branding}
+          setBranding={setBranding}
+          slug={slug}
+          setSlug={setSlug}
+          calendlyUrl={calendlyUrl}
+          setCalendlyUrl={setCalendlyUrl}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
+
+      {/* Arbeitsfläche */}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] items-start">
+        {/* Vorschau */}
+        <Card className="overflow-hidden">
+          <CardContent className="p-3 bg-muted/40">
+            <div className={cn("mx-auto transition-all", device === "mobile" ? "max-w-[400px]" : "w-full")}>
+              <iframe
+                ref={iframeRef}
+                title="Vorschau"
+                srcDoc={previewHtml}
+                className="w-full h-[78vh] rounded-md border bg-white"
+              />
+            </div>
           </CardContent>
         </Card>
+
+        {/* Rechte Spalte */}
+        <div className="space-y-4">
+          {/* Abschnittsliste */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Abschnitte ({sections.length})</CardTitle>
+              <CardDescription>Zum Verschieben am Griff ziehen. Zum Bearbeiten anklicken.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              {sections.map((s, idx) => {
+                const def = SECTION_CATALOG.find((d) => d.type === s.type);
+                return (
+                  <div
+                    key={s.id}
+                    draggable
+                    onDragStart={() => setDragIndex(idx)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => { if (dragIndex !== null) reorder(dragIndex, idx); setDragIndex(null); }}
+                    onDragEnd={() => setDragIndex(null)}
+                    onClick={() => setSelectedId(s.id)}
+                    className={cn(
+                      "flex items-center gap-2 rounded-md border px-2 py-2 text-sm cursor-pointer bg-background",
+                      selectedId === s.id && "border-primary ring-1 ring-primary",
+                      dragIndex === idx && "opacity-50"
+                    )}
+                  >
+                    <GripVertical className="h-4 w-4 text-muted-foreground shrink-0 cursor-grab" />
+                    <span className="flex-1 truncate">{idx + 1}. {def?.label || s.type}</span>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" disabled={idx === 0}
+                      onClick={(e) => { e.stopPropagation(); moveSection(s.id, -1); }}>
+                      <ArrowUp className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" disabled={idx === sections.length - 1}
+                      onClick={(e) => { e.stopPropagation(); moveSection(s.id, 1); }}>
+                      <ArrowDown className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7"
+                      onClick={(e) => { e.stopPropagation(); removeSection(s.id); }}>
+                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
+                  </div>
+                );
+              })}
+              <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => setAddAt(sections.length)}>
+                <Plus className="h-4 w-4 mr-1" /> Abschnitt hinzufügen
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Felder des ausgewählten Abschnitts */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">
+                {selectedDef ? selectedDef.label : "Kein Abschnitt ausgewählt"}
+              </CardTitle>
+              <CardDescription>
+                {selectedDef ? selectedDef.description : "Klick in der Vorschau oder in der Liste auf einen Abschnitt."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {selected && selectedDef ? (
+                selectedDef.fields.length ? (
+                  <div className="space-y-3">
+                    {selectedDef.fields.map((f) => (
+                      <FieldEditor
+                        key={f.key}
+                        field={f}
+                        value={selected.data[f.key]}
+                        onChange={(v) => updateSection(selected.id, { [f.key]: v })}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Dieser Abschnitt hat keine Einstellungen — Formular und Terminwahl sind fest eingebaut.
+                  </p>
+                )
+              ) : null}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Abschnitt auswählen */}
+      {addAt !== null && (
+        <Overlay onClose={() => setAddAt(null)} title="Abschnitt hinzufügen">
+          <div className="grid gap-2 sm:grid-cols-2">
+            {SECTION_CATALOG.map((d) => {
+              const blocked = Boolean(d.unique && sections.some((s) => s.type === d.type));
+              return (
+                <button
+                  key={d.type}
+                  disabled={blocked}
+                  onClick={() => insertSection(d.type, addAt)}
+                  className={cn(
+                    "text-left border rounded-lg p-3 hover:border-primary hover:bg-accent transition",
+                    blocked && "opacity-40 cursor-not-allowed hover:border-border hover:bg-transparent"
+                  )}
+                >
+                  <div className="font-medium text-sm">{d.label}{blocked ? " · schon vorhanden" : ""}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{d.description}</div>
+                </button>
+              );
+            })}
+          </div>
+        </Overlay>
+      )}
+
+      {/* Neue Seite */}
+      {showNewDialog && (
+        <Overlay onClose={() => setShowNewDialog(false)} title="Neue Seite starten">
+          <div className="grid gap-2 sm:grid-cols-2">
+            {SECTION_TEMPLATES.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => startNewPage(t.id)}
+                className="text-left border rounded-lg p-3 hover:border-primary hover:bg-accent transition"
+              >
+                <div className="font-medium text-sm">{t.label}</div>
+                <div className="text-xs text-muted-foreground mt-1">{t.description}</div>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            Nach der Auswahl kannst du jeden Abschnitt frei ändern, verschieben oder löschen.
+          </p>
+        </Overlay>
       )}
     </div>
   );
 }
 
-// ── Einzelner Abschnitt im Editor ────────────────────────────────────────────
+// ── Hilfs-Komponenten ────────────────────────────────────────────────────────
 
-function SectionEditor({
-  section, index, total, onChange, onMove, onRemove,
-}: {
-  section: LandingSection;
-  index: number;
-  total: number;
-  onChange: (patch: Record<string, unknown>) => void;
-  onMove: (dir: -1 | 1) => void;
-  onRemove: () => void;
-}) {
-  const def = SECTION_CATALOG.find((d) => d.type === section.type);
-  if (!def) return null;
+function Overlay({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
   return (
-    <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
-      <div className="flex items-center justify-between gap-2">
-        <div className="font-medium text-sm">
-          {index + 1}. {def.label}
-          <span className="text-muted-foreground font-normal ml-2 text-xs">{def.description}</span>
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto" onClick={onClose}>
+      <div className="bg-background rounded-xl border shadow-xl w-full max-w-2xl mt-16 p-5" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold">{title}</h2>
+          <Button variant="ghost" size="icon" onClick={onClose}><X className="h-4 w-4" /></Button>
         </div>
-        <div className="flex gap-1">
-          <Button variant="ghost" size="icon" disabled={index === 0} onClick={() => onMove(-1)}><ArrowUp className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="icon" disabled={index === total - 1} onClick={() => onMove(1)}><ArrowDown className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="icon" onClick={onRemove}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-        </div>
-      </div>
-      <div className="grid gap-3 md:grid-cols-2">
-        {def.fields.map((f) => (
-          <FieldEditor
-            key={f.key}
-            field={f}
-            value={section.data[f.key]}
-            onChange={(v) => onChange({ [f.key]: v })}
-          />
-        ))}
+        {children}
       </div>
     </div>
+  );
+}
+
+function BasicSettings({
+  branding, setBranding, slug, setSlug, calendlyUrl, setCalendlyUrl, onClose,
+}: {
+  branding: Record<string, any>;
+  setBranding: (b: Record<string, any>) => void;
+  slug: string;
+  setSlug: (s: string) => void;
+  calendlyUrl: string;
+  setCalendlyUrl: (s: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-start justify-between space-y-0">
+        <div>
+          <CardTitle className="text-base">Grundeinstellungen</CardTitle>
+          <CardDescription>Gelten für die ganze Seite: Name, Farben, Kontakt, Terminlink.</CardDescription>
+        </div>
+        <Button variant="ghost" size="icon" onClick={onClose}><X className="h-4 w-4" /></Button>
+      </CardHeader>
+      <CardContent className="grid gap-4 md:grid-cols-2">
+        <div>
+          <Label>Firmenname</Label>
+          <Input value={branding.firmenname || ""} onChange={(e) => setBranding({ ...branding, firmenname: e.target.value })} />
+        </div>
+        <div>
+          <Label>Kurzname (Slug, z. B. firma-stadt)</Label>
+          <Input value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))} />
+        </div>
+        <div>
+          <Label>Hauptfarbe</Label>
+          <div className="flex gap-2">
+            <input type="color" className="h-9 w-12 rounded border" value={branding.primary_color || "#2563eb"} onChange={(e) => setBranding({ ...branding, primary_color: e.target.value })} />
+            <Input value={branding.primary_color || ""} onChange={(e) => setBranding({ ...branding, primary_color: e.target.value })} />
+          </div>
+        </div>
+        <div>
+          <Label>Akzentfarbe</Label>
+          <div className="flex gap-2">
+            <input type="color" className="h-9 w-12 rounded border" value={branding.secondary_color || "#1e40af"} onChange={(e) => setBranding({ ...branding, secondary_color: e.target.value })} />
+            <Input value={branding.secondary_color || ""} onChange={(e) => setBranding({ ...branding, secondary_color: e.target.value })} />
+          </div>
+        </div>
+        <div>
+          <Label>Kontakt-E-Mail (im Bewerbungsformular)</Label>
+          <Input value={branding.kontakt_email || (branding.email as string) || ""} onChange={(e) => setBranding({ ...branding, kontakt_email: e.target.value })} />
+        </div>
+        <div>
+          <Label>Telefon (im Bewerbungsformular)</Label>
+          <Input value={branding.telefon || ""} onChange={(e) => setBranding({ ...branding, telefon: e.target.value })} />
+        </div>
+        <div className="md:col-span-2">
+          <Label>Calendly-Link (Terminbuchung nach der Bewerbung)</Label>
+          <Input value={calendlyUrl} onChange={(e) => setCalendlyUrl(e.target.value)} placeholder="https://calendly.com/…" />
+        </div>
+        <div>
+          <Label>Browser-Titel (SEO)</Label>
+          <Input value={branding.seo_title || ""} onChange={(e) => setBranding({ ...branding, seo_title: e.target.value })} />
+        </div>
+        <div>
+          <Label>Beschreibung (SEO)</Label>
+          <Input value={branding.seo_description || ""} onChange={(e) => setBranding({ ...branding, seo_description: e.target.value })} />
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -416,9 +670,8 @@ function FieldHint({ text }: { text?: string }) {
 }
 
 function FieldEditor({ field, value, onChange }: { field: SectionField; value: unknown; onChange: (v: unknown) => void }) {
-  const wide = field.kind === "textarea" || field.kind === "strings" || field.kind === "objects";
   return (
-    <div className={cn(wide && "md:col-span-2")}>
+    <div>
       {field.kind !== "boolean" && <Label className="text-xs">{field.label}</Label>}
       {field.kind === "text" && (
         <Input value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} placeholder={field.placeholder} />
@@ -466,16 +719,15 @@ function ObjectsField({
 }) {
   const itemFields = field.itemFields || [];
   const setItem = (i: number, key: string, v: string) => {
-    const next = value.map((it, idx) => (idx === i ? { ...it, [key]: v } : it));
-    onChange(next);
+    onChange(value.map((it, idx) => (idx === i ? { ...it, [key]: v } : it)));
   };
   return (
     <div className="space-y-2 mt-1">
       {value.map((item, i) => (
-        <div key={i} className="border rounded-md p-3 bg-background space-y-2">
+        <div key={i} className="border rounded-md p-3 bg-muted/30 space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-xs text-muted-foreground">{field.itemLabel || "Eintrag"} {i + 1}</span>
-            <Button variant="ghost" size="icon" onClick={() => onChange(value.filter((_, idx) => idx !== i))}>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onChange(value.filter((_, idx) => idx !== i))}>
               <Trash2 className="h-3.5 w-3.5 text-destructive" />
             </Button>
           </div>

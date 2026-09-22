@@ -16,7 +16,10 @@ const InputSchema = z.object({
   // Branding wird 1:1 an den Renderer durchgereicht (Farben, Kontakt, Impressum …)
   branding: z.record(z.string(), z.any()).default({}),
   logo_url: z.string().max(500).nullable().optional(),
+  /** Bearbeiten-Overlay in der Vorschau einblenden */
+  editor: z.boolean().optional(),
 });
+
 
 async function requireAdmin(supabase: any, userId: string) {
   const { data } = await supabase
@@ -45,6 +48,8 @@ export const renderSectionsPreview = createServerFn({ method: "POST" })
       sections,
       branding: data.branding,
       logoUrl: data.logo_url ?? undefined,
+      editor: data.editor ?? false,
     });
     return { html };
   });
+
