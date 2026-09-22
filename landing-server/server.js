@@ -25,7 +25,7 @@ const ASSET_VERSION = process.env.LANDING_ASSET_VERSION || process.env.RELEASE_V
 const ASSET_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const assetCache = new Map();
 
-const LANDING_SELECT = "id,slug,domain,tenant_id,theme_id,branding,slots,logo_url,favicon_url,flow_type,source_slug,is_published,calendly_url,intermediate_company_name,updated_at,linked_fasttrack_landing_id,linked_fasttrack:landing_pages!linked_fasttrack_landing_id(domain,branding,calendly_url,intermediate_company_name,logo_url)";
+const LANDING_SELECT = "id,slug,domain,tenant_id,theme_id,branding,slots,sections,logo_url,favicon_url,flow_type,source_slug,is_published,calendly_url,intermediate_company_name,updated_at,linked_fasttrack_landing_id,linked_fasttrack:landing_pages!linked_fasttrack_landing_id(domain,branding,calendly_url,intermediate_company_name,logo_url)";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // Themes-Verzeichnis: zuerst ENV, dann Portal-Repo (automatisch), dann lokales themes/
 function resolveThemesDir() {
@@ -688,7 +688,38 @@ function versionThemeAssets(html) {
     .replace(/\bsrc=["'](?:\.\/|\/)?script\.js["']/gi, `src="/script.js?v=${v}"`);
 }
 
+// Baukasten-Renderer (Abschnitte statt festem Theme). Der Mirror
+// sections-renderer.js wird zusammen mit server.js synchronisiert; dynamischer
+// Import mit Fallback, damit ein alter Dateibestand den Renderer nicht killt.
+let sectionsRendererMod = null;
+async function getSectionsRenderer() {
+  if (sectionsRendererMod) return sectionsRendererMod;
+  try {
+    sectionsRendererMod = await import("./sections-renderer.js");
+  } catch (e) {
+    console.warn("[landing-server] sections-renderer.js nicht ladbar:", e?.message || e);
+    sectionsRendererMod = { renderSectionsLanding: null };
+  }
+  return sectionsRendererMod;
+}
+
 async function renderHtml(row, host, mode) {
+  // Baukasten-Landings (sections gesetzt) haben Vorrang vor dem Theme.
+  if (Array.isArray(row.sections) && row.sections.length) {
+    const mod = await getSectionsRenderer();
+    if (typeof mod.renderSectionsLanding === "function") {
+      let shtml = mod.renderSectionsLanding({
+        sections: row.sections,
+        branding: row.branding || {},
+        host,
+        logoUrl: row.logo_url,
+        faviconUrl: row.favicon_url,
+      });
+      shtml = injectLandingConfig(shtml, row, mode);
+      return { body: shtml, status: 200 };
+    }
+    // Fallback: Renderer-Datei fehlt → klassisches Theme rendern.
+  }
   const theme = await loadTheme(row.theme_id);
   if (!theme) return { body: `Theme nicht gefunden: ${row.theme_id}`, status: 500 };
   // Branding-Logo automatisch in {{logo_image}}/{{favicon_image}}-Slots spiegeln,
