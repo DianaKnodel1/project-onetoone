@@ -15,7 +15,9 @@ export function ZusageCard({
   registrationLink,
   loginHref,
   className,
-  mailFailed,
+  // mailFailed wird nicht mehr genutzt (Mail-loser Betrieb) — Prop bleibt
+  // aus Kompatibilitaet bestehen und wird bewusst ignoriert.
+
 }: {
   company: string;
   primary: string;

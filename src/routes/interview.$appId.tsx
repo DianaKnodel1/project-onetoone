@@ -429,7 +429,6 @@ function InterviewPage() {
                 primary={primary}
                 recruiter={recruiterName}
                 registrationLink={registrationLink ?? registerFallbackHref}
-                mailFailed={inviteMailFailed}
                 loginHref={`${portalBase}/login`}
               />
             </div>
