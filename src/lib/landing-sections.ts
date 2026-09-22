@@ -52,7 +52,7 @@ export const SECTION_CATALOG: SectionTypeDef[] = [
       { key: "title", label: "Überschrift", kind: "text" },
       { key: "subtitle", label: "Untertitel", kind: "textarea" },
       { key: "ctaText", label: "Knopf-Text", kind: "text", placeholder: "Jetzt bewerben" },
-      { key: "imageUrl", label: "Bild (URL, optional)", kind: "image", help: "Bild hochladen unter Admin → Uploads, dann URL hier einfügen." },
+      { key: "imageUrl", label: "Bild (optional)", kind: "image", help: "Bild direkt hochladen oder Bild-URL einfügen." },
     ],
     defaults: () => ({
       kicker: "",
@@ -181,6 +181,29 @@ export const SECTION_CATALOG: SectionTypeDef[] = [
       { key: "caption", label: "Bildunterschrift (optional)", kind: "text" },
     ],
     defaults: () => ({ imageUrl: "", alt: "", caption: "" }),
+  },
+  {
+    type: "textbild",
+    label: "Text & Bild",
+    description: "Text mit Bild daneben — Bild links oder rechts wählbar.",
+    fields: [
+      { key: "kicker", label: "Kleine Zeile über der Überschrift (optional)", kind: "text" },
+      { key: "title", label: "Überschrift", kind: "text" },
+      { key: "text", label: "Text", kind: "textarea" },
+      { key: "imageUrl", label: "Bild", kind: "image", help: "Bild direkt hochladen oder Bild-URL einfügen." },
+      { key: "imageRight", label: "Bild rechts statt links anzeigen", kind: "boolean" },
+      { key: "ctaText", label: "Knopf-Text (optional)", kind: "text", placeholder: "z.B. Jetzt bewerben" },
+      { key: "alt", label: "Bild-Beschreibung (alt)", kind: "text" },
+    ],
+    defaults: () => ({
+      kicker: "",
+      title: "Was dich bei uns erwartet",
+      text: "Kurzer, persönlicher Text: Was die Stelle auszeichnet, was das Team bietet und warum sich die Bewerbung lohnt.",
+      imageUrl: "",
+      imageRight: false,
+      ctaText: "",
+      alt: "",
+    }),
   },
   {
     type: "form",
