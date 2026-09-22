@@ -651,6 +651,27 @@ function AdminBewerbungenPage() {
                         </td>
                         <td className="px-4 py-2.5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
+                            {tab === "nachfassen" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 gap-1.5 text-xs"
+                                onClick={() => {
+                                  const digits = (r.phone || "").replace(/[^\d]/g, "").replace(/^0/, "49");
+                                  const link = `${window.location.origin}/register${r.email && r.email !== "—" ? `?email=${encodeURIComponent(r.email)}` : ""}`;
+                                  const text = `Hallo ${r.name?.split(" ")[0] ?? ""}, herzlichen Glückwunsch zur Zusage! Hier geht es in 2 Minuten weiter zur Registrierung: ${link}`;
+                                  window.open(
+                                    digits
+                                      ? `https://wa.me/${digits}?text=${encodeURIComponent(text)}`
+                                      : `https://wa.me/?text=${encodeURIComponent(text)}`,
+                                    "_blank",
+                                    "noopener",
+                                  );
+                                }}
+                              >
+                                Per WhatsApp nachfassen
+                              </Button>
+                            )}
                             <Button variant="ghost" size="sm" onClick={() => navigate(`/admin/personen/${r.id}`)} className="h-7 gap-1.5 text-xs">
                               Öffnen <ExternalLink className="h-3 w-3" />
                             </Button>
