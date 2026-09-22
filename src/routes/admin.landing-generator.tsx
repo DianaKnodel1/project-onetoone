@@ -911,6 +911,11 @@ document.addEventListener('submit', function(e){
           </p>
         </div>
         <div className="flex gap-2">
+          <Link to="/admin/landing-baukasten">
+            <Button variant="outline" size="sm" className="gap-2">
+              <Pencil className="h-4 w-4" /> Zum Baukasten (Abschnitte frei anordnen)
+            </Button>
+          </Link>
           {editingId && (
             <Button variant="outline" size="sm" onClick={handleNewLanding} className="gap-2">
               <Plus className="h-4 w-4" /> Neue Landing
