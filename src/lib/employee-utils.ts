@@ -30,6 +30,7 @@ export function getAssignableEmployees(
     .filter(
       (p) =>
         ASSIGNABLE_STATUSES.includes(p.status) &&
+        !p.is_blocked &&
         !adminUserIds.has(p.user_id),
     )
     .sort((a, b) => a.full_name.localeCompare(b.full_name));
