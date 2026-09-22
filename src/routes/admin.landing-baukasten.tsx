@@ -1013,3 +1013,151 @@ function ObjectsField({
     </div>
   );
 }
+
+/** Eingaben für den KI-Entwurf. */
+function AiDialog({
+  busy, defaultCompany, onSubmit,
+}: {
+  busy: boolean;
+  defaultCompany: string;
+  onSubmit: (v: Record<string, string>) => void;
+}) {
+  const [v, setV] = useState({
+    firmenname: defaultCompany,
+    branche: "",
+    stelle: "",
+    ort: "",
+    tonalitaet: "locker und persönlich",
+    designrichtung: "",
+    besonderheiten: "",
+  });
+  const set = (k: string, val: string) => setV((p) => ({ ...p, [k]: val }));
+
+  return (
+    <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label className="text-xs">Firmenname</Label>
+          <Input value={v.firmenname} onChange={(e) => set("firmenname", e.target.value)} />
+        </div>
+        <div>
+          <Label className="text-xs">Branche</Label>
+          <Input value={v.branche} onChange={(e) => set("branche", e.target.value)} placeholder="z.B. Logistik, Pflege, Gastronomie" />
+        </div>
+        <div>
+          <Label className="text-xs">Gesuchte Stelle</Label>
+          <Input value={v.stelle} onChange={(e) => set("stelle", e.target.value)} placeholder="z.B. Lagerhelfer (m/w/d)" />
+        </div>
+        <div>
+          <Label className="text-xs">Ort / Region</Label>
+          <Input value={v.ort} onChange={(e) => set("ort", e.target.value)} />
+        </div>
+        <div>
+          <Label className="text-xs">Tonalität</Label>
+          <select
+            className="w-full border rounded-md px-3 py-2 bg-background text-sm"
+            value={v.tonalitaet}
+            onChange={(e) => set("tonalitaet", e.target.value)}
+          >
+            <option value="locker und persönlich">locker und persönlich</option>
+            <option value="sachlich und seriös">sachlich und seriös</option>
+            <option value="motivierend und direkt">motivierend und direkt</option>
+            <option value="ruhig und vertrauensvoll">ruhig und vertrauensvoll</option>
+          </select>
+        </div>
+        <div>
+          <Label className="text-xs">Design-Richtung (optional)</Label>
+          <Input value={v.designrichtung} onChange={(e) => set("designrichtung", e.target.value)} placeholder="z.B. dunkel und modern, warm, technisch" />
+        </div>
+      </div>
+      <div>
+        <Label className="text-xs">Besonderheiten — nur echte Angaben</Label>
+        <Textarea
+          rows={4}
+          value={v.besonderheiten}
+          onChange={(e) => set("besonderheiten", e.target.value)}
+          placeholder="z.B. Schichtzuschläge, Führerschein nötig, Einstieg ohne Erfahrung möglich"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          Die KI erfindet keine Zahlen, Auszeichnungen oder Kundenstimmen — alles, was drinstehen soll, gehört hierher.
+        </p>
+      </div>
+      <Button onClick={() => onSubmit(v)} disabled={busy} className="w-full">
+        {busy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+        {busy ? "Entwurf wird erstellt…" : "Entwurf erstellen"}
+      </Button>
+    </div>
+  );
+}
+
+/** Gestaltung der Seite: Farben, Schrift, Rundungen, Abstände. */
+function StyleSettings({ style, onChange }: { style: LandingStyle; onChange: (s: LandingStyle) => void }) {
+  const set = (patch: Partial<LandingStyle>) => onChange(normalizeStyle({ ...style, ...patch }));
+  const colorField = (key: keyof LandingStyle, label: string) => (
+    <div key={String(key)}>
+      <Label className="text-xs">{label}</Label>
+      <div className="flex gap-2">
+        <input
+          type="color"
+          className="h-9 w-12 rounded border"
+          value={String(style[key])}
+          onChange={(e) => set({ [key]: e.target.value } as Partial<LandingStyle>)}
+        />
+        <Input value={String(style[key])} onChange={(e) => set({ [key]: e.target.value } as Partial<LandingStyle>)} />
+      </div>
+    </div>
+  );
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2"><Palette className="h-4 w-4" /> Gestaltung</CardTitle>
+        <CardDescription>Farben, Schrift und Formen der ganzen Seite.</CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-4 md:grid-cols-3">
+        <div>
+          <Label className="text-xs">Hell oder dunkel</Label>
+          <select className="w-full border rounded-md px-3 py-2 bg-background text-sm"
+            value={style.mode} onChange={(e) => set({ mode: e.target.value as LandingStyle["mode"] })}>
+            <option value="light">Hell</option>
+            <option value="dark">Dunkel</option>
+          </select>
+        </div>
+        {colorField("primary", "Hauptfarbe")}
+        {colorField("accent", "Akzentfarbe")}
+        {colorField("bg", "Hintergrund")}
+        {colorField("surface", "Flächen / Karten")}
+        {colorField("ink", "Schriftfarbe")}
+        <div>
+          <Label className="text-xs">Schriftart</Label>
+          <select className="w-full border rounded-md px-3 py-2 bg-background text-sm"
+            value={style.fontPair} onChange={(e) => set({ fontPair: e.target.value })}>
+            {FONT_PAIRS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <Label className="text-xs">Ecken abrunden ({style.radius} px)</Label>
+          <input type="range" min={0} max={28} step={2} className="w-full"
+            value={style.radius} onChange={(e) => set({ radius: Number(e.target.value) })} />
+        </div>
+        <div>
+          <Label className="text-xs">Abstände</Label>
+          <select className="w-full border rounded-md px-3 py-2 bg-background text-sm"
+            value={style.density} onChange={(e) => set({ density: e.target.value as LandingStyle["density"] })}>
+            <option value="kompakt">kompakt</option>
+            <option value="normal">normal</option>
+            <option value="luftig">luftig</option>
+          </select>
+        </div>
+        <div>
+          <Label className="text-xs">Knopf-Form</Label>
+          <select className="w-full border rounded-md px-3 py-2 bg-background text-sm"
+            value={style.buttonShape} onChange={(e) => set({ buttonShape: e.target.value as LandingStyle["buttonShape"] })}>
+            <option value="pill">rund (Pille)</option>
+            <option value="rund">leicht gerundet</option>
+            <option value="eckig">eckig</option>
+          </select>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
