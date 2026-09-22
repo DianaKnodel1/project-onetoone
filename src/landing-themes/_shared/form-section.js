@@ -226,7 +226,7 @@
 
       // Terminseite im Portal (Link merken, Gespräch starten, umbuchen)
       var portalOrigin='';
-      try{portalOrigin=apiOrigin();}catch(_){portalOrigin='';}
+      try{portalOrigin=apiBase();}catch(_){portalOrigin='';}
       var terminUrl=(bk.cancel_token&&portalOrigin)?(portalOrigin+'/termin/'+bk.cancel_token):'';
 
       var actions=document.createElement('div');
