@@ -989,6 +989,17 @@ function FieldEditor({ field, value, onChange }: { field: SectionField; value: u
       {field.kind === "image" && (
         <ImageField value={value} onChange={(v) => onChange(v)} />
       )}
+      {field.kind === "select" && (
+        <select
+          className="w-full border rounded-md px-3 py-2 bg-background text-sm"
+          value={String(value ?? field.options?.[0]?.value ?? "")}
+          onChange={(e) => onChange(e.target.value)}
+        >
+          {(field.options || []).map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+      )}
       {field.kind === "objects" && (
         <ObjectsField field={field} value={Array.isArray(value) ? (value as Record<string, string>[]) : []} onChange={onChange} />
       )}
