@@ -807,8 +807,10 @@ ${desc ? `<meta property="og:description" content="${esc(desc)}">` : ""}
 ${host ? `<meta property="og:url" content="https://${esc(host)}">` : ""}
 <meta name="twitter:card" content="summary">
 ${opts.faviconUrl ? `<link rel="icon" href="/assets/favicon">` : ""}
+${fontLink(st)}
 <style>
 ${BASE_CSS.replace(/#1d4ed8/g, primary).replace(/#0f172a/g, secondary)}
+${styleCss(st)}
 ${formCss}
 ${editor ? EDITOR_CSS : ""}
 </style>
