@@ -196,6 +196,7 @@
 }
 
 
+/* Human-like typing indicator for interview chat */
 @keyframes lv-typing {
   0%, 60%, 100% { transform: translateY(0); opacity: .4; }
   30% { transform: translateY(-4px); opacity: 1; }
