@@ -42,6 +42,7 @@ interface Conversation {
   adminNote?: string | null;
   lastFromEmployeeAt?: string | null;
   hiddenAt?: string | null;
+  blocked?: boolean;
 }
 
 const UNANSWERED_THRESHOLD_MS = 4 * 60 * 60 * 1000; // 4h
@@ -193,7 +194,7 @@ function AdminChatPage() {
     // liefert die Data-API nur 1000 Zeilen – ab dem 1001. Mitarbeiter wären
     // dessen Chats komplett unsichtbar (Profil fehlt → Chat wird gefiltert).
     const [profilesRes, convsRes, aggRes, msgsRes, tenantsRes, rolesRes] = await Promise.all([
-      fetchAll<any>(() => supabase.from("profiles").select("user_id, full_name, tenant_id, team_leader_id").order("user_id"))
+      fetchAll<any>(() => supabase.from("profiles").select("user_id, full_name, tenant_id, team_leader_id, is_blocked").order("user_id"))
         .then((data) => ({ data }))
         .catch(() => ({ data: [] as any[] })),
       fetchAll<any>(() => supabase.from("chat_conversations").select("user_id, status, escalated_at, admin_hidden_at, admin_unread, admin_note").order("user_id"))
@@ -234,7 +235,7 @@ function AdminChatPage() {
       (profiles as any[]).map((p) => [p.user_id as string, (p.team_leader_id as string | null) ?? null])
     );
     const tenantMap = new Map<string, string>(((tenantsRes.data ?? []) as any[]).map((t) => [t.id, t.name]));
-    const profileMap = new Map(profiles.map((p: any) => [p.user_id, { name: p.full_name as string, tenant_id: p.tenant_id as string | null }]));
+    const profileMap = new Map(profiles.map((p: any) => [p.user_id, { name: p.full_name as string, tenant_id: p.tenant_id as string | null, blocked: !!p.is_blocked }]));
     const convMap = new Map<string, any>((convsRes.data ?? []).map((c: any) => [c.user_id, c]));
 
     type Agg = { lastMessage: string; lastAt: string; unread: number; lastFromEmployeeAt: string | null };
@@ -291,6 +292,7 @@ function AdminChatPage() {
         adminNote: conv?.admin_note ?? null,
         lastFromEmployeeAt: a.lastFromEmployeeAt,
         hiddenAt: conv?.admin_hidden_at ?? null,
+        blocked: !!prof?.blocked,
       });
     }
 
@@ -1183,7 +1185,12 @@ function AdminChatPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-foreground truncate">{conv.full_name}</p>
+                    <p className={`text-sm font-medium truncate ${conv.blocked ? "line-through text-destructive" : "text-foreground"}`}>{conv.full_name}</p>
+                    {conv.blocked && (
+                      <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-destructive/15 text-destructive font-medium">
+                        Gesperrt
+                      </span>
+                    )}
                     {statusBadge(conv.status)}
                     {isUnanswered(conv) && !conv.adminNote && (
                       <span
@@ -1251,7 +1258,14 @@ function AdminChatPage() {
                 title="Mitarbeiter-Profil öffnen"
               >
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{selectedName}</p>
+                  <p className={`text-sm font-semibold group-hover:text-primary transition-colors ${selectedConv?.blocked ? "line-through text-destructive" : "text-foreground"}`}>
+                    {selectedName}
+                    {selectedConv?.blocked && (
+                      <span className="ml-2 align-middle no-underline text-[9px] px-1.5 py-0.5 rounded bg-destructive/15 text-destructive font-medium">
+                        Gesperrt
+                      </span>
+                    )}
+                  </p>
                   {selectedConv && statusBadge(selectedConv.status)}
                   <ChevronRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
