@@ -7,6 +7,7 @@ import {
   saveLandingPage,
 } from "@/lib/landing-pages.functions";
 import { renderSectionsPreview } from "@/lib/landing-builder.functions";
+import { supabase } from "@/integrations/supabase/client";
 import {
   SECTION_CATALOG,
   SECTION_TEMPLATES,
@@ -24,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import {
   Loader2, Save, ArrowUp, ArrowDown, Trash2, Plus, Layers, ExternalLink,
-  Monitor, Smartphone, Undo2, Settings2, GripVertical, X,
+  Monitor, Smartphone, Undo2, Settings2, GripVertical, X, Upload, ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -669,6 +670,98 @@ function FieldHint({ text }: { text?: string }) {
   return <p className="text-xs text-muted-foreground mt-1">{text}</p>;
 }
 
+const MEDIA_BUCKET = "landing-media";
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+function sanitizeFileName(name: string): string {
+  return (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(-60) || "bild.png"
+  );
+}
+
+/** Bild-Feld mit direktem Upload in den Storage-Bucket „landing-media". */
+function ImageField({ value, onChange }: { value: unknown; onChange: (v: string) => void }) {
+  const { toast } = useToast();
+  const [busy, setBusy] = useState(false);
+  const url = String(value ?? "");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const upload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Kein Bild erkannt", description: "Bitte eine Bilddatei auswählen (PNG, JPG, WebP, GIF oder SVG).", variant: "destructive" });
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      toast({ title: "Bild zu groß", description: "Bitte ein Bild mit maximal 5 MB auswählen.", variant: "destructive" });
+      return;
+    }
+    setBusy(true);
+    try {
+      const path = `landing/${Date.now()}-${sanitizeFileName(file.name)}`;
+      const { error } = await supabase.storage
+        .from(MEDIA_BUCKET)
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (error) throw error;
+      const { data } = supabase.storage.from(MEDIA_BUCKET).getPublicUrl(path);
+      onChange(data.publicUrl);
+    } catch (e) {
+      const msg = String((e as Error)?.message || e);
+      toast({
+        title: "Upload fehlgeschlagen",
+        description: /security|permission|policy|row-level/i.test(msg)
+          ? "Keine Berechtigung. Wurde die Migration für den Bild-Speicher (landing-media) schon eingespielt?"
+          : msg,
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void upload(f);
+            e.target.value = "";
+          }}
+        />
+        <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => inputRef.current?.click()}>
+          {busy ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Upload className="h-3.5 w-3.5 mr-1.5" />}
+          {busy ? "Lädt hoch…" : "Bild hochladen"}
+        </Button>
+        {url && (
+          <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")}>
+            <X className="h-3.5 w-3.5 mr-1" /> Entfernen
+          </Button>
+        )}
+      </div>
+      {url && (
+        <img
+          src={url}
+          alt=""
+          className="h-20 rounded-md border bg-muted object-cover"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.display = "none";
+          }}
+        />
+      )}
+      <Input value={url} onChange={(e) => onChange(e.target.value)} placeholder="oder Bild-URL einfügen (https://…)" />
+      <p className="text-xs text-muted-foreground">PNG, JPG, WebP, GIF oder SVG · max. 5 MB</p>
+    </div>
+  );
+}
+
 function FieldEditor({ field, value, onChange }: { field: SectionField; value: unknown; onChange: (v: unknown) => void }) {
   return (
     <div>
@@ -700,7 +793,7 @@ function FieldEditor({ field, value, onChange }: { field: SectionField; value: u
         />
       )}
       {field.kind === "image" && (
-        <Input value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} placeholder="https://…" />
+        <ImageField value={value} onChange={(v) => onChange(v)} />
       )}
       {field.kind === "objects" && (
         <ObjectsField field={field} value={Array.isArray(value) ? (value as Record<string, string>[]) : []} onChange={onChange} />
@@ -736,8 +829,10 @@ function ObjectsField({
               <Label className="text-xs">{inf.label}</Label>
               {inf.kind === "textarea" ? (
                 <Textarea rows={2} value={String(item[inf.key] ?? "")} onChange={(e) => setItem(i, inf.key, e.target.value)} />
+              ) : inf.kind === "image" ? (
+                <ImageField value={item[inf.key]} onChange={(v) => setItem(i, inf.key, v)} />
               ) : (
-                <Input value={String(item[inf.key] ?? "")} onChange={(e) => setItem(i, inf.key, e.target.value)} placeholder={inf.kind === "image" ? "https://…" : undefined} />
+                <Input value={String(item[inf.key] ?? "")} onChange={(e) => setItem(i, inf.key, e.target.value)} />
               )}
             </div>
           ))}
