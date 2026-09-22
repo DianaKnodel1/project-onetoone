@@ -22,12 +22,14 @@ const InputSchema = z.object({
 
 
 async function requireAdmin(supabase: any, userId: string) {
-  const { data } = await supabase
-    .from("profiles")
+  const { data, error } = await supabase
+    .from("user_roles")
     .select("role")
     .eq("user_id", userId)
+    .eq("role", "admin")
     .maybeSingle();
-  if (!data || !["admin", "super_admin"].includes((data as any).role)) {
+  if (error) throw new Error(error.message);
+  if (!data) {
     throw new Error("Admin-Rechte erforderlich");
   }
 }
