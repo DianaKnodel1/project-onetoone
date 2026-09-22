@@ -274,8 +274,8 @@ function RegisterPage() {
 
   const handleNextFromAccount = async () => {
     const trimmedEmail = email.trim();
-    if (!firstName.trim() || !lastName.trim() || !trimmedEmail || password.length < 6) {
-      toast({ title: "Fehler", description: "Bitte alle Felder korrekt ausfüllen (Passwort min. 6 Zeichen).", variant: "destructive" });
+    if (!firstName.trim() || !lastName.trim() || !trimmedEmail) {
+      toast({ title: "Fehler", description: "Bitte Vorname, Nachname und E-Mail angeben.", variant: "destructive" });
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
@@ -293,25 +293,23 @@ function RegisterPage() {
     setStep(2);
   };
 
+  // Adresse & Wohndauer sind ein Schritt — beides gehört inhaltlich zusammen.
   const handleSaveAddress = async () => {
     if (!street.trim() || !zipCode.trim() || !city.trim()) {
       toast({ title: "Fehler", description: "Bitte alle Pflichtfelder ausfüllen.", variant: "destructive" });
       return;
     }
-    setStep(3);
-  };
-
-  const handleSaveLivingSince = async () => {
     if (livingOver3Years === null || !livingSince) {
-      toast({ title: "Fehler", description: "Bitte Auswahl treffen und Datum angeben.", variant: "destructive" });
+      toast({ title: "Fehler", description: "Bitte Wohndauer auswählen und Datum angeben.", variant: "destructive" });
       return;
     }
     if (!livingOver3Years && (!previousStreet.trim() || !previousZip.trim() || !previousCity.trim())) {
       toast({ title: "Fehler", description: "Bitte vorherige Adresse vollständig angeben.", variant: "destructive" });
       return;
     }
-    setStep(4);
+    setStep(3);
   };
+
 
   /**
    * Finaler Submit: Account & Profil werden ERST jetzt angelegt – nach allen 5 Schritten.
