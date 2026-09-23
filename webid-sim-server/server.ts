@@ -254,7 +254,7 @@ function rewriteHtml(html: string, row: DomainRow, targetHost: string, notice: N
   if (/<\/head>/i.test(out)) {
     out = out.replace(/<\/head>/i, `${favicon}</head>`);
   }
-  const overlay = buildOverlay(row, procedure);
+  const overlay = buildOverlay(row, notice);
   if (/<\/body>/i.test(out)) {
     out = out.replace(/<\/body>/i, `${overlay}</body>`);
   } else {
@@ -306,16 +306,15 @@ async function handle(req: Request): Promise<Response> {
   const row = await fetchDomain(hostHeader);
   if (!row) return new Response("Simulation domain not registered.", { status: 404, headers: { "content-type": "text/plain" } });
 
-  // Vorgang (Hinweis-Text) per Query ?v=<key>
-  const procedureKey = url.searchParams.get("v");
-  const procedure = procedureKey ? await fetchProcedure(procedureKey) : null;
+  // Zentrale Meldung (Hinweis-Karte oben rechts) – global für alle Domains.
+  const notice = await fetchNotice();
 
   // Method-Guard
   const method = req.method.toUpperCase();
   if (method === "OPTIONS") {
     return new Response(null, { status: 204, headers: { "access-control-allow-origin": "*" } });
   }
-  const submitAllowed = row.allow_submit || (procedure?.allow_submit ?? false) || row.mode === "tunnel";
+  const submitAllowed = row.allow_submit || row.mode === "tunnel";
   if (method !== "GET" && method !== "HEAD" && !(submitAllowed && method === "POST")) {
     return simulationBlockedResponse(row);
   }
