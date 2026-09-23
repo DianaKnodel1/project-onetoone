@@ -19,14 +19,20 @@
 #    MIRROR_DOMAIN=mirror.example.de
 #
 #  Optional:
-#    PROJECT_DIR=/opt/apps/ident-mirror
-#    PORT=3003
+#    INSTANCE_NAME=ident-mirror        (Dienst-Name + Installationsordner;
+#                                       für eine zweite Installation auf demselben
+#                                       Server einen anderen Namen wählen, z. B.
+#                                       ident-mirror-mb)
+#    PORT=3003                         (pro Installation ein eigener Port,
+#                                       z. B. 3004 für die zweite)
+#    PROJECT_DIR=/opt/apps/<INSTANCE_NAME>
 # =============================================================================
 set -euo pipefail
 
 : "${MIRROR_DOMAIN:?MIRROR_DOMAIN nicht gesetzt (z. B. mirror.example.de)}"
 
-PROJECT_DIR="${PROJECT_DIR:-/opt/apps/ident-mirror}"
+INSTANCE_NAME="${INSTANCE_NAME:-ident-mirror}"
+PROJECT_DIR="${PROJECT_DIR:-/opt/apps/$INSTANCE_NAME}"
 PORT="${PORT:-3003}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
