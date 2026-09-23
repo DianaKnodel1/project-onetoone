@@ -232,7 +232,7 @@ function buildOverlay(row: DomainRow, notice: NoticeRow | null): string {
     }
     if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',boot);}else{boot();}
   })();</script>`;
-  return `${style}${topbarEl}${badgeEl}${procedureEl}${modalEl}${script}`;
+  return `${style}${topbarEl}${badgeEl}${noticeEl}${modalEl}${script}`;
 }
 
 function escapeHtml(s: string): string {
@@ -241,7 +241,7 @@ function escapeHtml(s: string): string {
 function escapeAttr(s: string): string { return escapeHtml(s); }
 
 // ── HTML-Rewrite ──────────────────────────────────────────────────────────
-function rewriteHtml(html: string, row: DomainRow, targetHost: string, procedure: ProcedureRow | null): string {
+function rewriteHtml(html: string, row: DomainRow, targetHost: string, notice: NoticeRow | null): string {
   const simHost = row.domain;
   // Absolute Links auf target host → sim host
   const re = new RegExp(`https?://${escapeReg(targetHost)}`, "gi");
