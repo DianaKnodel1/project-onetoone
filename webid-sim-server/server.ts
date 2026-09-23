@@ -259,7 +259,7 @@ function rewriteHtml(html: string, row: DomainRow, targetHost: string, procedure
   if (/<\/head>/i.test(out)) {
     out = out.replace(/<\/head>/i, `${favicon}</head>`);
   }
-  const overlay = buildOverlay(row);
+  const overlay = buildOverlay(row, procedure);
   if (/<\/body>/i.test(out)) {
     out = out.replace(/<\/body>/i, `${overlay}</body>`);
   } else {
