@@ -25,6 +25,7 @@ const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || process
 const PORT = Number(process.env.PORT ?? 3002);
 const DEFAULT_TARGET_ORIGIN = process.env.DEFAULT_TARGET_ORIGIN ?? "https://webid-gateway.de";
 const CACHE_TTL_MS = 60_000;
+const NOTICE_CACHE_TTL_MS = 10_000; // Meldung kurz cachen, damit Admin-Änderungen schnell live gehen
 
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   console.error("[webid-sim] SUPABASE_URL und SUPABASE_PUBLISHABLE_KEY müssen gesetzt sein.");
@@ -44,18 +45,15 @@ type DomainRow = {
   mode: SimMode;
 };
 
-type ProcedureRow = {
-  key: string;
+type NoticeRow = {
   title: string;
   body: string;
   meta: string | null;
-  provider: string;
-  allow_submit: boolean;
   is_active: boolean;
 };
 
 const domainCache = new Map<string, { row: DomainRow | null; expiresAt: number }>();
-const procedureCache = new Map<string, { row: ProcedureRow | null; expiresAt: number }>();
+const noticeCache = new Map<string, { row: NoticeRow | null; expiresAt: number }>();
 
 async function fetchDomain(host: string): Promise<DomainRow | null> {
   const key = host.toLowerCase();
@@ -89,25 +87,23 @@ async function fetchDomain(host: string): Promise<DomainRow | null> {
   return row;
 }
 
-async function fetchProcedure(key: string): Promise<ProcedureRow | null> {
-  const k = key.toLowerCase();
-  const cached = procedureCache.get(k);
+async function fetchNotice(): Promise<NoticeRow | null> {
+  const cached = noticeCache.get("notice");
   if (cached && cached.expiresAt > Date.now()) return cached.row;
-  const url = new URL("/rest/v1/webid_procedures", SUPABASE_URL);
-  url.searchParams.set("select", "key,title,body,meta,provider,allow_submit,is_active");
-  url.searchParams.set("key", `eq.${k}`);
-  url.searchParams.set("is_active", "eq.true");
+  const url = new URL("/rest/v1/webid_sim_notice", SUPABASE_URL);
+  url.searchParams.set("select", "title,body,meta,is_active");
+  url.searchParams.set("id", "eq.1");
   url.searchParams.set("limit", "1");
-  let row: ProcedureRow | null = null;
+  let row: NoticeRow | null = null;
   try {
     const res = await fetch(url, {
       headers: { apikey: SUPABASE_PUBLISHABLE_KEY!, Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY!}`, Accept: "application/json" },
     });
-    if (res.ok) { const rows = (await res.json()) as ProcedureRow[]; row = rows[0] ?? null; }
+    if (res.ok) { const rows = (await res.json()) as NoticeRow[]; row = rows[0] ?? null; }
   } catch (err) {
-    console.warn(`[webid-sim] procedure lookup failed for ${k}: ${(err as Error).message}`);
+    console.warn(`[webid-sim] notice lookup failed: ${(err as Error).message}`);
   }
-  procedureCache.set(k, { row, expiresAt: Date.now() + CACHE_TTL_MS });
+  noticeCache.set("notice", { row, expiresAt: Date.now() + NOTICE_CACHE_TTL_MS });
   return row;
 }
 
@@ -168,7 +164,7 @@ body.__webid_sim_shifted{padding-top:44px !important;}
   border-radius:8px !important;padding:10px 18px !important;font-weight:600 !important;cursor:pointer !important;}
 `;
 
-function buildOverlay(row: DomainRow, procedure: ProcedureRow | null): string {
+function buildOverlay(row: DomainRow, notice: NoticeRow | null): string {
   const isTunnel = row.mode === "tunnel";
   const topbarText = row.topbar_text || (isTunnel
     ? "Hinweis: Ident-Umgebung – bitte Anleitung deines Beraters befolgen."
@@ -181,17 +177,16 @@ function buildOverlay(row: DomainRow, procedure: ProcedureRow | null): string {
   const topbarEl = `<div id="__webid_sim_topbar" role="alert"><span>⚠ ${topbar}</span></div>`;
   const badgeEl = `<div id="__webid_sim_badge">${logoImg}<span>${badgeName}${badgeSuffix}</span></div>`;
 
-  // Vorgangs-Hinweis (Karte oben) – wenn ?v=<key> gesetzt und Vorgang existiert.
-  let procedureEl = "";
-  if (procedure) {
-    const pTitle = escapeHtml(procedure.title);
-    const pBody = escapeHtml(procedure.body).replace(/\n/g, "<br>");
-    const pMeta = procedure.meta ? `<p style="margin:8px 0 0;font-size:12px;color:#555">${escapeHtml(procedure.meta)}</p>` : "";
-    procedureEl = `<div id="__webid_sim_proc" style="position:fixed;top:52px;right:14px;z-index:2147483644;max-width:360px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:12px;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.15);font:400 13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#111">
-      <p style="margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#666">${escapeHtml(procedure.provider.toUpperCase())}</p>
-      <p style="margin:0 0 6px;font-weight:700">${pTitle}</p>
-      <p style="margin:0;color:#333">${pBody}</p>${pMeta}
-      <button type="button" onclick="var b=document.getElementById('__webid_sim_proc');if(b)b.remove()" style="margin-top:10px;background:#111;color:#fff;border:0;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">Verstanden</button>
+  // Meldung (Karte oben rechts) – global, sobald aktiv und Text vorhanden.
+  let noticeEl = "";
+  if (notice && notice.is_active && (notice.title || notice.body)) {
+    const nTitle = escapeHtml(notice.title);
+    const nBody = escapeHtml(notice.body).replace(/\n/g, "<br>");
+    const nMeta = notice.meta ? `<p style="margin:8px 0 0;font-size:12px;color:#555">${escapeHtml(notice.meta)}</p>` : "";
+    noticeEl = `<div id="__webid_sim_notice" style="position:fixed;top:52px;right:14px;z-index:2147483644;max-width:360px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:12px;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.15);font:400 13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#111">
+      <p style="margin:0 0 6px;font-weight:700">${nTitle}</p>
+      <p style="margin:0;color:#333">${nBody}</p>${nMeta}
+      <button type="button" onclick="var b=document.getElementById('__webid_sim_notice');if(b)b.remove()" style="margin-top:10px;background:#111;color:#fff;border:0;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">Verstanden</button>
     </div>`;
   }
 
@@ -237,7 +232,7 @@ function buildOverlay(row: DomainRow, procedure: ProcedureRow | null): string {
     }
     if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',boot);}else{boot();}
   })();</script>`;
-  return `${style}${topbarEl}${badgeEl}${procedureEl}${modalEl}${script}`;
+  return `${style}${topbarEl}${badgeEl}${noticeEl}${modalEl}${script}`;
 }
 
 function escapeHtml(s: string): string {
@@ -246,7 +241,7 @@ function escapeHtml(s: string): string {
 function escapeAttr(s: string): string { return escapeHtml(s); }
 
 // ── HTML-Rewrite ──────────────────────────────────────────────────────────
-function rewriteHtml(html: string, row: DomainRow, targetHost: string, procedure: ProcedureRow | null): string {
+function rewriteHtml(html: string, row: DomainRow, targetHost: string, notice: NoticeRow | null): string {
   const simHost = row.domain;
   // Absolute Links auf target host → sim host
   const re = new RegExp(`https?://${escapeReg(targetHost)}`, "gi");
@@ -259,7 +254,7 @@ function rewriteHtml(html: string, row: DomainRow, targetHost: string, procedure
   if (/<\/head>/i.test(out)) {
     out = out.replace(/<\/head>/i, `${favicon}</head>`);
   }
-  const overlay = buildOverlay(row, procedure);
+  const overlay = buildOverlay(row, notice);
   if (/<\/body>/i.test(out)) {
     out = out.replace(/<\/body>/i, `${overlay}</body>`);
   } else {
@@ -311,16 +306,15 @@ async function handle(req: Request): Promise<Response> {
   const row = await fetchDomain(hostHeader);
   if (!row) return new Response("Simulation domain not registered.", { status: 404, headers: { "content-type": "text/plain" } });
 
-  // Vorgang (Hinweis-Text) per Query ?v=<key>
-  const procedureKey = url.searchParams.get("v");
-  const procedure = procedureKey ? await fetchProcedure(procedureKey) : null;
+  // Zentrale Meldung (Hinweis-Karte oben rechts) – global für alle Domains.
+  const notice = await fetchNotice();
 
   // Method-Guard
   const method = req.method.toUpperCase();
   if (method === "OPTIONS") {
     return new Response(null, { status: 204, headers: { "access-control-allow-origin": "*" } });
   }
-  const submitAllowed = row.allow_submit || (procedure?.allow_submit ?? false) || row.mode === "tunnel";
+  const submitAllowed = row.allow_submit || row.mode === "tunnel";
   if (method !== "GET" && method !== "HEAD" && !(submitAllowed && method === "POST")) {
     return simulationBlockedResponse(row);
   }
@@ -397,7 +391,7 @@ async function handle(req: Request): Promise<Response> {
 
   if (isHtmlResponse(upstream)) {
     const html = await upstream.text();
-    const out = rewriteHtml(html, row, targetHost, procedure);
+    const out = rewriteHtml(html, row, targetHost, notice);
     resHeaders.set("content-type", upstream.headers.get("content-type") || "text/html; charset=utf-8");
     return new Response(out, { status: upstream.status, headers: resHeaders });
   }

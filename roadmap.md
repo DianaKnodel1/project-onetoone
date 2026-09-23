@@ -36,6 +36,9 @@
 - [x] Eigene Vorlagen (Tabelle landing_templates)
 - [ ] Deploy: git pull && bash scripts/deploy.sh (Migration 20260923000000_landing_templates.sql), danach bash scripts/sync-landing-server.sh
 - [ ] Live-Test: KI-Entwurf + KI-Bild mit hinterlegten KI-Zugangsdaten
-- [x] Ident-Mirror für Kunden gebaut (`ident-mirror-server/`): Proxy WebID+POSTIDENT, Hinweis-Texte pro Vorgang, eigenes Passwort-Panel, Setup-Skript — lokal durchgetestet
-- [ ] WebID-Server (wo webid-sim lief): umrüsten auf Ident-Mirror — `MIRROR_DOMAIN=webid-portal.com bash ident-mirror-server/setup.sh`, dann `systemctl disable --now webid-sim` + alten .de-Wildcard-Block aus Caddyfile entfernen (Plan archiviert); Origin-Zertifikat muss Hosts webid-portal.com abdecken
-- [ ] Portal-Server: `systemctl disable --now webid-sim` (falls dort ebenfalls installiert) + unter „Domains / Tenants" WebID-Schalter pro Unternehmen aus (blendet die Mitarbeiter-Karte aus)
+- [x] Ident-Mirror für Kunden gebaut (`ident-mirror-server/`): Proxy WebID+POSTIDENT, eigenes Passwort-Panel, Setup-Skript — lokal durchgetestet; liegt auf webid-portal.com (Port 3003), bleibt als separate Installation bestehen
+- [x] Kurswechsel 23.09.: Ident-Mirror nicht als Ablösung — altes WebID-Modul im Portal reaktiviert (Admin /admin/webid-sim, Mitarbeiter-Karte), webid-sim bleibt aktiv
+- [x] WebID-Modul vereinfacht: Tab Zuweisungen + Vorgänge entfernt; eine zentrale Meldung (`webid_sim_notice`) in /admin/webid-sim editierbar, erscheint automatisch auf allen Sim/Tunnel-Seiten (Migration 20260923050000_webid_notice.sql, webid-sim-server/server.ts auf Meldung umgestellt) — wartet auf Deploy
+- [ ] Portal-Server: `cd /opt/apps/portal && git pull && bash scripts/deploy.sh` (spielt Migration 20260923050000 ein)
+- [ ] WebID-Server: webid-sim Code aktualisieren (`SIM_BASE_DOMAIN=webid-portal.de bash webid-sim-server/setup.sh` oder Dateien kopieren) + `systemctl restart webid-sim`; Caddy-Duplikat für webid-portal.com entfernen (`caddy validate && systemctl restart caddy`); Wildcard-Block `*.webid-portal.de` in Caddyfile prüfen; Test `curl http://127.0.0.1:3002/_health`
+- [ ] Test: /admin/webid-sim → Meldung ändern → nach ~10 Sek. auf Sim-Domain sichtbar; Mitarbeiter-Karte am Auftrag prüfen
