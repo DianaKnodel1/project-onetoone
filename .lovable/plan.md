@@ -2,22 +2,23 @@
 
 Der Server, auf dem bisher der WebID-Simulations-Proxy (`webid-sim`, Port 3002) lief, wird auf die neue, echte Ident-Mirror-Installation umgestellt. Keine Änderungen am Portal-Code nötig — alles passiert auf dem Server.
 
-## Voraussetzungen (vorab, einmalig)
+## Voraussetzungen — bereits erledigt
 
-1. Mirror-Domain festlegen (eine Domain reicht, keine Wildcard).
-2. Cloudflare: DNS `@` → auf den Server (orange Wolke), SSL-Modus **Full (Strict)**.
-3. Cloudflare: **SSL/TLS → Origin Server → Create Certificate** (Hosts: die Mirror-Domain, 15 Jahre). Zertifikat nach `/etc/caddy/origin.crt`, Key nach `/etc/caddy/origin.key`:
-   ```bash
-   nano /etc/caddy/origin.crt   # bzw. per scp hochladen
-   nano /etc/caddy/origin.key
-   chmod 600 /etc/caddy/origin.*
-   ```
+- Mirror-Domain: **webid-portal.com** (DNS in Cloudflare, orange Wolke, SSL-Modus **Full (Strict)**).
+- Origin-Zertifikat liegt laut Server-Setup bereits vor: `/etc/caddy/origin.crt` + `/etc/caddy/origin.key`.
+- Einmalig kurz prüfen, dass das Zertifikat für **webid-portal.com** ausgestellt wurde
+  (Hosts beim Erstellen), nicht nur für die alte .de-Domain:
+  ```bash
+  openssl x509 -in /etc/caddy/origin.crt -noout -text | grep -A1 "Subject Alternative Name"
+  ```
+  Steht dort nur die alte .de-Domain, in Cloudflare ein neues Zertifikat mit Host
+  `webid-portal.com` erzeugen und die beiden Dateien ersetzen — sonst schlägt der Browser-Handshake fehl.
 
 ## Installation (auf dem WebID-Server)
 
 ```bash
 cd /opt/apps/portal && git pull    # aktuellen Code holen (ident-mirror-server/ liegt im Repo)
-MIRROR_DOMAIN=<mirror-domain> bash ident-mirror-server/setup.sh
+MIRROR_DOMAIN=webid-portal.com bash ident-mirror-server/setup.sh
 ```
 
 Das Skript installiert Node/Caddy falls nötig, legt `/opt/apps/ident-mirror` an, erzeugt
