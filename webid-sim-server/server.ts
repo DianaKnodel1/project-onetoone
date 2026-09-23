@@ -31,6 +31,7 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   process.exit(1);
 }
 
+type SimMode = "simulation" | "tunnel";
 type DomainRow = {
   id: string;
   domain: string;
@@ -40,9 +41,21 @@ type DomainRow = {
   topbar_text: string;
   is_active: boolean;
   allow_submit: boolean;
+  mode: SimMode;
+};
+
+type ProcedureRow = {
+  key: string;
+  title: string;
+  body: string;
+  meta: string | null;
+  provider: string;
+  allow_submit: boolean;
+  is_active: boolean;
 };
 
 const domainCache = new Map<string, { row: DomainRow | null; expiresAt: number }>();
+const procedureCache = new Map<string, { row: ProcedureRow | null; expiresAt: number }>();
 
 async function fetchDomain(host: string): Promise<DomainRow | null> {
   const key = host.toLowerCase();
