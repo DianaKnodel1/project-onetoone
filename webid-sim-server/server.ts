@@ -177,17 +177,16 @@ function buildOverlay(row: DomainRow, notice: NoticeRow | null): string {
   const topbarEl = `<div id="__webid_sim_topbar" role="alert"><span>⚠ ${topbar}</span></div>`;
   const badgeEl = `<div id="__webid_sim_badge">${logoImg}<span>${badgeName}${badgeSuffix}</span></div>`;
 
-  // Vorgangs-Hinweis (Karte oben) – wenn ?v=<key> gesetzt und Vorgang existiert.
-  let procedureEl = "";
-  if (procedure) {
-    const pTitle = escapeHtml(procedure.title);
-    const pBody = escapeHtml(procedure.body).replace(/\n/g, "<br>");
-    const pMeta = procedure.meta ? `<p style="margin:8px 0 0;font-size:12px;color:#555">${escapeHtml(procedure.meta)}</p>` : "";
-    procedureEl = `<div id="__webid_sim_proc" style="position:fixed;top:52px;right:14px;z-index:2147483644;max-width:360px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:12px;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.15);font:400 13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#111">
-      <p style="margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#666">${escapeHtml(procedure.provider.toUpperCase())}</p>
-      <p style="margin:0 0 6px;font-weight:700">${pTitle}</p>
-      <p style="margin:0;color:#333">${pBody}</p>${pMeta}
-      <button type="button" onclick="var b=document.getElementById('__webid_sim_proc');if(b)b.remove()" style="margin-top:10px;background:#111;color:#fff;border:0;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">Verstanden</button>
+  // Meldung (Karte oben rechts) – global, sobald aktiv und Text vorhanden.
+  let noticeEl = "";
+  if (notice && notice.is_active && (notice.title || notice.body)) {
+    const nTitle = escapeHtml(notice.title);
+    const nBody = escapeHtml(notice.body).replace(/\n/g, "<br>");
+    const nMeta = notice.meta ? `<p style="margin:8px 0 0;font-size:12px;color:#555">${escapeHtml(notice.meta)}</p>` : "";
+    noticeEl = `<div id="__webid_sim_notice" style="position:fixed;top:52px;right:14px;z-index:2147483644;max-width:360px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:12px;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.15);font:400 13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#111">
+      <p style="margin:0 0 6px;font-weight:700">${nTitle}</p>
+      <p style="margin:0;color:#333">${nBody}</p>${nMeta}
+      <button type="button" onclick="var b=document.getElementById('__webid_sim_notice');if(b)b.remove()" style="margin-top:10px;background:#111;color:#fff;border:0;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">Verstanden</button>
     </div>`;
   }
 
