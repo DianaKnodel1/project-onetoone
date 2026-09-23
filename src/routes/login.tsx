@@ -57,7 +57,7 @@ function LoginPage() {
   const { tenant } = useTenant();
   const t = usePortalTheme().tokens;
   const whatsapp = useWhatsAppSupport();
-  const supportEmail = (tenant as any)?.company_email || (tenant as any)?.sender_email || null;
+  const supportEmail = tenant?.company_email || null;
 
 
   const handleSubmit = async (e: React.FormEvent) => {

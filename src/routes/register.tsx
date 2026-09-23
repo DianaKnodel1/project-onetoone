@@ -1,6 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/register")({
+  head: () => ({
+    meta: [
+      { title: "Registrierung | Mitarbeiter-Portal" },
+      { name: "description", content: "Registrieren Sie sich für Ihr persönliches Mitarbeiter-Portal." },
+      { property: "og:title", content: "Registrierung | Mitarbeiter-Portal" },
+      { property: "og:description", content: "Sicherer Zugang zu Ihrem Mitarbeiter-Portal." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: RegisterPage,
 });
 
