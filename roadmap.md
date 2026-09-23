@@ -36,3 +36,5 @@
 - [x] Eigene Vorlagen (Tabelle landing_templates)
 - [ ] Deploy: git pull && bash scripts/deploy.sh (Migration 20260923000000_landing_templates.sql), danach bash scripts/sync-landing-server.sh
 - [ ] Live-Test: KI-Entwurf + KI-Bild mit hinterlegten KI-Zugangsdaten
+- [x] Ident-Mirror für Kunden gebaut (`ident-mirror-server/`): Proxy WebID+POSTIDENT, Hinweis-Texte pro Vorgang, eigenes Passwort-Panel, Setup-Skript — lokal durchgetestet
+- [ ] Kunden-Server: KVM-VPS kaufen (2 vCPU/2 GB, Ubuntu 24.04), dann `MIRROR_DOMAIN=<domain> bash ident-mirror-server/setup.sh` + Cloudflare-Zertifikat + Firewall
