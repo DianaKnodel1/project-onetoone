@@ -1,54 +1,63 @@
-# Server auf neues Repo umstellen + Ident-Mirror installieren
+# Caddy zum Laufen bringen — Ident-Mirror scharfschalten
 
-## Problem
+## Stand
 
-Der WebID-Server holt den Code noch vom alten Repository `direct-zip-import` — dort fehlt der Ordner `ident-mirror-server/`. Deshalb schlug das Setup fehl (`No such file or directory`).
+- Repo umgestellt ✅
+- `ident-mirror.service` läuft auf Port 3003 ✅
+- **Caddy failed** ❌ — höchstwahrscheinlich, weil `/etc/caddy/origin.crt` noch das alte Zertifikat (nur `.de`) enthält und nicht für `webid-portal.com` gültig ist. Ohne passendes Zertifikat verweigert Caddy den Start des neuen Site-Blocks.
 
-## Lösung: Remote umstellen, dann Setup erneut laufen lassen
-
-Auf dem Server ausführen:
-
-```bash
-cd /opt/apps/portal
-git remote set-url origin https://github.com/DianaKnodel1/project-onetoone.git
-git fetch --all
-git reset --hard origin/main
-```
-
-Danach sollte der Ordner da sein — kurz prüfen:
+## Schritt 1: Ursache bestätigen
 
 ```bash
-ls ident-mirror-server/
-```
-
-## Danach: Installation wie geplant
-
-```bash
-MIRROR_DOMAIN=webid-portal.com bash ident-mirror-server/setup.sh
-```
-
-Vorher einmalig prüfen, dass das vorhandene Origin-Zertifikat auch für **webid-portal.com** ausgestellt wurde (nicht nur für die alte .de-Domain):
-
-```bash
+systemctl status caddy.service --no-pager | tail -n 30
+journalctl -xeu caddy.service --no-pager | tail -n 40
 openssl x509 -in /etc/caddy/origin.crt -noout -text | grep -A1 "Subject Alternative Name"
 ```
 
-Steht dort nur die alte Domain: in Cloudflare ein neues Zertifikat mit Host `webid-portal.com` erzeugen und `/etc/caddy/origin.crt` + `/etc/caddy/origin.key` ersetzen, sonst schlägt der Browser-Handshake fehl.
+Erwartung: In der Zertifikats-Ausgabe steht nur die alte `.de`-Domain, im Log eine Meldung wie „tls: no certificate matching webid-portal.com".
 
-## Alte Simulation stilllegen
+## Schritt 2: Neues Origin-Zertifikat in Cloudflare erzeugen
+
+1. Cloudflare (Konto der Domain `webid-portal.com`) → **SSL/TLS → Origin Server → Create Certificate**.
+2. Hosts: `webid-portal.com` (und optional `*.webid-portal.com`), Gültigkeit 15 Jahre.
+3. Auf dem Server ersetzen:
+
+```bash
+nano /etc/caddy/origin.crt   # kompletten Inhalt durch das neue Zertifikat ersetzen
+nano /etc/caddy/origin.key   # kompletten Inhalt durch den neuen Private Key ersetzen
+chmod 600 /etc/caddy/origin.*
+```
+
+4. Alten `.de`-Site-Block aus `/etc/caddy/Caddyfile` entfernen (Block mit `webid-portal.de` bzw. `*.webid-portal.de`):
+
+```bash
+nano /etc/caddy/Caddyfile
+```
+
+5. Caddy neu starten und prüfen:
+
+```bash
+systemctl restart caddy
+systemctl status caddy --no-pager | head -n 15
+```
+
+## Schritt 3: Alte Simulation stilllegen
 
 ```bash
 systemctl disable --now webid-sim
 rm -rf /opt/apps/webid-sim
-# Alten Sim-Site-Block (webid-portal.de / *.webid-portal.de) aus /etc/caddy/Caddyfile entfernen
-systemctl restart caddy
 ```
 
-Die Datenbank-Tabellen bleiben als Archiv erhalten.
+Datenbank-Tabellen bleiben als Archiv erhalten.
 
-## Test
+## Schritt 4: Cloudflare-DNS + Test
 
-1. `curl http://127.0.0.1:3003/_health` → muss antworten.
-2. `https://webid-portal.com/admin/` öffnen → erstes Admin-Passwort setzen.
-3. Vorgang anlegen (WebID oder POSTIDENT), echten Ident-Link einfügen → „Im Tunnel öffnen" → Strecke inkl. Hinweis prüfen.
-4. Firewall laut README: Port 443 nur für Cloudflare-IP-Ranges, Port 80 zu.
+- Cloudflare: `webid-portal.com` A-Record → Server-IP, orange Wolke; SSL-Modus **Full (Strict)**.
+- Firewall: Port 443 nur für Cloudflare-IP-Ranges (Befehle in `ident-mirror-server/README.md`).
+
+```bash
+curl http://127.0.0.1:3003/_health          # Dienst antwortet
+curl -I https://webid-portal.com/           # 200/302 von Caddy
+```
+
+Dann `https://webid-portal.com/admin/` öffnen → erstes Admin-Passwort setzen → Vorgang anlegen → echten Ident-Link im Tunnel testen.
