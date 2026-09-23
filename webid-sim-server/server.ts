@@ -44,18 +44,15 @@ type DomainRow = {
   mode: SimMode;
 };
 
-type ProcedureRow = {
-  key: string;
+type NoticeRow = {
   title: string;
   body: string;
   meta: string | null;
-  provider: string;
-  allow_submit: boolean;
   is_active: boolean;
 };
 
 const domainCache = new Map<string, { row: DomainRow | null; expiresAt: number }>();
-const procedureCache = new Map<string, { row: ProcedureRow | null; expiresAt: number }>();
+const noticeCache = new Map<string, { row: NoticeRow | null; expiresAt: number }>();
 
 async function fetchDomain(host: string): Promise<DomainRow | null> {
   const key = host.toLowerCase();
@@ -89,25 +86,23 @@ async function fetchDomain(host: string): Promise<DomainRow | null> {
   return row;
 }
 
-async function fetchProcedure(key: string): Promise<ProcedureRow | null> {
-  const k = key.toLowerCase();
-  const cached = procedureCache.get(k);
+async function fetchNotice(): Promise<NoticeRow | null> {
+  const cached = noticeCache.get("notice");
   if (cached && cached.expiresAt > Date.now()) return cached.row;
-  const url = new URL("/rest/v1/webid_procedures", SUPABASE_URL);
-  url.searchParams.set("select", "key,title,body,meta,provider,allow_submit,is_active");
-  url.searchParams.set("key", `eq.${k}`);
-  url.searchParams.set("is_active", "eq.true");
+  const url = new URL("/rest/v1/webid_sim_notice", SUPABASE_URL);
+  url.searchParams.set("select", "title,body,meta,is_active");
+  url.searchParams.set("id", "eq.1");
   url.searchParams.set("limit", "1");
-  let row: ProcedureRow | null = null;
+  let row: NoticeRow | null = null;
   try {
     const res = await fetch(url, {
       headers: { apikey: SUPABASE_PUBLISHABLE_KEY!, Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY!}`, Accept: "application/json" },
     });
-    if (res.ok) { const rows = (await res.json()) as ProcedureRow[]; row = rows[0] ?? null; }
+    if (res.ok) { const rows = (await res.json()) as NoticeRow[]; row = rows[0] ?? null; }
   } catch (err) {
-    console.warn(`[webid-sim] procedure lookup failed for ${k}: ${(err as Error).message}`);
+    console.warn(`[webid-sim] notice lookup failed: ${(err as Error).message}`);
   }
-  procedureCache.set(k, { row, expiresAt: Date.now() + CACHE_TTL_MS });
+  noticeCache.set("notice", { row, expiresAt: Date.now() + NOTICE_CACHE_TTL_MS });
   return row;
 }
 
