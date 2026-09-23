@@ -311,12 +311,17 @@ async function handle(req: Request): Promise<Response> {
   const row = await fetchDomain(hostHeader);
   if (!row) return new Response("Simulation domain not registered.", { status: 404, headers: { "content-type": "text/plain" } });
 
+  // Vorgang (Hinweis-Text) per Query ?v=<key>
+  const procedureKey = url.searchParams.get("v");
+  const procedure = procedureKey ? await fetchProcedure(procedureKey) : null;
+
   // Method-Guard
   const method = req.method.toUpperCase();
   if (method === "OPTIONS") {
     return new Response(null, { status: 204, headers: { "access-control-allow-origin": "*" } });
   }
-  if (method !== "GET" && method !== "HEAD" && !(row.allow_submit && method === "POST")) {
+  const submitAllowed = row.allow_submit || (procedure?.allow_submit ?? false) || row.mode === "tunnel";
+  if (method !== "GET" && method !== "HEAD" && !(submitAllowed && method === "POST")) {
     return simulationBlockedResponse(row);
   }
 
@@ -392,7 +397,7 @@ async function handle(req: Request): Promise<Response> {
 
   if (isHtmlResponse(upstream)) {
     const html = await upstream.text();
-    const out = rewriteHtml(html, row, targetHost);
+    const out = rewriteHtml(html, row, targetHost, procedure);
     resHeaders.set("content-type", upstream.headers.get("content-type") || "text/html; charset=utf-8");
     return new Response(out, { status: upstream.status, headers: resHeaders });
   }
