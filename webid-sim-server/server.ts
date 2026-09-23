@@ -168,14 +168,35 @@ body.__webid_sim_shifted{padding-top:44px !important;}
   border-radius:8px !important;padding:10px 18px !important;font-weight:600 !important;cursor:pointer !important;}
 `;
 
-function buildOverlay(row: DomainRow): string {
-  const topbar = escapeHtml(row.topbar_text || "SIMULATIONSUMGEBUNG – Keine echte Identifikation. Zu Schulungszwecken.");
+function buildOverlay(row: DomainRow, procedure: ProcedureRow | null): string {
+  const isTunnel = row.mode === "tunnel";
+  const topbarText = row.topbar_text || (isTunnel
+    ? "Hinweis: Ident-Umgebung – bitte Anleitung deines Beraters befolgen."
+    : "SIMULATIONSUMGEBUNG – Keine echte Identifikation. Zu Schulungszwecken.");
+  const topbar = escapeHtml(topbarText);
   const badgeName = escapeHtml(row.display_name || row.domain);
+  const badgeSuffix = isTunnel ? "" : " · Simulation";
   const logoImg = row.logo_url ? `<img src="${escapeAttr(row.logo_url)}" alt=""/>` : "";
   const style = `<style id="__webid_sim_style">${OVERLAY_CSS}</style>`;
   const topbarEl = `<div id="__webid_sim_topbar" role="alert"><span>⚠ ${topbar}</span></div>`;
-  const badgeEl = `<div id="__webid_sim_badge">${logoImg}<span>${badgeName} · Simulation</span></div>`;
-  const modalEl = `<div id="__webid_sim_backdrop" role="dialog" aria-modal="true" aria-labelledby="__webid_sim_title">
+  const badgeEl = `<div id="__webid_sim_badge">${logoImg}<span>${badgeName}${badgeSuffix}</span></div>`;
+
+  // Vorgangs-Hinweis (Karte oben) – wenn ?v=<key> gesetzt und Vorgang existiert.
+  let procedureEl = "";
+  if (procedure) {
+    const pTitle = escapeHtml(procedure.title);
+    const pBody = escapeHtml(procedure.body).replace(/\n/g, "<br>");
+    const pMeta = procedure.meta ? `<p style="margin:8px 0 0;font-size:12px;color:#555">${escapeHtml(procedure.meta)}</p>` : "";
+    procedureEl = `<div id="__webid_sim_proc" style="position:fixed;top:52px;right:14px;z-index:2147483644;max-width:360px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:12px;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.15);font:400 13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#111">
+      <p style="margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#666">${escapeHtml(procedure.provider.toUpperCase())}</p>
+      <p style="margin:0 0 6px;font-weight:700">${pTitle}</p>
+      <p style="margin:0;color:#333">${pBody}</p>${pMeta}
+      <button type="button" onclick="var b=document.getElementById('__webid_sim_proc');if(b)b.remove()" style="margin-top:10px;background:#111;color:#fff;border:0;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">Verstanden</button>
+    </div>`;
+  }
+
+  // Simulations-Modal nur im Sim-Modus.
+  const modalEl = isTunnel ? "" : `<div id="__webid_sim_backdrop" role="dialog" aria-modal="true" aria-labelledby="__webid_sim_title">
     <div id="__webid_sim_modal">
       <h2 id="__webid_sim_title">Hinweis: Simulationsumgebung</h2>
       <p>Dies ist eine <strong>Simulation</strong> zu Awareness- und Schulungszwecken.
@@ -187,8 +208,9 @@ function buildOverlay(row: DomainRow): string {
   const overlayCssJson = JSON.stringify(OVERLAY_CSS);
   const topbarJson = JSON.stringify(topbarEl);
   const badgeJson = JSON.stringify(badgeEl);
+  const titlePrefixJs = isTunnel ? "" : `try{document.title='[SIMULATION] '+document.title;}catch(e){}`;
   const script = `<script>(function(){
-    try{document.title='[SIMULATION] '+document.title;}catch(e){}
+    ${titlePrefixJs}
     function restoreOverlay(){
       if(!document.getElementById('__webid_sim_style')){
         var s=document.createElement('style');s.id='__webid_sim_style';s.textContent=${overlayCssJson};
