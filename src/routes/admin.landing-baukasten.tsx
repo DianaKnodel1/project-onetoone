@@ -49,6 +49,8 @@ export const Route = createFileRoute("/admin/landing-baukasten")({
 type LandingRow = {
   id: string;
   slug: string;
+  domain?: string | null;
+  tenant_id?: string | null;
   theme_id: string;
   flow_type?: string;
   source_slug?: string;
@@ -428,6 +430,8 @@ function LandingBaukastenPage() {
     try {
       const payload: Record<string, unknown> = {
         slug: slug.trim(),
+        domain: current?.domain || "",
+        tenant_id: current?.tenant_id || null,
         theme_id: current?.theme_id || "theme-10",
         flow_type: current?.flow_type || "classic",
         source_slug: current?.source_slug || "",
