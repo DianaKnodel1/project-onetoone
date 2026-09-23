@@ -36,10 +36,8 @@ interface SimDomain {
   is_active: boolean;
   allow_submit: boolean;
   mode: SimMode;
-  tenant_id: string | null;
   notes: string | null;
 }
-interface Tenant { id: string; name: string; }
 interface Procedure {
   id: string;
   key: string;
@@ -96,27 +94,21 @@ const EMPTY_DOMAIN = {
   topbar_text: "SIMULATIONSUMGEBUNG – Keine echte Identifikation. Zu Schulungszwecken.",
   allow_submit: false,
   mode: "simulation" as SimMode,
-  tenant_id: "" as string,
   notes: "",
 };
 
 function DomainsTab() {
   const { toast } = useToast();
   const [rows, setRows] = useState<SimDomain[]>([]);
-  const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(EMPTY_DOMAIN);
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
-    const [d, t] = await Promise.all([
-      supabase.from("webid_sim_domains" as never).select("*").order("created_at", { ascending: false }),
-      supabase.from("tenants" as never).select("id,name").order("name"),
-    ]);
+    const d = await supabase.from("webid_sim_domains" as never).select("*").order("created_at", { ascending: false });
     if (d.error) toast({ title: "Fehler", description: d.error.message, variant: "destructive" });
     setRows(((d.data as unknown) as SimDomain[]) ?? []);
-    setTenants(((t.data as unknown) as Tenant[]) ?? []);
     setLoading(false);
   };
   useEffect(() => { void load(); }, []);
@@ -135,7 +127,6 @@ function DomainsTab() {
       topbar_text: form.topbar_text.trim(),
       allow_submit: form.allow_submit,
       mode: form.mode,
-      tenant_id: form.tenant_id || null,
       notes: form.notes.trim() || null,
     };
     const { error } = await supabase.from("webid_sim_domains" as never).insert(payload as never);
@@ -185,14 +176,6 @@ function DomainsTab() {
             </select>
           </div>
           <div>
-            <Label>Mandant (optional)</Label>
-            <select className="mt-1 w-full h-10 rounded-md border border-input bg-background px-2 text-sm"
-              value={form.tenant_id} onChange={(e) => setForm({ ...form, tenant_id: e.target.value })}>
-              <option value="">— keiner —</option>
-              {tenants.map((t) => (<option key={t.id} value={t.id}>{t.name}</option>))}
-            </select>
-          </div>
-          <div>
             <Label>Logo-URL (unten rechts, optional)</Label>
             <Input value={form.logo_url} onChange={(e) => setForm({ ...form, logo_url: e.target.value })} />
           </div>
@@ -225,14 +208,13 @@ function DomainsTab() {
           ) : rows.length === 0 ? (
             <p className="text-sm text-muted-foreground">Noch keine Domain angelegt.</p>
           ) : rows.map((r) => {
-            const tenantName = tenants.find((t) => t.id === r.tenant_id)?.name;
             return (
               <div key={r.id} className="rounded-lg border border-border p-3 space-y-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p className="font-mono text-sm font-semibold">{r.domain}</p>
                     <p className="text-xs text-muted-foreground">
-                      {r.display_name} · Ziel: {r.target_origin}{tenantName ? ` · Mandant: ${tenantName}` : ""}
+                      {r.display_name} · Ziel: {r.target_origin}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -260,14 +242,6 @@ function DomainsTab() {
                       value={r.mode} onChange={(e) => update(r.id, { mode: e.target.value as SimMode })}>
                       <option value="simulation">Simulation</option>
                       <option value="tunnel">Tunnel</option>
-                    </select>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <span>Mandant:</span>
-                    <select className="h-7 rounded-md border border-input bg-background px-2 text-xs"
-                      value={r.tenant_id ?? ""} onChange={(e) => update(r.id, { tenant_id: (e.target.value || null) as never })}>
-                      <option value="">— keiner —</option>
-                      {tenants.map((t) => (<option key={t.id} value={t.id}>{t.name}</option>))}
                     </select>
                   </label>
                 </div>
