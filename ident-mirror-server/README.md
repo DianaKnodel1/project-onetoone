@@ -107,3 +107,27 @@ ufw --force enable
 - Kein Logging von Bodies/Query-Strings (nur Methode, Pfad, Status).
 - POST nur für Vorgänge mit „Absenden freigeben"; sonst freundliche Sperrseite.
 - Verbindung zum Anbieter erfolgt direkt — ohne Relay-/Proxy-Ketten.
+
+## Zweite Installation auf demselben Server (z. B. eigene Nutzung neben einer Kunden-Installation)
+
+Das Setup-Skript ist instanzfähig. Für jede weitere Installation eigenen Namen,
+eigenen Port und eigene Domain wählen — Dienst, Ordner und `config.json` sind
+vollständig getrennt, Caddy bekommt einen zusätzlichen Site-Block:
+
+```bash
+git clone https://github.com/DianaKnodel1/project-onetoone.git /tmp/src && cd /tmp/src
+INSTANCE_NAME=ident-mirror-mb PORT=3004 MIRROR_DOMAIN=<zweite-domain> bash ident-mirror-server/setup.sh
+```
+
+Voraussetzungen wie bei der Erstinstallation: Cloudflare-DNS (orange Wolke) für
+die zweite Domain; das Origin-Zertifikat muss beide Domains abdecken (Hosts beim
+Zertifikat-Erstellen beide eintragen) — sonst zweites Zertifikatpaar anlegen und
+den `tls`-Pfad im jeweiligen Caddy-Block anpassen.
+
+Verwaltung der Instanzen:
+
+```bash
+systemctl status ident-mirror          # Installation 1
+systemctl status ident-mirror-mb       # Installation 2
+journalctl -u ident-mirror-mb -f       # Logs der zweiten Installation
+```
