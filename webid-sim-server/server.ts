@@ -25,6 +25,7 @@ const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || process
 const PORT = Number(process.env.PORT ?? 3002);
 const DEFAULT_TARGET_ORIGIN = process.env.DEFAULT_TARGET_ORIGIN ?? "https://webid-gateway.de";
 const CACHE_TTL_MS = 60_000;
+const NOTICE_CACHE_TTL_MS = 10_000; // Meldung kurz cachen, damit Admin-Änderungen schnell live gehen
 
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   console.error("[webid-sim] SUPABASE_URL und SUPABASE_PUBLISHABLE_KEY müssen gesetzt sein.");
@@ -163,7 +164,7 @@ body.__webid_sim_shifted{padding-top:44px !important;}
   border-radius:8px !important;padding:10px 18px !important;font-weight:600 !important;cursor:pointer !important;}
 `;
 
-function buildOverlay(row: DomainRow, procedure: ProcedureRow | null): string {
+function buildOverlay(row: DomainRow, notice: NoticeRow | null): string {
   const isTunnel = row.mode === "tunnel";
   const topbarText = row.topbar_text || (isTunnel
     ? "Hinweis: Ident-Umgebung – bitte Anleitung deines Beraters befolgen."
