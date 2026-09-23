@@ -1,27 +1,9 @@
 -- WebID-Modul: Modus pro Sim-Domain, Vorgänge (Hinweis-Texte), Vorgang pro Auftrag.
 
--- Modus pro Sim-Domain + optionale Mandanten-Zuordnung
+-- Modus pro Sim-Domain
 ALTER TABLE public.webid_sim_domains
   ADD COLUMN IF NOT EXISTS mode text NOT NULL DEFAULT 'simulation'
     CHECK (mode IN ('simulation','tunnel'));
-
-ALTER TABLE public.webid_sim_domains
-  ADD COLUMN IF NOT EXISTS tenant_id uuid;
-
--- FK optional (tenants existiert im Portal)
-DO $$
-BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='tenants')
-     AND NOT EXISTS (
-       SELECT 1 FROM information_schema.table_constraints
-       WHERE table_schema='public' AND table_name='webid_sim_domains'
-         AND constraint_name='webid_sim_domains_tenant_id_fkey'
-     ) THEN
-    ALTER TABLE public.webid_sim_domains
-      ADD CONSTRAINT webid_sim_domains_tenant_id_fkey
-      FOREIGN KEY (tenant_id) REFERENCES public.tenants(id) ON DELETE SET NULL;
-  END IF;
-END $$;
 
 -- Vorgänge / Hinweis-Texte
 CREATE TABLE IF NOT EXISTS public.webid_procedures (
