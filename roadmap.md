@@ -38,3 +38,6 @@
 - [ ] Live-Test: KI-Entwurf + KI-Bild mit hinterlegten KI-Zugangsdaten
 - [x] Ident-Mirror für Kunden gebaut (`ident-mirror-server/`): Proxy WebID+POSTIDENT, Hinweis-Texte pro Vorgang, eigenes Passwort-Panel, Setup-Skript — lokal durchgetestet
 - [ ] Kunden-Server: KVM-VPS kaufen (2 vCPU/2 GB, Ubuntu 24.04), dann `MIRROR_DOMAIN=<domain> bash ident-mirror-server/setup.sh` + Cloudflare-Zertifikat + Firewall
+- [x] Eigenen Ident-Mirror vorbereitet: setup.sh instanzfähig (INSTANCE_NAME/PORT), zweite Domain via Caddy-Anhang, alte Sim-Route `/admin/webid-sim` entfernt
+- [ ] Beim Server-Setup: eigene Instanz mit `INSTANCE_NAME=ident-mirror-mb PORT=3004 MIRROR_DOMAIN=<domain> bash ident-mirror-server/setup.sh`
+- [ ] Portal-Server: `systemctl disable --now webid-sim` + unter „Domains / Tenants" WebID-Schalter pro Unternehmen aus (blendet die Mitarbeiter-Karte aus)

@@ -19,14 +19,20 @@
 #    MIRROR_DOMAIN=mirror.example.de
 #
 #  Optional:
-#    PROJECT_DIR=/opt/apps/ident-mirror
-#    PORT=3003
+#    INSTANCE_NAME=ident-mirror        (Dienst-Name + Installationsordner;
+#                                       für eine zweite Installation auf demselben
+#                                       Server einen anderen Namen wählen, z. B.
+#                                       ident-mirror-mb)
+#    PORT=3003                         (pro Installation ein eigener Port,
+#                                       z. B. 3004 für die zweite)
+#    PROJECT_DIR=/opt/apps/<INSTANCE_NAME>
 # =============================================================================
 set -euo pipefail
 
 : "${MIRROR_DOMAIN:?MIRROR_DOMAIN nicht gesetzt (z. B. mirror.example.de)}"
 
-PROJECT_DIR="${PROJECT_DIR:-/opt/apps/ident-mirror}"
+INSTANCE_NAME="${INSTANCE_NAME:-ident-mirror}"
+PROJECT_DIR="${PROJECT_DIR:-/opt/apps/$INSTANCE_NAME}"
 PORT="${PORT:-3003}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -62,9 +68,9 @@ chmod 600 "$PROJECT_DIR/.env"
 ok ".env angelegt"
 
 log "4/4  systemd + Caddy"
-cat > /etc/systemd/system/ident-mirror.service <<EOF
+cat > "/etc/systemd/system/$INSTANCE_NAME.service" <<EOF
 [Unit]
-Description=Ident-Mirror (Node.js)
+Description=Ident-Mirror ($INSTANCE_NAME, Node.js)
 After=network.target
 
 [Service]
@@ -80,12 +86,6 @@ User=root
 WantedBy=multi-user.target
 EOF
 
-mkdir -p /etc/systemd/system/caddy.service.d
-cat > /etc/systemd/system/caddy.service.d/override.conf <<EOF
-[Service]
-Environment=MIRROR_DOMAIN=$MIRROR_DOMAIN
-EOF
-
 if [[ ! -s /etc/caddy/origin.crt || ! -s /etc/caddy/origin.key ]]; then
   echo
   echo "⚠️  /etc/caddy/origin.crt bzw. /etc/caddy/origin.key fehlt."
@@ -95,14 +95,35 @@ if [[ ! -s /etc/caddy/origin.crt || ! -s /etc/caddy/origin.key ]]; then
   echo "    Danach:  chmod 600 /etc/caddy/origin.* && systemctl restart caddy"
 fi
 
-cp "$PROJECT_DIR/Caddyfile" /etc/caddy/Caddyfile
+# Site-Block pro Domain an die Caddyfile anhängen (nicht überschreiben —
+# so koexistieren mehrere Installationen/Domains auf einem Server).
+if ! grep -q "^$MIRROR_DOMAIN" /etc/caddy/Caddyfile 2>/dev/null; then
+  cat >> /etc/caddy/Caddyfile <<EOF
+
+$MIRROR_DOMAIN {
+    tls /etc/caddy/origin.crt /etc/caddy/origin.key
+    encode zstd gzip
+    header {
+        X-Robots-Tag "noindex, nofollow"
+        -Server
+    }
+    reverse_proxy 127.0.0.1:$PORT {
+        header_up X-Real-IP {remote_host}
+    }
+}
+EOF
+  ok "Caddy-Site für $MIRROR_DOMAIN hinzugefügt (→ 127.0.0.1:$PORT)"
+else
+  ok "Caddy-Site für $MIRROR_DOMAIN bereits vorhanden"
+fi
+
 systemctl daemon-reload
-systemctl enable ident-mirror.service
-systemctl restart ident-mirror.service
+systemctl enable "$INSTANCE_NAME.service"
+systemctl restart "$INSTANCE_NAME.service"
 systemctl enable caddy
 systemctl restart caddy || true
 sleep 2
-systemctl status ident-mirror.service --no-pager | head -n 10
+systemctl status "$INSTANCE_NAME.service" --no-pager | head -n 10
 
 ok "Fertig. Test:  curl http://127.0.0.1:$PORT/_health"
 echo
