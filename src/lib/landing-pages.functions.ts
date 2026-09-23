@@ -117,6 +117,17 @@ function parseDataUrl(dataUrl: string): { mime: string; ext: string; bytes: Uint
   return { mime, ext, bytes };
 }
 
+function portalDomainFromUrl(value: string): string | null {
+  const raw = value.trim();
+  if (!raw) return null;
+  try {
+    const hostname = new URL(raw.startsWith("http") ? raw : `https://${raw}`).hostname.toLowerCase();
+    return hostname.replace(/^portal\./, "") || null;
+  } catch {
+    return null;
+  }
+}
+
 async function uploadAsset(supabaseAdmin: any, slug: string, kind: "logo" | "favicon", dataUrl: string): Promise<string | null> {
   const parsed = parseDataUrl(dataUrl);
   if (!parsed) return null;
@@ -258,6 +269,39 @@ export const saveLandingPage = createServerFn({ method: "POST" })
         .single();
       if (error) throw new Error(error.message);
       row = inserted;
+    }
+
+    // Login und Registrierung gehören zur Landing: Die im Generator gepflegten
+    // Marken- und Kontaktdaten werden deshalb auf das ausgewählte Unternehmen
+    // übertragen. So kann das Portal anhand seiner Domain dieselben Angaben laden.
+    if (data.tenant_id) {
+      const portalDomain = portalDomainFromUrl(data.branding.portal_url ?? "");
+      const { data: tenantRow, error: tenantReadError } = await context.supabase
+        .from("tenants")
+        .select("domain_aliases")
+        .eq("id", data.tenant_id)
+        .maybeSingle();
+      if (tenantReadError) throw new Error(tenantReadError.message);
+
+      const aliases = Array.isArray((tenantRow as any)?.domain_aliases)
+        ? ((tenantRow as any).domain_aliases as string[])
+        : [];
+      const domainAliases = portalDomain
+        ? Array.from(new Set([...aliases, portalDomain]))
+        : aliases;
+      const tenantBranding = {
+        name: data.branding.firmenname.trim(),
+        company_email: data.branding.email.trim(),
+        primary_color: data.branding.primary_color,
+        portal_theme: data.branding.portal_theme,
+        logo_url: row.logo_url ?? null,
+        domain_aliases: domainAliases,
+      };
+      const { error: tenantUpdateError } = await context.supabase
+        .from("tenants")
+        .update(tenantBranding as any)
+        .eq("id", data.tenant_id);
+      if (tenantUpdateError) throw new Error(`Portal-Daten konnten nicht übernommen werden: ${tenantUpdateError.message}`);
     }
 
     // ── Cloudflare-DNS: wenn passende Zone existiert, A-Record automatisch setzen

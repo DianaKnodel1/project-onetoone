@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Offen
+- [ ] Portal-Branding deployen: Landing-Generator überträgt Firmenname, Logo, Kontakt-E-Mail, Farbe und Portal-Domain automatisch; Migration `20260923060000_portal_branding_public.sql`
 - [ ] Landing-Baukasten nach Deploy mit Admin-Konto prüfen: Vorschau lädt ohne „Admin-Rechte erforderlich"
 - [ ] Deploy ausstehend (betrifft ALLE umgesetzten Punkte unten): `git pull && bash scripts/deploy.sh` + Landing-Sync auf dem Server
 - [ ] Landing-Sync inkl. neuer Datei: `bash scripts/sync-landing-server.sh` schiebt jetzt auch `sections-renderer.js` (Baukasten-Renderer) auf Server 1
@@ -16,6 +17,7 @@
 - Alte Theme-Defaults mit erfundenen Kennzahlen/Stimmen bereinigen (Social Proof verworfen)
 
 ## Erledigt
+- [x] Login/Registrierung auf Landing-Daten vereinheitlicht; feste fremde Support-Adresse entfernt
 - [x] Migrationen `20260922000000_landing_sections.sql` und `20260922010000_landing_media_bucket.sql` erfolgreich auf dem Backend angewendet
 - [x] Landing-Baukasten: falsche Admin-Prüfung über `profiles.role` auf `user_roles` korrigiert
 - [x] Baukasten: direkter Bild-Upload in allen Bild-Feldern (Bucket „landing-media", Upload-Button + Vorschau, URL weiterhin möglich) + neuer Abschnitt „Text & Bild" (Bild links/rechts) — umgesetzt, wartet auf Deploy + Media-Migration

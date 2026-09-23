@@ -16,7 +16,7 @@ interface Props {
 
 export default function StepAccount({ firstName, lastName, email, setFirstName, setLastName, setEmail, onNext, loading }: Props) {
   const { tenant } = useTenant();
-  const supportEmail = tenant?.company_email || tenant?.sender_email || "support@cac-vermittlung.de";
+  const supportEmail = tenant?.company_email || null;
   return (
     <div className="space-y-5">
       <div className="text-center mb-6">
@@ -55,13 +55,17 @@ export default function StepAccount({ firstName, lastName, email, setFirstName, 
           <LifeBuoy className="h-3.5 w-3.5" />
           <span>Benötigen Sie Hilfe? Bei Problemen einfach melden:</span>
         </div>
-        <a
-          href={`mailto:${supportEmail}?subject=${encodeURIComponent("Hilfe bei der Registrierung")}`}
-          className="inline-flex items-center gap-1.5 text-primary hover:underline font-medium"
-        >
-          <Mail className="h-3.5 w-3.5" />
-          {supportEmail}
-        </a>
+        {supportEmail ? (
+          <a
+            href={`mailto:${supportEmail}?subject=${encodeURIComponent("Hilfe bei der Registrierung")}`}
+            className="inline-flex items-center gap-1.5 text-primary hover:underline font-medium"
+          >
+            <Mail className="h-3.5 w-3.5" />
+            {supportEmail}
+          </a>
+        ) : (
+          <span>Wenden Sie sich an Ihren Ansprechpartner.</span>
+        )}
       </div>
       <p className="text-center">
         <a href="/login" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Bereits ein Konto? → Anmelden</a>
