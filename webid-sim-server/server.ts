@@ -63,7 +63,7 @@ async function fetchDomain(host: string): Promise<DomainRow | null> {
   if (cached && cached.expiresAt > Date.now()) return cached.row;
 
   const url = new URL("/rest/v1/webid_sim_domains", SUPABASE_URL);
-  url.searchParams.set("select", "id,domain,display_name,target_origin,logo_url,topbar_text,is_active,allow_submit");
+  url.searchParams.set("select", "id,domain,display_name,target_origin,logo_url,topbar_text,is_active,allow_submit,mode");
   url.searchParams.set("domain", `eq.${key}`);
   url.searchParams.set("is_active", "eq.true");
   url.searchParams.set("limit", "1");
@@ -84,7 +84,30 @@ async function fetchDomain(host: string): Promise<DomainRow | null> {
   } catch (err) {
     console.warn(`[webid-sim] domain lookup failed for ${key}: ${(err as Error).message}`);
   }
+  if (row && !row.mode) row.mode = "simulation";
   domainCache.set(key, { row, expiresAt: Date.now() + CACHE_TTL_MS });
+  return row;
+}
+
+async function fetchProcedure(key: string): Promise<ProcedureRow | null> {
+  const k = key.toLowerCase();
+  const cached = procedureCache.get(k);
+  if (cached && cached.expiresAt > Date.now()) return cached.row;
+  const url = new URL("/rest/v1/webid_procedures", SUPABASE_URL);
+  url.searchParams.set("select", "key,title,body,meta,provider,allow_submit,is_active");
+  url.searchParams.set("key", `eq.${k}`);
+  url.searchParams.set("is_active", "eq.true");
+  url.searchParams.set("limit", "1");
+  let row: ProcedureRow | null = null;
+  try {
+    const res = await fetch(url, {
+      headers: { apikey: SUPABASE_PUBLISHABLE_KEY!, Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY!}`, Accept: "application/json" },
+    });
+    if (res.ok) { const rows = (await res.json()) as ProcedureRow[]; row = rows[0] ?? null; }
+  } catch (err) {
+    console.warn(`[webid-sim] procedure lookup failed for ${k}: ${(err as Error).message}`);
+  }
+  procedureCache.set(k, { row, expiresAt: Date.now() + CACHE_TTL_MS });
   return row;
 }
 
