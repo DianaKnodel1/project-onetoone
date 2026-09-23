@@ -40,9 +40,23 @@ Die Referenz enthält unter „Einstellungen" **Relays und Proxy-Ketten mit auto
 
 Ebenso behalte ich die Leitplanken des bestehenden Moduls bei: Rate-Limit, noindex, keine Protokollierung von Inhalten, klarer Hinweis-Charakter. Was die Referenz gut macht und wir übernehmen: die schlichte, schnelle Bedienung.
 
+## Wie läuft das für Sie — ein Projekt oder zwei?
+
+**Alles bleibt in diesem einen Lovable-Projekt.** Sie brauchen kein neues Projekt anzulegen. Der Kunden-Mirror ist zwar ein eigenständiges Produkt, aber er liegt als eigener Ordner (`ident-mirror-server/`) neben dem bestehenden `webid-sim-server/` in demselben Repository:
+
+- **Ihr WebID-Modul** (Portal + `/admin/webid-sim`) bleibt unverändert.
+- **Der Kunden-Mirror** wird hier gebaut und mit einem Befehl auf dem neuen Server installiert:
+  ```bash
+  git clone https://github.com/DianaKnodel1/project-onetoone.git /tmp/src
+  cd /tmp/src && bash ident-mirror-server/setup.sh
+  ```
+- Pflege läuft danach genauso wie beim Portal: Änderungen hier im Chat → `git pull` + Update-Befehl auf dem Kunden-Server.
+
+Vorteil gegenüber einem zweiten Lovable-Projekt: Sie haben alles an einem Ort, ich kann den vorhandenen Proxy-Code direkt wiederverwenden, und Sie zahlen/pflegen keine zweite Projektinstanz.
+
 ## Nicht Teil davon
 
-- Kein Eingriff in Ihr bestehendes Portal, keine zweite Datenbank
+- Kein neues Lovable-Projekt, kein Eingriff in Ihr bestehendes Portal, keine zweite Datenbank
 - Kein Relay-/Proxy-Failover zur Umgehung von Sperren (s. oben)
 - Keine echte Identifikations-Abwicklung — der Tunnel zeigt den Ablauf und blendet Hinweise ein
 
