@@ -391,7 +391,7 @@ async function handle(req: Request): Promise<Response> {
 
   if (isHtmlResponse(upstream)) {
     const html = await upstream.text();
-    const out = rewriteHtml(html, row, targetHost, procedure);
+    const out = rewriteHtml(html, row, targetHost, notice);
     resHeaders.set("content-type", upstream.headers.get("content-type") || "text/html; charset=utf-8");
     return new Response(out, { status: upstream.status, headers: resHeaders });
   }
