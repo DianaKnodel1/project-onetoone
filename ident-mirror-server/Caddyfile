@@ -1,0 +1,14 @@
+{$MIRROR_DOMAIN} {
+	tls /etc/caddy/origin.crt /etc/caddy/origin.key
+
+	encode zstd gzip
+
+	header {
+		X-Robots-Tag "noindex, nofollow"
+		-Server
+	}
+
+	reverse_proxy 127.0.0.1:3003 {
+		header_up X-Real-IP {remote_host}
+	}
+}
