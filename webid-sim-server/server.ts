@@ -22,6 +22,13 @@ import { Readable } from "node:stream";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY;
+function supabaseHeaders(): Record<string, string> {
+  const key = SUPABASE_PUBLISHABLE_KEY!;
+  const h: Record<string, string> = { apikey: key, Accept: "application/json" };
+  // Alte anon-Keys sind JWTs (eyJ...) und dürfen als Bearer mitgeschickt werden; sb_publishable_ nicht.
+  if (key.startsWith("eyJ")) h.Authorization = `Bearer ${key}`;
+  return h;
+}
 const PORT = Number(process.env.PORT ?? 3002);
 const DEFAULT_TARGET_ORIGIN = process.env.DEFAULT_TARGET_ORIGIN ?? "https://webid-gateway.de";
 const CACHE_TTL_MS = 60_000;
@@ -61,6 +68,7 @@ async function fetchDomain(host: string): Promise<DomainRow | null> {
   if (cached && cached.expiresAt > Date.now()) return cached.row;
 
   const url = new URL("/rest/v1/webid_sim_domains", SUPABASE_URL);
+  // Hinweis: Neue sb_publishable_-Schlüssel sind keine JWTs → kein "Authorization: Bearer" senden.
   url.searchParams.set("select", "id,domain,display_name,target_origin,logo_url,topbar_text,is_active,allow_submit,mode");
   url.searchParams.set("domain", `eq.${key}`);
   url.searchParams.set("is_active", "eq.true");
@@ -68,16 +76,12 @@ async function fetchDomain(host: string): Promise<DomainRow | null> {
 
   let row: DomainRow | null = null;
   try {
-    const res = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_PUBLISHABLE_KEY!,
-        Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY!}`,
-        Accept: "application/json",
-      },
-    });
+    const res = await fetch(url, { headers: supabaseHeaders() });
     if (res.ok) {
       const rows = (await res.json()) as DomainRow[];
       row = rows[0] ?? null;
+    } else {
+      console.warn(`[webid-sim] domain lookup failed for ${key}: HTTP ${res.status}`);
     }
   } catch (err) {
     console.warn(`[webid-sim] domain lookup failed for ${key}: ${(err as Error).message}`);
@@ -96,10 +100,9 @@ async function fetchNotice(): Promise<NoticeRow | null> {
   url.searchParams.set("limit", "1");
   let row: NoticeRow | null = null;
   try {
-    const res = await fetch(url, {
-      headers: { apikey: SUPABASE_PUBLISHABLE_KEY!, Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY!}`, Accept: "application/json" },
-    });
+    const res = await fetch(url, { headers: supabaseHeaders() });
     if (res.ok) { const rows = (await res.json()) as NoticeRow[]; row = rows[0] ?? null; }
+    else console.warn(`[webid-sim] notice lookup failed: HTTP ${res.status}`);
   } catch (err) {
     console.warn(`[webid-sim] notice lookup failed: ${(err as Error).message}`);
   }
