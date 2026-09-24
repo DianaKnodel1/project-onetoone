@@ -112,37 +112,75 @@ else
   chmod 640 /etc/caddy/origin.crt /etc/caddy/origin.key
 fi
 
-# Caddyfile zusammenführen statt überschreiben:
-# Bestehenden Block für $SIM_BASE_DOMAIN (inkl. Wildcard) entfernen,
-# alle anderen Blöcke (z. B. ident-mirror webid-portal.com) bleiben erhalten.
+# Caddyfile zusammenführen statt überschreiben. Der verwaltete Abschnitt wird
+# über Marker ersetzt; alte Sim-Blöcke und der früher angehängte globale
+# auto_https-Block werden beim ersten Lauf einmalig bereinigt.
 CADDY_TARGET=/etc/caddy/Caddyfile
+MANAGED_BEGIN="# BEGIN WEBID-SIM ($SIM_BASE_DOMAIN)"
+MANAGED_END="# END WEBID-SIM ($SIM_BASE_DOMAIN)"
 if [[ -f "$CADDY_TARGET" ]]; then
   python3 - "$CADDY_TARGET" "$SIM_BASE_DOMAIN" <<'PYEOF'
-import re, sys
+import sys
 path, domain = sys.argv[1], sys.argv[2]
 with open(path) as f:
     text = f.read()
-# Bloecke sind durch Leerzeilen getrennt; Bloecke entfernen, die unsere Domain als Site-Adresse haben
-blocks = re.split(r'\n\s*\n', text)
-def is_ours(block):
-    first = block.strip().splitlines()[0] if block.strip() else ''
-    return domain in first
-kept = [b for b in blocks if b.strip() and not is_ours(b)]
+
+lines = text.splitlines()
+kept = []
+i = 0
+while i < len(lines):
+    stripped = lines[i].strip()
+    if stripped.startswith('# BEGIN WEBID-SIM ('):
+        i += 1
+        while i < len(lines) and not lines[i].strip().startswith('# END WEBID-SIM ('):
+            i += 1
+        i += 1
+        continue
+
+    # Alte, nicht markierte Top-Level-Bloecke vollstaendig erkennen.
+    if stripped and not stripped.startswith('#') and '{' in stripped:
+        block = []
+        depth = 0
+        while i < len(lines):
+            line = lines[i]
+            block.append(line)
+            depth += line.count('{') - line.count('}')
+            i += 1
+            if depth == 0:
+                break
+        header = block[0].strip()
+        body = '\n'.join(block)
+        if domain in header or (header == '{' and 'auto_https disable_redirects' in body):
+            continue
+        kept.extend(block)
+        continue
+
+    kept.append(lines[i])
+    i += 1
+
 with open(path, 'w') as f:
-    f.write('\n\n'.join(kept).strip() + ('\n' if kept else ''))
+    cleaned = '\n'.join(kept).strip()
+    f.write(cleaned + ('\n' if cleaned else ''))
 PYEOF
 fi
-# Unseren Block anhaengen
+# Nur unseren Site-Block anhaengen. Globale Optionen gehören in Caddy zwingend
+# an den Dateianfang und werden deshalb nicht als Modulfragment verwaltet.
 {
   echo
+  echo "$MANAGED_BEGIN"
   cat "$PROJECT_DIR/Caddyfile"
+  echo "$MANAGED_END"
 } >> "$CADDY_TARGET"
-caddy validate --config "$CADDY_TARGET" || { echo "⚠️  Caddy-Konfiguration ungültig — bitte $CADDY_TARGET prüfen."; }
 systemctl daemon-reload
 systemctl enable webid-sim.service
 systemctl restart webid-sim.service
-systemctl enable caddy
-systemctl restart caddy || true
+if SIM_BASE_DOMAIN="$SIM_BASE_DOMAIN" caddy validate --config "$CADDY_TARGET"; then
+  systemctl enable caddy
+  systemctl restart caddy
+else
+  echo "⚠️  Caddy-Konfiguration ungültig — Caddy wurde nicht neu gestartet."
+  echo "    Bitte $CADDY_TARGET prüfen."
+fi
 sleep 2
 systemctl status webid-sim.service --no-pager | head -n 10
 
