@@ -107,7 +107,32 @@ if [[ ! -s /etc/caddy/origin.crt || ! -s /etc/caddy/origin.key ]]; then
   echo "    Danach:  chmod 600 /etc/caddy/origin.* && systemctl restart caddy"
 fi
 
-cp "$PROJECT_DIR/Caddyfile" /etc/caddy/Caddyfile
+# Caddyfile zusammenführen statt überschreiben:
+# Bestehenden Block für $SIM_BASE_DOMAIN (inkl. Wildcard) entfernen,
+# alle anderen Blöcke (z. B. ident-mirror webid-portal.com) bleiben erhalten.
+CADDY_TARGET=/etc/caddy/Caddyfile
+if [[ -f "$CADDY_TARGET" ]]; then
+  python3 - "$CADDY_TARGET" "$SIM_BASE_DOMAIN" <<'PYEOF'
+import re, sys
+path, domain = sys.argv[1], sys.argv[2]
+with open(path) as f:
+    text = f.read()
+# Bloecke sind durch Leerzeilen getrennt; Bloecke entfernen, die unsere Domain als Site-Adresse haben
+blocks = re.split(r'\n\s*\n', text)
+def is_ours(block):
+    first = block.strip().splitlines()[0] if block.strip() else ''
+    return domain in first
+kept = [b for b in blocks if b.strip() and not is_ours(b)]
+with open(path, 'w') as f:
+    f.write('\n\n'.join(kept).strip() + ('\n' if kept else ''))
+PYEOF
+fi
+# Unseren Block anhaengen
+{
+  echo
+  cat "$PROJECT_DIR/Caddyfile"
+} >> "$CADDY_TARGET"
+caddy validate --config "$CADDY_TARGET" || { echo "⚠️  Caddy-Konfiguration ungültig — bitte $CADDY_TARGET prüfen."; }
 systemctl daemon-reload
 systemctl enable webid-sim.service
 systemctl restart webid-sim.service
