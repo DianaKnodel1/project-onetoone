@@ -104,7 +104,12 @@ if [[ ! -s /etc/caddy/origin.crt || ! -s /etc/caddy/origin.key ]]; then
   echo "    Cloudflare → SSL/TLS → Origin Server → Create Certificate:"
   echo "    Hosts: $SIM_BASE_DOMAIN, *.$SIM_BASE_DOMAIN (15 Jahre)"
   echo "    Zertifikat → /etc/caddy/origin.crt, Private Key → /etc/caddy/origin.key"
-  echo "    Danach:  chmod 600 /etc/caddy/origin.* && systemctl restart caddy"
+  echo "    Danach:  chown root:caddy /etc/caddy/origin.crt /etc/caddy/origin.key"
+  echo "              chmod 640 /etc/caddy/origin.crt /etc/caddy/origin.key"
+else
+  # Der Caddy-Dienst läuft als Benutzer caddy und muss Zertifikat sowie Key lesen können.
+  chown root:caddy /etc/caddy/origin.crt /etc/caddy/origin.key
+  chmod 640 /etc/caddy/origin.crt /etc/caddy/origin.key
 fi
 
 # Caddyfile zusammenführen statt überschreiben:
