@@ -22,6 +22,7 @@ import {
   type SectionField,
   type LandingStyle,
 } from "@/lib/landing-sections";
+import { LANDING_BLUEPRINTS } from "@/lib/landing-blueprints";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Loader2, Save, ArrowUp, ArrowDown, Trash2, Plus, Layers, ExternalLink,
   Monitor, Smartphone, Undo2, Settings2, GripVertical, X, Upload,
-  Sparkles, Shuffle, Palette, BookmarkPlus,
+  Sparkles, Shuffle, Palette, BookmarkPlus, Copy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
