@@ -150,7 +150,7 @@ while i < len(lines):
                 break
         header = block[0].strip()
         body = '\n'.join(block)
-        if domain in header or (header == '{' and 'auto_https disable_redirects' in body):
+        if domain in header or '$SIM_BASE_DOMAIN' in header or '{$SIM_BASE_DOMAIN}' in header or (header == '{' and 'auto_https disable_redirects' in body):
             continue
         kept.extend(block)
         continue
