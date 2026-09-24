@@ -268,6 +268,7 @@ function LandingBaukastenPage() {
       }));
       setShowAiDialog(false);
       setShowNewDialog(false);
+      setShowSettings(true);
       toast({ title: "Entwurf erstellt", description: "Prüfe die Texte und passe sie an, bevor du speicherst." });
     } catch (e) {
       toast({ title: "KI-Entwurf fehlgeschlagen", description: String((e as Error).message), variant: "destructive" });
