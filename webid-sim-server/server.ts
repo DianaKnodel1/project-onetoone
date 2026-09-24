@@ -149,6 +149,7 @@ const OVERLAY_CSS = `
   box-shadow:0 2px 8px rgba(0,0,0,.25) !important;pointer-events:auto !important;}
 #__webid_sim_topbar span{background:rgba(0,0,0,.6);padding:4px 10px;border-radius:4px;display:inline-block;}
 body.__webid_sim_shifted{padding-top:44px !important;}
+.message-container.callcenter.info{display:none !important;} /* Hinweis-Box der Original-Seite ausblenden (Fallback, falls Entfernung im HTML greift) */
 #__webid_sim_badge{position:fixed !important;right:14px !important;bottom:14px !important;z-index:2147483646 !important;
   background:#fff !important;border:1px solid rgba(0,0,0,.1) !important;border-radius:10px !important;
   padding:8px 12px !important;box-shadow:0 6px 24px rgba(0,0,0,.15) !important;
@@ -251,6 +252,8 @@ function rewriteHtml(html: string, row: DomainRow, targetHost: string, notice: N
   let out = html.replace(re, `https://${simHost}`);
   // Favicon-Links entfernen (wir setzen unser eigenes)
   out = out.replace(/<link[^>]+rel=["'][^"']*icon[^"']*["'][^>]*>/gi, "");
+  // Hinweis-Box der Original-Seite entfernen (z. B. Warnung zu "App-Tester"-Jobanzeigen).
+  out = out.replace(/<div[^>]*class="[^"]*message-container[^"]*"[^>]*>[\s\S]*?<\/div>\s*/gi, "");
   const favicon = `<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,${encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="%23f5c400"/><text x="16" y="22" font-family="Arial" font-weight="700" font-size="18" text-anchor="middle" fill="%23111">S</text></svg>'.replace(/%23/g, "#")
   )}">`;
