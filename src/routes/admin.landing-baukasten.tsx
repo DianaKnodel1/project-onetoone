@@ -1106,6 +1106,29 @@ function AiDialog({
 
   return (
     <div className="space-y-3">
+      <div>
+        <Label className="text-xs">Vorlage & Farbwelt</Label>
+        <div className="grid gap-2 sm:grid-cols-2 mt-1">
+          {LANDING_BLUEPRINTS.map((b) => (
+            <button
+              key={b.id}
+              type="button"
+              onClick={() => set("blueprint", b.id)}
+              className={cn(
+                "text-left border rounded-lg p-3 transition",
+                v.blueprint === b.id ? "border-primary ring-1 ring-primary bg-accent" : "hover:border-primary"
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <span className="h-4 w-4 rounded-full border" style={{ background: b.style.primary }} />
+                <span className="font-medium text-sm">{b.label}</span>
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">{b.description}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <Label className="text-xs">Firmenname</Label>
