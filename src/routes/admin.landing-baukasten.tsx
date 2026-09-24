@@ -549,6 +549,9 @@ function LandingBaukastenPage() {
         <Button variant="outline" size="sm" onClick={saveAsTemplate} disabled={!sections.length}>
           <BookmarkPlus className="h-4 w-4 mr-1" /> Als Vorlage speichern
         </Button>
+        <Button variant="outline" size="sm" onClick={duplicateCurrent} disabled={!sections.length}>
+          <Copy className="h-4 w-4 mr-1" /> Seite duplizieren
+        </Button>
         <span className="text-xs text-muted-foreground ml-1">
           {dirty ? "Ungespeicherte Änderungen" : "Alles gespeichert"}
           {previewing && " · Vorschau wird aktualisiert…"}
