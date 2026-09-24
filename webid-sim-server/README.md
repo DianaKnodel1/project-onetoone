@@ -54,6 +54,14 @@ DEFAULT_TARGET_ORIGIN=https://webid-gateway.de   # optional
 bash webid-sim-server/setup.sh
 ```
 
+Der angegebene Schlüssel muss am REST-Endpunkt funktionieren. Test vor dem
+Setup (bei einer erfolgreichen Verbindung kommt JSON statt `Unauthorized`):
+
+```bash
+curl -s "$SUPABASE_URL/rest/v1/webid_sim_notice?select=title,is_active&id=eq.1" \
+  -H "apikey: $SUPABASE_PUBLISHABLE_KEY"
+```
+
 Vorher einmalig in Cloudflare: **SSL/TLS → Origin Server → Create Certificate**
 (Hosts: `webid-portal.de`, `*.webid-portal.de`, 15 Jahre) und die beiden Dateien
 nach `/etc/caddy/origin.crt` / `/etc/caddy/origin.key` legen. SSL-Modus auf

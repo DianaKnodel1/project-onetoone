@@ -7,12 +7,6 @@
 # nur Cloudflare-IPs. Die Domain-Prüfung (welche Sim-Domain aktiv ist) macht
 # weiterhin der Bun-Proxy gegen Supabase.
 
-{
-	# Kein HTTP→HTTPS-Redirect auf Port 80 nötig — Cloudflare macht
-	# "Always Use HTTPS" bereits am Edge.
-	auto_https disable_redirects
-}
-
 {$SIM_BASE_DOMAIN}, *.{$SIM_BASE_DOMAIN} {
 	tls /etc/caddy/origin.crt /etc/caddy/origin.key
 
