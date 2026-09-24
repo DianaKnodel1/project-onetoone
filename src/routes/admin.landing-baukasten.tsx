@@ -1100,6 +1100,7 @@ function AiDialog({
     tonalitaet: "locker und persönlich",
     designrichtung: "",
     besonderheiten: "",
+    blueprint: LANDING_BLUEPRINTS[0]!.id,
   });
   const set = (k: string, val: string) => setV((p) => ({ ...p, [k]: val }));
 
