@@ -722,9 +722,9 @@ function LandingBaukastenPage() {
                 onClick={() => { setShowNewDialog(false); setShowAiDialog(true); }}
                 className="w-full text-left border rounded-lg p-4 hover:border-primary hover:bg-accent transition"
               >
-                <div className="font-medium text-sm flex items-center gap-2"><Sparkles className="h-4 w-4" /> Mit KI erstellen</div>
+                <div className="font-medium text-sm flex items-center gap-2"><Sparkles className="h-4 w-4" /> Komplette Seite in einem Schritt erstellen</div>
                 <div className="text-xs text-muted-foreground mt-1">
-                  Du beschreibst Firma, Stelle und Tonalität — die KI schreibt Texte und schlägt ein Design vor.
+                  Vorlage wählen, Firmenname, Stelle und ein paar Stichworte eingeben — die fertige Seite steht in rund 20 Sekunden.
                 </div>
               </button>
             </div>
@@ -774,7 +774,7 @@ function LandingBaukastenPage() {
 
       {/* KI-Entwurf */}
       {showAiDialog && (
-        <Overlay onClose={() => (aiBusy ? null : setShowAiDialog(false))} title="Seite mit KI erstellen">
+        <Overlay onClose={() => (aiBusy ? null : setShowAiDialog(false))} title="Neue Seite in einem Schritt erstellen">
           <AiDialog busy={aiBusy} defaultCompany={branding.firmenname || ""} onSubmit={runAi} />
         </Overlay>
       )}
@@ -1165,12 +1165,12 @@ function AiDialog({
         </div>
       </div>
       <div>
-        <Label className="text-xs">Besonderheiten — nur echte Angaben</Label>
+        <Label className="text-xs">Stichworte — nur echte Angaben</Label>
         <Textarea
           rows={4}
           value={v.besonderheiten}
           onChange={(e) => set("besonderheiten", e.target.value)}
-          placeholder="z.B. Schichtzuschläge, Führerschein nötig, Einstieg ohne Erfahrung möglich"
+          placeholder="z.B. 16,50 €/Std., kein Lebenslauf nötig, sofortiger Start, freie Zeiteinteilung"
         />
         <p className="text-xs text-muted-foreground mt-1">
           Die KI erfindet keine Zahlen, Auszeichnungen oder Kundenstimmen — alles, was drinstehen soll, gehört hierher.
@@ -1178,7 +1178,7 @@ function AiDialog({
       </div>
       <Button onClick={() => onSubmit(v)} disabled={busy} className="w-full">
         {busy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-        {busy ? "Entwurf wird erstellt…" : "Entwurf erstellen"}
+        {busy ? "Seite wird erstellt…" : "Seite generieren"}
       </Button>
     </div>
   );
