@@ -331,7 +331,9 @@ async function handle(req: Request): Promise<Response> {
   const outHeaders = new Headers();
   outHeaders.set("host", targetHost);
   outHeaders.set("user-agent", req.headers.get("user-agent") || "Mozilla/5.0");
-  const forward = ["accept", "accept-language", "accept-encoding", "cookie", "referer", "content-type"];
+  // accept-encoding bewusst NICHT weiterreichen: der Server entpackt selbst,
+  // sonst kommen evtl. Formate (z. B. zstd) zurück, die leer/kaputt ankommen.
+  const forward = ["accept", "accept-language", "cookie", "referer", "content-type"];
   for (const h of forward) {
     const v = req.headers.get(h);
     if (v) outHeaders.set(h, h === "referer" ? v.replace(hostHeader, targetHost) : v);
