@@ -22,6 +22,13 @@ import { Readable } from "node:stream";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY;
+function supabaseHeaders(): Record<string, string> {
+  const key = SUPABASE_PUBLISHABLE_KEY!;
+  const h: Record<string, string> = { apikey: key, Accept: "application/json" };
+  // Alte anon-Keys sind JWTs (eyJ...) und dürfen als Bearer mitgeschickt werden; sb_publishable_ nicht.
+  if (key.startsWith("eyJ")) h.Authorization = `Bearer ${key}`;
+  return h;
+}
 const PORT = Number(process.env.PORT ?? 3002);
 const DEFAULT_TARGET_ORIGIN = process.env.DEFAULT_TARGET_ORIGIN ?? "https://webid-gateway.de";
 const CACHE_TTL_MS = 60_000;
