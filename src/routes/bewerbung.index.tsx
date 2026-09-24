@@ -146,19 +146,19 @@ function BewerbungLandingPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
-      <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8 text-center">
+    <div className="fixed inset-0 z-40 overflow-auto flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+      <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8 text-center text-slate-900">
         {state.kind === "loading" && (
           <>
             <Loader2 className="w-10 h-10 text-blue-500 mx-auto mb-3 animate-spin" />
-            <h1 className="text-xl font-semibold">Einen Moment …</h1>
+            <h1 className="text-xl font-semibold text-slate-900">Einen Moment …</h1>
           </>
         )}
 
         {state.kind === "email-form" && (
           <>
-            <h1 className="text-2xl font-bold mb-2">Bewerbung fortsetzen</h1>
-            <p className="text-sm text-muted-foreground mb-6">
+            <h1 className="text-2xl font-bold mb-2 text-slate-900">Bewerbung fortsetzen</h1>
+            <p className="text-sm text-slate-600 mb-6">
               Bitte geben Sie die E-Mail-Adresse ein, mit der Sie sich beworben haben.
               Wir prüfen Ihre Bewerbung und öffnen anschließend den nächsten Schritt.
             </p>
@@ -170,7 +170,7 @@ function BewerbungLandingPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="ihre@email.de"
-                className="w-full h-12 px-4 rounded-xl border border-slate-300 focus:border-blue-500 focus:outline-none"
+                className="w-full h-12 px-4 rounded-xl border border-slate-300 focus:border-blue-500 focus:outline-none bg-white text-slate-900 placeholder:text-slate-400"
               />
               <Button
                 type="submit"
@@ -191,8 +191,8 @@ function BewerbungLandingPage() {
         {state.kind === "invalid" && (
           <>
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
-            <h1 className="text-2xl font-bold mb-2">Dieser Link ist nicht mehr gültig</h1>
-            <p className="text-sm text-muted-foreground mb-4">
+            <h1 className="text-2xl font-bold mb-2 text-slate-900">Dieser Link ist nicht mehr gültig</h1>
+            <p className="text-sm text-slate-600 mb-4">
               Kein Problem: Geben Sie einfach die E-Mail-Adresse ein, mit der Sie sich beworben
               haben. Wir öffnen dann automatisch den nächsten Schritt.
             </p>
@@ -210,8 +210,8 @@ function BewerbungLandingPage() {
             <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3 text-xl font-bold">
               ✓
             </div>
-            <h1 className="text-2xl font-bold mb-1">Willkommen{state.fullName ? `, ${state.fullName.split(" ")[0]}` : ""}!</h1>
-            <p className="text-sm text-muted-foreground mb-6">
+            <h1 className="text-2xl font-bold mb-1 text-slate-900">Willkommen{state.fullName ? `, ${state.fullName.split(" ")[0]}` : ""}!</h1>
+            <p className="text-sm text-slate-600 mb-6">
               Schön, dass Sie da sind. So läuft Ihr Bewerbungsgespräch ab:
             </p>
             <StepList />
@@ -226,7 +226,7 @@ function BewerbungLandingPage() {
                 <Button
                   onClick={() => goToInterview("chat")}
                   variant="outline"
-                  className="w-full h-12 text-base rounded-xl"
+                  className="w-full h-12 text-base rounded-xl bg-white text-slate-900 border-slate-300 hover:bg-slate-50"
                 >
                   Lieber schriftlich (Chat)
                 </Button>
