@@ -66,6 +66,8 @@ const DraftInput = z.object({
   tonalitaet: z.string().max(80).default("locker und persönlich"),
   designrichtung: z.string().max(160).default(""),
   besonderheiten: z.string().max(1500).default(""),
+  /** Master-Vorlage (Seitengerüst + Farbwelt) */
+  blueprint: z.string().max(40).default(""),
   /** nur Gestaltung neu würfeln, Texte behalten */
   onlyStyle: z.boolean().default(false),
 });
