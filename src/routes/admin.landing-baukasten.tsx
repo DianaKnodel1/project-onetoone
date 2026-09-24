@@ -290,6 +290,27 @@ function LandingBaukastenPage() {
     }
   };
 
+  /** Aktuelle Seite als neue Seite weiterverwenden (1-Klick-Duplizieren). */
+  const duplicateCurrent = () => {
+    if (!sections.length) return;
+    const copy = sections.map((s) => ({ ...s, data: { ...s.data }, id: `sec_${Math.random().toString(36).slice(2, 10)}` }));
+    const base = (slug || "seite").replace(/-kopie(-\d+)?$/, "");
+    let next = `${base}-kopie`;
+    let n = 2;
+    while (landings.some((l) => l.slug === next)) next = `${base}-kopie-${n++}`;
+    setCurrent(null);
+    setSections(copy);
+    setSelectedId(copy[0]?.id || null);
+    setSlug(next);
+    savedSnapshot.current = "";
+    setDirty(true);
+    setShowSettings(true);
+    toast({
+      title: "Kopie angelegt",
+      description: "Passe Firmenname, Farben und Kurznamen an und speichere sie als neue Seite.",
+    });
+  };
+
   const discard = async () => {
     if (!window.confirm("Alle Änderungen seit dem letzten Speichern verwerfen?")) return;
     if (current?.id) await loadLanding(current.id);
