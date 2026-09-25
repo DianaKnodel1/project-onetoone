@@ -114,6 +114,9 @@ const TEMPLATE_TO_KIND: Record<string, EmailKind> = {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
+  // Mail-los-Modus: Portal verschickt keine Mails (Calendly übernimmt Mail/SMS).
+  return json({ ok: true, sent: false, skipped: true, reason: "mailless_mode" }, 200);
+
   try {
     const body = (await req.json()) as Payload;
     const { to, fullName, firstName, lastName, registrationLink, tenantId,

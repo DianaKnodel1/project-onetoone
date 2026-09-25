@@ -608,8 +608,8 @@ function RegisterPage() {
               <div>
                 <h2 className="text-2xl font-heading font-bold text-foreground">Fast geschafft!</h2>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Wir haben dir eine Bestätigungs-E-Mail an <strong className="text-foreground">{email}</strong> geschickt.
-                  Klicke auf den Link in der Mail, um deinen Account zu aktivieren – danach landest du direkt im Dashboard.
+                  Dein Account für <strong className="text-foreground">{email}</strong> ist angelegt.
+                  Melde dich jetzt mit deinem Passwort an – danach landest du direkt im Dashboard.
                 </p>
               </div>
 
@@ -623,17 +623,6 @@ function RegisterPage() {
                 <p className="pt-2">Dein Teamleiter begleitet dich dabei per Chat.</p>
               </div>
               <div className="space-y-2">
-                <button
-                  onClick={handleResendConfirmation}
-                  disabled={resending || resendCooldown > 0}
-                  className="w-full h-11 rounded-lg border border-border bg-card text-foreground text-sm font-medium hover:bg-muted/50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {resending
-                    ? "Wird gesendet…"
-                    : resendCooldown > 0
-                      ? `Erneut senden in ${resendCooldown}s`
-                      : "Keine E-Mail erhalten? Erneut senden"}
-                </button>
                 <button
                   onClick={() => { resetWizard(); navigate("/login"); }}
                   className="w-full h-12 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"

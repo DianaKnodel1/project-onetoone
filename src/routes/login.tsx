@@ -219,10 +219,7 @@ function LoginPage() {
         <div className={t.warnBox}>
           <MailCheck className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
           <div className="space-y-1.5 flex-1">
-            <p className={t.warnText}>Bitte bestätige deine E-Mail-Adresse, bevor du dich anmeldest.</p>
-            <button type="button" onClick={resendVerify} disabled={resending} className={t.warnAction}>
-              Bestätigungslink erneut senden
-            </button>
+            <p className={t.warnText}>Dein Konto ist noch nicht freigeschaltet. Bitte wende dich kurz an dein Team – wir schalten dich sofort frei.</p>
           </div>
         </div>
       )}
