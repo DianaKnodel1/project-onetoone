@@ -383,13 +383,21 @@ function RegisterPage() {
         // wir aus, damit der User die echte Ursache (z.B. "bereits registriert")
         // sieht.
         let msg: string = (fnData as any)?.error ?? fnErr?.message ?? "Unbekannter Fehler";
+        let status = 0;
         try {
-          const resp = (fnErr as any)?.context?.response as Response | undefined;
+          const ctx = (fnErr as any)?.context;
+          const resp = (ctx && typeof ctx.clone === "function" ? ctx : ctx?.response) as Response | undefined;
           if (resp && typeof resp.clone === "function") {
+            status = resp.status;
             const body = await resp.clone().json().catch(() => null);
             if (body?.error) msg = body.error;
           }
         } catch {}
+        if (status === 409) {
+          toast({ title: "Sie haben bereits ein Konto", description: "Bitte melden Sie sich mit Ihrer E-Mail und Ihrem Passwort an.", variant: "destructive" });
+          setTimeout(() => { window.location.href = "/login"; }, 2500);
+          return;
+        }
         toast({ title: "Registrierung fehlgeschlagen", description: translateAuthError(msg), variant: "destructive" });
         return;
       }
