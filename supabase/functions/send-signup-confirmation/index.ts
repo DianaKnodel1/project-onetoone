@@ -74,11 +74,13 @@ serve(async (req) => {
       await abort("skipped", "tenant_inactive", tenant.id);
       return json({ error: "Tenant ist deaktiviert — kein E-Mail-Versand." }, 503);
     }
-    if (!tenant.smtp_host || !tenant.smtp_port || !tenant.smtp_username || !tenant.smtp_password) {
+    // Mail-los-Modus: es wird keine Mail verschickt → SMTP-/Pausen-Prüfung irrelevant.
+    const maillessEarly = await isMaillessTenant(supabaseAdmin, tenant_id).catch(() => false);
+    if (!maillessEarly && (!tenant.smtp_host || !tenant.smtp_port || !tenant.smtp_username || !tenant.smtp_password)) {
       await abort("failed", "smtp_not_configured", tenant.id);
       return json({ error: "Tenant hat keine vollständige SMTP-Konfiguration" }, 400);
     }
-    if (tenant.emails_paused) {
+    if (!maillessEarly && tenant.emails_paused) {
       await abort("skipped", `tenant_emails_paused${tenant.emails_paused_reason ? `: ${tenant.emails_paused_reason}` : ""}`, tenant.id);
       return json({ error: `E-Mail-Versand für diesen Mandanten ist pausiert${tenant.emails_paused_reason ? `: ${tenant.emails_paused_reason}` : ""}. Bitte Admin kontaktieren.` }, 503);
     }
@@ -149,7 +151,7 @@ serve(async (req) => {
     // Mail-los-Modus: keine Bestätigungs-Mail. Das Konto wird sofort
     // freigeschaltet, der Bewerber loggt sich direkt ein (das ist die Stelle,
     // an der bisher fast alle Zusagen verloren gingen).
-    if (await isMaillessTenant(supabaseAdmin, tenant_id)) {
+    if (maillessEarly || await isMaillessTenant(supabaseAdmin, tenant_id)) {
       const { error: confirmErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
         email_confirm: true,
       });
