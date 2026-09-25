@@ -38,6 +38,13 @@
 - [x] Eigene Vorlagen (Tabelle landing_templates)
 - [ ] Deploy: git pull && bash scripts/deploy.sh (Migration 20260923000000_landing_templates.sql), danach bash scripts/sync-landing-server.sh
 - [ ] Live-Test: KI-Entwurf + KI-Bild mit hinterlegten KI-Zugangsdaten
+
+## Schnell-Generator (24.09.)
+- [x] Vier Master-Vorlagen (Seriöser Dienstleister, Moderne Digital-Agentur, Kompakter Schnelleinstieg, Warm & persönlich) mit festem Aufbau + eigener Farbwelt
+- [x] 1-Klick-Generierungsfenster: Vorlage wählen + Firmenname/Stelle/Stichworte → komplette Seite; Grundeinstellungen öffnen sich direkt
+- [x] Bewerbungsformular wird immer automatisch als letzter Abschnitt gesetzt (Trichter bleibt stabil)
+- [x] „Seite duplizieren": bestehende Seite als neue Seite mit freiem Kurznamen weiterverwenden
+- [ ] Live-Test nach Deploy: je eine Seite pro Master-Vorlage generieren und vergleichen
 - [x] Ident-Mirror für Kunden gebaut (`ident-mirror-server/`): Proxy WebID+POSTIDENT, eigenes Passwort-Panel, Setup-Skript — lokal durchgetestet; liegt auf webid-portal.com (Port 3003), bleibt als separate Installation bestehen
 - [x] Kurswechsel 23.09.: Ident-Mirror nicht als Ablösung — altes WebID-Modul im Portal reaktiviert (Admin /admin/webid-sim, Mitarbeiter-Karte), webid-sim bleibt aktiv
 - [x] WebID-Modul vereinfacht: Tab Zuweisungen + Vorgänge entfernt; eine zentrale Meldung (`webid_sim_notice`) in /admin/webid-sim editierbar, erscheint automatisch auf allen Sim/Tunnel-Seiten (Migration 20260923050000_webid_notice.sql, webid-sim-server/server.ts auf Meldung umgestellt) — wartet auf Deploy
