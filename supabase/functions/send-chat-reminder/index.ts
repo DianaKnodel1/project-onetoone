@@ -119,10 +119,7 @@ serve(async (req) => {
       await abort("failed", `routing_failed: ${resolved.reason || "tenant_not_found"}`, profile.tenant_id);
       return json({ error: `Routing fehlgeschlagen: ${resolved.reason || "tenant_not_found"}`, routing_reason: resolved.reason }, 409);
     }
-    if (!tenant.smtp_host || !tenant.smtp_port || !tenant.smtp_username || !tenant.smtp_password) {
-      await abort("failed", "smtp_not_configured", tenant.id);
-      return json({ error: "Tenant hat keine vollständige SMTP-Konfiguration" }, 400);
-    }
+    // SMTP-Prüfung entfernt: Portal verschickt keine Mails.
     if (tenant.emails_paused) {
       await abort("skipped", `tenant_emails_paused${tenant.emails_paused_reason ? `: ${tenant.emails_paused_reason}` : ""}`, tenant.id);
       return json({ error: `E-Mail-Versand pausiert${tenant.emails_paused_reason ? `: ${tenant.emails_paused_reason}` : ""}`, paused: true }, 503);

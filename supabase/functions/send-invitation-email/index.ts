@@ -217,10 +217,7 @@ serve(async (req) => {
       await logAbort("skipped", "tenant_inactive", tenant.id, { tenant_name: tenant.name });
       return json({ error: "Tenant ist deaktiviert — kein E-Mail-Versand.", inactive: true }, 503);
     }
-    if (!tenant.smtp_host || !tenant.smtp_port || !tenant.smtp_username || !tenant.smtp_password) {
-      await logAbort("failed", "smtp_not_configured", tenant.id, { tenant_name: tenant.name });
-      return json({ error: "Tenant hat keine vollständige SMTP-Konfiguration" }, 400);
-    }
+    // SMTP-Prüfung entfernt: Portal verschickt keine Mails.
     // Kritische Mails (Terminbestätigung, Interview-Link) ignorieren jede Pause.
     const isCriticalMail = routingKind === "broker_booking_confirmation" || routingKind === "broker_interview_invite";
     if (tenant.emails_paused && !isCriticalMail) {

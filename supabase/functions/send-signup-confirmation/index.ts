@@ -74,16 +74,8 @@ serve(async (req) => {
       await abort("skipped", "tenant_inactive", tenant.id);
       return json({ error: "Tenant ist deaktiviert — kein E-Mail-Versand." }, 503);
     }
-    // Mail-los-Modus: es wird keine Mail verschickt → SMTP-/Pausen-Prüfung irrelevant.
-    const maillessEarly = await isMaillessTenant(supabaseAdmin, tenant_id).catch(() => false);
-    if (!maillessEarly && (!tenant.smtp_host || !tenant.smtp_port || !tenant.smtp_username || !tenant.smtp_password)) {
-      await abort("failed", "smtp_not_configured", tenant.id);
-      return json({ error: "Tenant hat keine vollständige SMTP-Konfiguration" }, 400);
-    }
-    if (!maillessEarly && tenant.emails_paused) {
-      await abort("skipped", `tenant_emails_paused${tenant.emails_paused_reason ? `: ${tenant.emails_paused_reason}` : ""}`, tenant.id);
-      return json({ error: `E-Mail-Versand für diesen Mandanten ist pausiert${tenant.emails_paused_reason ? `: ${tenant.emails_paused_reason}` : ""}. Bitte Admin kontaktieren.` }, 503);
-    }
+    // Portal verschickt keine Mails mehr → keine SMTP-/Pausen-Prüfung (bewusst entfernt).
+    const maillessEarly = true;
 
     // Bounce-Suppression: bekanntermaßen tote Adressen nicht erneut anschreiben.
     let signupClaim: EmailClaim | null = null;
