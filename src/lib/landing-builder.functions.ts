@@ -66,6 +66,8 @@ const DraftInput = z.object({
   tonalitaet: z.string().max(80).default("locker und persönlich"),
   designrichtung: z.string().max(160).default(""),
   besonderheiten: z.string().max(1500).default(""),
+  /** Master-Vorlage (Seitengerüst + Farbwelt) */
+  blueprint: z.string().max(40).default(""),
   /** nur Gestaltung neu würfeln, Texte behalten */
   onlyStyle: z.boolean().default(false),
 });
@@ -114,10 +116,13 @@ export const generateLandingDraft = createServerFn({ method: "POST" })
     await requireAdmin(supabase, userId);
     const { callAiJson } = await import("@/lib/landing-ai.server");
     const { createSection, normalizeStyle, randomStyle, SECTION_CATALOG: CAT } = await import("@/lib/landing-sections");
+    const { findBlueprint } = await import("@/lib/landing-blueprints");
 
     if (data.onlyStyle) {
       return { style: randomStyle(), sections: null as any, seo: null as any };
     }
+
+    const bp = findBlueprint(data.blueprint);
 
     const prompt = [
       `Firma: ${data.firmenname || "(nicht genannt)"}`,
@@ -127,28 +132,63 @@ export const generateLandingDraft = createServerFn({ method: "POST" })
       `Tonalität: ${data.tonalitaet}`,
       `Design-Richtung: ${data.designrichtung || "frei wählbar, seriös und modern"}`,
       `Besonderheiten (nur diese Fakten verwenden): ${data.besonderheiten || "keine"}`,
-    ].join("\n");
+      bp ? `Vorlagen-Charakter: ${bp.label}. ${bp.aiHint}` : "",
+      bp
+        ? `Verwende genau diese Abschnitte in dieser Reihenfolge: ${bp.sectionTypes.join(", ")}, form.`
+        : "",
+      bp
+        ? `Ausgangsfarben (dürfen leicht variiert werden, Kontrast muss erhalten bleiben): primary ${bp.style.primary}, bg ${bp.style.bg}, ink ${bp.style.ink}, mode ${bp.style.mode}.`
+        : "",
+      `Die Texte müssen sich deutlich von anderen Seiten unterscheiden: eigene Überschriften, eigene Formulierungen, eigene Argumente.`,
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     const out = await callAiJson(AI_SYSTEM, prompt);
 
-    const style = normalizeStyle(out?.style);
+    const style = normalizeStyle({ ...(bp?.style ?? {}), ...(out?.style && typeof out.style === "object" ? out.style : {}) });
     const rawSections = Array.isArray(out?.sections) ? out.sections : [];
-    const sections: any[] = [];
 
-    for (const s of rawSections.slice(0, 20)) {
-      const type = String(s?.type || "");
+    const build = (type: string, incomingRaw: unknown) => {
       const def = CAT.find((d) => d.type === type);
-      if (!def) continue;
-      if (def.unique && sections.some((x) => x.type === type)) continue;
-      if (type === "form") continue;
+      if (!def) return null;
       const base = createSection(type);
-      const incoming = s?.data && typeof s.data === "object" ? s.data : {};
+      const incoming = incomingRaw && typeof incomingRaw === "object" ? (incomingRaw as Record<string, unknown>) : {};
       const merged: Record<string, unknown> = { ...base.data };
       for (const f of def.fields) {
-        if (Object.prototype.hasOwnProperty.call(incoming, f.key)) merged[f.key] = (incoming as any)[f.key];
+        if (Object.prototype.hasOwnProperty.call(incoming, f.key)) merged[f.key] = incoming[f.key];
       }
-      sections.push({ ...base, data: merged });
+      return { ...base, data: merged };
+    };
+
+    const sections: any[] = [];
+    const used = new Set<number>();
+
+    // Master-Vorlage gibt Reihenfolge und Abschnittsmix vor.
+    if (bp) {
+      for (const type of bp.sectionTypes) {
+        if (type === "form") continue;
+        const idx = rawSections.findIndex(
+          (s: any, i: number) => !used.has(i) && String(s?.type || "") === type
+        );
+        if (idx >= 0) used.add(idx);
+        const sec = build(type, idx >= 0 ? rawSections[idx]?.data : undefined);
+        if (sec) sections.push(sec);
+      }
     }
+
+    // Zusätzliche Abschnitte der KI anhängen (bzw. alles, wenn keine Vorlage gewählt wurde).
+    for (let i = 0; i < Math.min(rawSections.length, 20); i++) {
+      if (used.has(i)) continue;
+      const s = rawSections[i];
+      const type = String(s?.type || "");
+      const def = CAT.find((d) => d.type === type);
+      if (!def || type === "form") continue;
+      if (def.unique && sections.some((x) => x.type === type)) continue;
+      const sec = build(type, s?.data);
+      if (sec) sections.push(sec);
+    }
+
     // Sicherheitsnetz: ohne Formular bringt eine Landing nichts.
     sections.push(createSection("form"));
 

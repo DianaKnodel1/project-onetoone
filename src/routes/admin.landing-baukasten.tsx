@@ -22,6 +22,7 @@ import {
   type SectionField,
   type LandingStyle,
 } from "@/lib/landing-sections";
+import { LANDING_BLUEPRINTS } from "@/lib/landing-blueprints";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Loader2, Save, ArrowUp, ArrowDown, Trash2, Plus, Layers, ExternalLink,
   Monitor, Smartphone, Undo2, Settings2, GripVertical, X, Upload,
-  Sparkles, Shuffle, Palette, BookmarkPlus,
+  Sparkles, Shuffle, Palette, BookmarkPlus, Copy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -267,6 +268,7 @@ function LandingBaukastenPage() {
       }));
       setShowAiDialog(false);
       setShowNewDialog(false);
+      setShowSettings(true);
       toast({ title: "Entwurf erstellt", description: "Prüfe die Texte und passe sie an, bevor du speicherst." });
     } catch (e) {
       toast({ title: "KI-Entwurf fehlgeschlagen", description: String((e as Error).message), variant: "destructive" });
@@ -286,6 +288,27 @@ function LandingBaukastenPage() {
     } finally {
       setAiBusy(false);
     }
+  };
+
+  /** Aktuelle Seite als neue Seite weiterverwenden (1-Klick-Duplizieren). */
+  const duplicateCurrent = () => {
+    if (!sections.length) return;
+    const copy = sections.map((s) => ({ ...s, data: { ...s.data }, id: `sec_${Math.random().toString(36).slice(2, 10)}` }));
+    const base = (slug || "seite").replace(/-kopie(-\d+)?$/, "");
+    let next = `${base}-kopie`;
+    let n = 2;
+    while (landings.some((l) => l.slug === next)) next = `${base}-kopie-${n++}`;
+    setCurrent(null);
+    setSections(copy);
+    setSelectedId(copy[0]?.id || null);
+    setSlug(next);
+    savedSnapshot.current = "";
+    setDirty(true);
+    setShowSettings(true);
+    toast({
+      title: "Kopie angelegt",
+      description: "Passe Firmenname, Farben und Kurznamen an und speichere sie als neue Seite.",
+    });
   };
 
   const discard = async () => {
@@ -526,6 +549,9 @@ function LandingBaukastenPage() {
         <Button variant="outline" size="sm" onClick={saveAsTemplate} disabled={!sections.length}>
           <BookmarkPlus className="h-4 w-4 mr-1" /> Als Vorlage speichern
         </Button>
+        <Button variant="outline" size="sm" onClick={duplicateCurrent} disabled={!sections.length}>
+          <Copy className="h-4 w-4 mr-1" /> Seite duplizieren
+        </Button>
         <span className="text-xs text-muted-foreground ml-1">
           {dirty ? "Ungespeicherte Änderungen" : "Alles gespeichert"}
           {previewing && " · Vorschau wird aktualisiert…"}
@@ -696,9 +722,9 @@ function LandingBaukastenPage() {
                 onClick={() => { setShowNewDialog(false); setShowAiDialog(true); }}
                 className="w-full text-left border rounded-lg p-4 hover:border-primary hover:bg-accent transition"
               >
-                <div className="font-medium text-sm flex items-center gap-2"><Sparkles className="h-4 w-4" /> Mit KI erstellen</div>
+                <div className="font-medium text-sm flex items-center gap-2"><Sparkles className="h-4 w-4" /> Komplette Seite in einem Schritt erstellen</div>
                 <div className="text-xs text-muted-foreground mt-1">
-                  Du beschreibst Firma, Stelle und Tonalität — die KI schreibt Texte und schlägt ein Design vor.
+                  Vorlage wählen, Firmenname, Stelle und ein paar Stichworte eingeben — die fertige Seite steht in rund 20 Sekunden.
                 </div>
               </button>
             </div>
@@ -748,7 +774,7 @@ function LandingBaukastenPage() {
 
       {/* KI-Entwurf */}
       {showAiDialog && (
-        <Overlay onClose={() => (aiBusy ? null : setShowAiDialog(false))} title="Seite mit KI erstellen">
+        <Overlay onClose={() => (aiBusy ? null : setShowAiDialog(false))} title="Neue Seite in einem Schritt erstellen">
           <AiDialog busy={aiBusy} defaultCompany={branding.firmenname || ""} onSubmit={runAi} />
         </Overlay>
       )}
@@ -1074,11 +1100,35 @@ function AiDialog({
     tonalitaet: "locker und persönlich",
     designrichtung: "",
     besonderheiten: "",
+    blueprint: LANDING_BLUEPRINTS[0]!.id,
   });
   const set = (k: string, val: string) => setV((p) => ({ ...p, [k]: val }));
 
   return (
     <div className="space-y-3">
+      <div>
+        <Label className="text-xs">Vorlage & Farbwelt</Label>
+        <div className="grid gap-2 sm:grid-cols-2 mt-1">
+          {LANDING_BLUEPRINTS.map((b) => (
+            <button
+              key={b.id}
+              type="button"
+              onClick={() => set("blueprint", b.id)}
+              className={cn(
+                "text-left border rounded-lg p-3 transition",
+                v.blueprint === b.id ? "border-primary ring-1 ring-primary bg-accent" : "hover:border-primary"
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <span className="h-4 w-4 rounded-full border" style={{ background: b.style.primary }} />
+                <span className="font-medium text-sm">{b.label}</span>
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">{b.description}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <Label className="text-xs">Firmenname</Label>
@@ -1115,12 +1165,12 @@ function AiDialog({
         </div>
       </div>
       <div>
-        <Label className="text-xs">Besonderheiten — nur echte Angaben</Label>
+        <Label className="text-xs">Stichworte — nur echte Angaben</Label>
         <Textarea
           rows={4}
           value={v.besonderheiten}
           onChange={(e) => set("besonderheiten", e.target.value)}
-          placeholder="z.B. Schichtzuschläge, Führerschein nötig, Einstieg ohne Erfahrung möglich"
+          placeholder="z.B. 16,50 €/Std., kein Lebenslauf nötig, sofortiger Start, freie Zeiteinteilung"
         />
         <p className="text-xs text-muted-foreground mt-1">
           Die KI erfindet keine Zahlen, Auszeichnungen oder Kundenstimmen — alles, was drinstehen soll, gehört hierher.
@@ -1128,7 +1178,7 @@ function AiDialog({
       </div>
       <Button onClick={() => onSubmit(v)} disabled={busy} className="w-full">
         {busy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-        {busy ? "Entwurf wird erstellt…" : "Entwurf erstellen"}
+        {busy ? "Seite wird erstellt…" : "Seite generieren"}
       </Button>
     </div>
   );
