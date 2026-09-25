@@ -4,7 +4,7 @@
 # =============================================================================
 # Beispiel:
 #   bash /opt/apps/portal/scripts/deploy-edge-function.sh \
-#     send-invitation-email root@190.97.167.123 /opt/supabase
+#     send-invitation-email root@190.97.167.123 /opt/supabase/docker
 #
 # Funktioniert ohne rsync: es nutzt tar über ssh und spiegelt den Zielordner.
 # =============================================================================
@@ -12,7 +12,7 @@ set -euo pipefail
 
 FUNCTION_NAME="${1:-send-invitation-email}"
 BACKEND_HOST="${2:-}"
-SUPABASE_DIR="${3:-/opt/supabase}"
+SUPABASE_DIR="${3:-/opt/supabase/docker}"
 # Repo-Wurzel automatisch aus dem Script-Pfad ableiten (funktioniert auf
 # Portal- UND Backend-Server, egal wie der Checkout heißt).
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -27,7 +27,7 @@ elif [ -z "$BACKEND_HOST" ]; then
     LOCAL_MODE=1   # Supabase liegt lokal → automatisch lokaler Modus
   else
     echo "Usage: $0 <function-name> <backend-ssh-host|--local> [supabase-dir]" >&2
-    echo "Beispiel (vom Portal-Server): $0 send-invitation-email root@190.97.167.123 /opt/supabase" >&2
+    echo "Beispiel (vom Portal-Server): $0 send-invitation-email root@190.97.167.123 /opt/supabase/docker" >&2
     echo "Beispiel (auf dem Backend):   $0 send-invitation-email --local" >&2
     exit 2
   fi
