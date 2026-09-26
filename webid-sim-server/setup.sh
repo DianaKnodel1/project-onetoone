@@ -119,9 +119,9 @@ CADDY_TARGET=/etc/caddy/Caddyfile
 MANAGED_BEGIN="# BEGIN WEBID-SIM ($SIM_BASE_DOMAIN)"
 MANAGED_END="# END WEBID-SIM ($SIM_BASE_DOMAIN)"
 if [[ -f "$CADDY_TARGET" ]]; then
-  python3 - "$CADDY_TARGET" "$SIM_BASE_DOMAIN" <<'PYEOF'
+  python3 - "$CADDY_TARGET" "$SIM_BASE_DOMAIN" "${SIM_WILDCARD_DOMAIN:-}" <<'PYEOF'
 import sys
-path, domain = sys.argv[1], sys.argv[2]
+path, domain, wild = sys.argv[1], sys.argv[2], sys.argv[3]
 with open(path) as f:
     text = f.read()
 
@@ -130,9 +130,9 @@ kept = []
 i = 0
 while i < len(lines):
     stripped = lines[i].strip()
-    if stripped.startswith('# BEGIN WEBID-SIM ('):
+    if stripped.startswith('# BEGIN WEBID-SIM'):
         i += 1
-        while i < len(lines) and not lines[i].strip().startswith('# END WEBID-SIM ('):
+        while i < len(lines) and not lines[i].strip().startswith('# END WEBID-SIM'):
             i += 1
         i += 1
         continue
@@ -152,6 +152,12 @@ while i < len(lines):
         body = '\n'.join(block)
         if domain in header or '$SIM_BASE_DOMAIN' in header or '{$SIM_BASE_DOMAIN}' in header or (header == '{' and 'auto_https disable_redirects' in body):
             continue
+        # Einzelne Firmen-Bloecke (z. B. testumgebung.<wild>) werden durch den
+        # Sammel-Block ersetzt. Die Hauptdomain selbst (Mirror) bleibt erhalten.
+        if wild:
+            names = [n.strip() for n in header.rstrip('{').split(',')]
+            if names and all(n.endswith('.' + wild) for n in names):
+                continue
         kept.extend(block)
         continue
 
@@ -171,6 +177,26 @@ fi
   cat "$PROJECT_DIR/Caddyfile"
   echo "$MANAGED_END"
 } >> "$CADDY_TARGET"
+
+# Optional: Sammel-Block, damit jede Firmen-Subdomain (z. B. bv-agentur.<domain>)
+# sofort funktioniert, ohne eigenen Caddy-Eintrag. Die Hauptdomain bleibt unberührt.
+if [[ -n "${SIM_WILDCARD_DOMAIN:-}" ]]; then
+  cat >> "$CADDY_TARGET" <<EOF
+
+# BEGIN WEBID-SIM-WILDCARD ($SIM_WILDCARD_DOMAIN)
+*.$SIM_WILDCARD_DOMAIN {
+	tls /etc/caddy/origin.crt /etc/caddy/origin.key
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:3002 {
+		header_up Host {host}
+		header_up X-Real-IP {http.request.header.CF-Connecting-IP}
+		header_up X-Forwarded-For {http.request.header.CF-Connecting-IP}
+		header_up X-Forwarded-Proto https
+	}
+}
+# END WEBID-SIM-WILDCARD ($SIM_WILDCARD_DOMAIN)
+EOF
+fi
 systemctl daemon-reload
 systemctl enable webid-sim.service
 systemctl restart webid-sim.service
