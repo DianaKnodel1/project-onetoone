@@ -77,26 +77,9 @@ serve(async (req) => {
     // Portal verschickt keine Mails mehr → keine SMTP-/Pausen-Prüfung (bewusst entfernt).
     const maillessEarly = true;
 
-    // Bounce-Suppression: bekanntermaßen tote Adressen nicht erneut anschreiben.
+    // Bounce-Sperre bewusst entfernt: Portal verschickt keine Mails, Rückläufer
+    // dürfen die Registrierung nicht blockieren.
     let signupClaim: EmailClaim | null = null;
-    try {
-      const [{ data: prof }, { data: app }, { data: sup }, { data: rf }] = await Promise.all([
-        supabaseAdmin.from("profiles").select("email_status").ilike("email", email).neq("email_status", "active").limit(1).maybeSingle(),
-        supabaseAdmin.from("applications").select("email_status").ilike("email", email).neq("email_status", "active").limit(1).maybeSingle(),
-        supabaseAdmin.from("suppressed_emails").select("reason").ilike("email", email).limit(1).maybeSingle(),
-        supabaseAdmin.from("email_recipient_failures").select("last_error").ilike("recipient_email", email).eq("tenant_id", tenant.id).not("suppressed_at", "is", null).limit(1).maybeSingle(),
-      ]);
-      if (sup || rf) {
-        await abort("skipped", `recipient_suppressed: ${(sup as any)?.reason ?? (rf as any)?.last_error ?? "unbekannt"}`, tenant.id);
-        return json({ error: "Diese E-Mail-Adresse ist gesperrt. Eine Registrierung ist nicht möglich." }, 403);
-      }
-      if (prof || app) {
-        await abort("skipped", "recipient_bounced", tenant.id);
-        return json({ error: "Diese E-Mail-Adresse wurde gesperrt (Bounce/Complaint). Bitte korrigieren oder Sperre im Admin aufheben." }, 400);
-      }
-    } catch (e) {
-      console.warn("suppression-check failed (continuing):", e);
-    }
 
 
 
