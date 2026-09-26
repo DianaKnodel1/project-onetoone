@@ -1,6 +1,16 @@
 # WebID: bv-agentur.webid-portal.com zeigt weißes Bild
 
-## Wahrscheinliche Ursache (noch unbestätigt)
+## Ursache (bestätigt)
+Die Prüfung hat es bestätigt: In der Caddyfile stehen nur `webid-portal.com` und `testumgebung.webid-portal.com`. Die Simulation selbst antwortet für bv-agentur korrekt (200).
+
+## Sofort-Lösung (auf dem WebID-Server einfügen)
+```bash
+sed -i 's/^testumgebung\.webid-portal\.com {/*.webid-portal.com {/' /etc/caddy/Caddyfile
+caddy validate --config /etc/caddy/Caddyfile && systemctl reload caddy
+```
+Damit wird aus dem testumgebung-Eintrag ein Sammel-Eintrag für alle Firmen. Danach die Seite mit Strg+F5 neu laden.
+
+## Hintergrund
 Beim letzten Mal zeigte `testumgebung.webid-portal.com` genau dasselbe weiße Bild. Der Grund war, dass der Webserver (Caddy) diese Adresse nicht kannte. Wir haben damals nur für `testumgebung` einen eigenen Eintrag angelegt. `bv-agentur` hat noch keinen. Deshalb weiß der Server nicht, wohin er die Anfrage schicken soll, und liefert eine leere Seite aus.
 
 Eine zweite mögliche Ursache: Die Domain `bv-agentur.webid-portal.com` ist in /admin/webid-sim nicht angelegt oder nicht aktiv geschaltet.
