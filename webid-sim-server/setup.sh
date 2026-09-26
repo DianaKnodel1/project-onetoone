@@ -22,6 +22,7 @@
 #
 #  Optional:
 #    PROJECT_DIR=/opt/apps/webid-sim
+#    SIM_WILDCARD_DOMAIN=webid-portal.com   # alle *.webid-portal.com → Simulation
 #    DEFAULT_TARGET_ORIGIN=https://webid-gateway.de
 # =============================================================================
 set -euo pipefail
