@@ -221,7 +221,7 @@ function LoginPage() {
         <div className={t.warnBox}>
           <MailCheck className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
           <div className="space-y-1.5 flex-1">
-            <p className={t.warnText}>Dein Konto ist noch nicht freigeschaltet. Bitte wende dich kurz an dein Team – wir schalten dich sofort frei.</p>
+            <p className={t.warnText}>Dein Konto ist noch nicht fertig angelegt. Du wirst gleich zur Registrierung weitergeleitet – bitte dort noch einmal mit derselben E-Mail abschließen.</p>
           </div>
         </div>
       )}

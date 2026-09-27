@@ -51,3 +51,9 @@
 - [ ] Portal-Server: `cd /opt/apps/portal && git pull && bash scripts/deploy.sh` (spielt Migration 20260923050000 ein)
 - [ ] WebID-Server: webid-sim Code aktualisieren (`SIM_BASE_DOMAIN=webid-portal.de bash webid-sim-server/setup.sh` oder Dateien kopieren) + `systemctl restart webid-sim`; Caddy-Duplikat für webid-portal.com entfernen (`caddy validate && systemctl restart caddy`); Wildcard-Block `*.webid-portal.de` in Caddyfile prüfen; Test `curl http://127.0.0.1:3002/_health`
 - [ ] Test: /admin/webid-sim → Meldung ändern → nach ~10 Sek. auf Sim-Domain sichtbar; Mitarbeiter-Karte am Auftrag prüfen
+
+## Audit Anmeldung/Registrierung (27.09.)
+- [x] Halb angelegte Alt-Konten: erneute Registrierung setzt Passwort + schaltet frei (vorher: Anmeldung danach „Passwort falsch")
+- [x] Registrierung: fehlgeschlagene Auto-Anmeldung nicht mehr verschluckt, Profil-Speichern mit Wiederholung
+- [x] Login: „nicht bestätigt" leitet zur Registrierung statt Sackgasse
+- [ ] Deploy Portal + send-signup-confirmation, SQL-Freischaltung hängender Konten (Nutzer)
