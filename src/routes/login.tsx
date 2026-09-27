@@ -91,13 +91,11 @@ function LoginPage() {
     if (error) {
       const msg = (error.message || "").toLowerCase();
       if (msg.includes("email not confirmed") || msg.includes("not confirmed")) {
+        // Altes, halb angelegtes Konto: erneute Registrierung schaltet es frei.
         setNeedsVerify(true);
-        setAuthError("Bitte bestätige zuerst deine E-Mail-Adresse. Wir haben dir einen Link gesendet.");
-        toast({
-          title: "E-Mail nicht bestätigt",
-          description: "Bitte bestätige zuerst deine E-Mail-Adresse. Wir haben dir einen Link gesendet.",
-          variant: "destructive",
-        });
+        setAuthError("Dein Konto ist noch nicht fertig angelegt. Bitte registriere dich einfach noch einmal mit derselben E-Mail – danach klappt die Anmeldung.");
+        toast({ title: "Konto noch nicht fertig", description: "Du wirst zur Registrierung weitergeleitet." });
+        setTimeout(() => navigate(`/register?email=${encodeURIComponent(email.trim())}`), 2000);
         return;
       }
       const description = translateAuthError(error.message);
