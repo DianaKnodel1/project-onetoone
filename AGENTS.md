@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Landing pages built with sections are reused by opening an unsaved copy in the Baukasten; the classic generator only selects fixed themes. This preserves renderer compatibility.

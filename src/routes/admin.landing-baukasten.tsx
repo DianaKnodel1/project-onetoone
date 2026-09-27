@@ -37,8 +37,10 @@ import {
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/landing-baukasten")({
-  validateSearch: (s: Record<string, unknown>): { vorlage?: string } =>
-    typeof s.vorlage === "string" && s.vorlage ? { vorlage: s.vorlage } : {},
+  validateSearch: (s: Record<string, unknown>): { vorlage?: string; kopie?: string } => ({
+    ...(typeof s.vorlage === "string" && s.vorlage ? { vorlage: s.vorlage } : {}),
+    ...(typeof s.kopie === "string" && s.kopie ? { kopie: s.kopie } : {}),
+  }),
   component: LandingBaukastenPage,
   errorComponent: ({ error }) => (
     <div className="p-8 text-center space-y-4">
@@ -241,7 +243,7 @@ function LandingBaukastenPage() {
   };
 
   // Aus dem Landing Generator: ?vorlage=<id> öffnet direkt eine neue Seite mit dieser Vorlage.
-  const { vorlage } = Route.useSearch();
+  const { vorlage, kopie } = Route.useSearch();
   const vorlageApplied = useRef(false);
   useEffect(() => {
     if (!vorlage || vorlageApplied.current || loading) return;
@@ -251,6 +253,50 @@ function LandingBaukastenPage() {
     startFromTemplate(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vorlage, templates, loading]);
+
+  // Aus dem Landing Generator: Eine komplette Baukasten-Seite als neue,
+  // unveröffentlichte Seite übernehmen. Original und Domain bleiben unberührt.
+  const copyApplied = useRef(false);
+  useEffect(() => {
+    if (!kopie || copyApplied.current || loading) return;
+    copyApplied.current = true;
+    void (async () => {
+      try {
+        const source = (await getFn({ data: { id: kopie } })) as unknown as LandingRow;
+        const copiedSections = (
+          Array.isArray(source.sections) && source.sections.length ? source.sections : defaultSections()
+        ).map((section) => ({
+          ...section,
+          data: { ...section.data },
+          id: `sec_${Math.random().toString(36).slice(2, 10)}`,
+        }));
+        const base = (source.slug || "seite").replace(/-kopie(-\d+)?$/, "");
+        let nextSlug = `${base}-kopie`;
+        let number = 2;
+        while (landings.some((landing) => landing.slug === nextSlug)) {
+          nextSlug = `${base}-kopie-${number++}`;
+        }
+        applyState(
+          { ...source, id: "", slug: nextSlug, domain: null, is_published: false },
+          copiedSections,
+        );
+        savedSnapshot.current = "__unsaved_copy__";
+        setDirty(true);
+        setShowSettings(true);
+        toast({
+          title: "Seite kopiert",
+          description: "Vergib einen neuen Firmennamen und eine neue Domain, bevor du die Kopie speicherst.",
+        });
+      } catch (error) {
+        toast({
+          title: "Seite konnte nicht kopiert werden",
+          description: String((error as Error).message),
+          variant: "destructive",
+        });
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kopie, loading, landings]);
 
   const saveAsTemplate = async () => {
     const name = window.prompt("Name der Vorlage:", branding.firmenname ? `Vorlage ${branding.firmenname}` : "Meine Vorlage");
