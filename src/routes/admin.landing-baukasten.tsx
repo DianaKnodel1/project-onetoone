@@ -37,6 +37,8 @@ import {
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/landing-baukasten")({
+  validateSearch: (s: Record<string, unknown>): { vorlage?: string } =>
+    typeof s.vorlage === "string" && s.vorlage ? { vorlage: s.vorlage } : {},
   component: LandingBaukastenPage,
   errorComponent: ({ error }) => (
     <div className="p-8 text-center space-y-4">
@@ -237,6 +239,18 @@ function LandingBaukastenPage() {
     setShowNewDialog(false);
     setShowSettings(true);
   };
+
+  // Aus dem Landing Generator: ?vorlage=<id> öffnet direkt eine neue Seite mit dieser Vorlage.
+  const { vorlage } = Route.useSearch();
+  const vorlageApplied = useRef(false);
+  useEffect(() => {
+    if (!vorlage || vorlageApplied.current || loading) return;
+    const t = templates.find((x) => x.id === vorlage);
+    if (!t) return;
+    vorlageApplied.current = true;
+    startFromTemplate(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vorlage, templates, loading]);
 
   const saveAsTemplate = async () => {
     const name = window.prompt("Name der Vorlage:", branding.firmenname ? `Vorlage ${branding.firmenname}` : "Meine Vorlage");

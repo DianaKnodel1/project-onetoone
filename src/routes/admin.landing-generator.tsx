@@ -16,6 +16,7 @@ import {
   toggleLandingPublished,
 } from "@/lib/landing-pages.functions";
 import { listPartnerCompanies } from "@/lib/partner-companies.functions";
+import { listLandingTemplates } from "@/lib/landing-templates.functions";
 import { adminListSchedules } from "@/lib/appointments.functions";
 import { THEME_LIST, THEMES } from "@/lib/landing-themes";
 import { THEME_ASSETS } from "@/lib/theme-assets.generated";
@@ -268,6 +269,15 @@ function LandingGeneratorPage() {
   const [deleteBusy, setDeleteBusy] = useState(false);
   const toggleFn = useServerFn(toggleLandingPublished);
   const setPortalThemeFn = useServerFn(setTenantPortalTheme);
+  const listTplFn = useServerFn(listLandingTemplates);
+  const [ownTemplates, setOwnTemplates] = useState<Array<{ id: string; name: string; description: string }>>([]);
+  const [ownTemplatesError, setOwnTemplatesError] = useState<string | null>(null);
+  useEffect(() => {
+    listTplFn()
+      .then((r: any) => setOwnTemplates(r?.rows ?? []))
+      .catch((e: any) => setOwnTemplatesError(String(e?.message ?? e)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [landings, setLandings] = useState<any[]>([]);
   const [landingsLoading, setLandingsLoading] = useState(true);
@@ -1144,6 +1154,30 @@ document.addEventListener('submit', function(e){
                 ))}
               </div>
 
+              <div className="mt-4 border-t pt-3 space-y-2">
+                <div className="text-sm font-semibold">Eigene gespeicherte Vorlagen</div>
+                {ownTemplatesError ? (
+                  <p className="text-xs text-muted-foreground">Vorlagen konnten nicht geladen werden: {ownTemplatesError}</p>
+                ) : ownTemplates.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Noch keine Vorlage gespeichert.</p>
+                ) : (
+                  <div className="grid grid-cols-1 gap-2">
+                    {ownTemplates.map((t) => (
+                      <Link
+                        key={t.id}
+                        to="/admin/landing-baukasten"
+                        search={{ vorlage: t.id }}
+                        className="text-left rounded-lg border-2 border-border hover:border-primary/40 p-3 transition-all block"
+                      >
+                        <div className="font-semibold text-sm truncate">{t.name}</div>
+                        <p className="text-xs text-muted-foreground">
+                          {t.description || "Neue Seite mit dieser Vorlage erstellen"}
+                        </p>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 
