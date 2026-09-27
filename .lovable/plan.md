@@ -12,21 +12,21 @@ Mit einem frischen Test-Konto, auf Handy-Größe und am Computer:
 
 ## 2. Code-Prüfung aller Stellen, die abbrechen können
 - Registrierung, Anmeldung, Passwort vergessen, Einladung/Zusage-Link, Onboarding
-- Die vier Anmelde-Funktionen auf dem Datenbank-Server (Sperren, Firmen-Zuordnung, Doppel-Konten)
+- Die Anmelde-Funktionen auf dem Datenbank-Server (Sperren, Firmen-Zuordnung, Doppel-Konten)
 - Rechte in der Datenbank: kann ein neues Konto sofort sein Profil, seine Firma und die Aufträge lesen?
-- Übrig gebliebene Mail-Prüfungen oder alte Sperrlisten
 - Jede Fehlermeldung: verständlich auf Deutsch statt „Something went wrong" / technischer Satz
 
-## 3. Frühwarnung, damit Sie es vor dem Bewerber merken
-- Jede fehlgeschlagene Registrierung oder Anmeldung wird mit Uhrzeit, E-Mail, Firmenseite und genauem Grund gespeichert
-- Neue Übersicht im Admin-Bereich: „Anmelde-Probleme" (letzte 7 Tage), damit Sie betroffene Bewerber direkt anrufen können
+## 3. Reste des alten Mail-Systems aufspüren
+- Jede Stelle, die noch Mail-Zugangsdaten, Mail-Bestätigung, Versand-Pausen oder alte Sperrlisten prüft und dadurch einen Bewerber blockieren kann
+- Konten, die noch als „E-Mail nicht bestätigt" hängen und sich deshalb nicht anmelden können
+- Alte Mail-Links oder Hinweise („Wir haben dir eine Mail geschickt"), die Bewerber verwirren
 
 ## 4. Ergebnis
-- Kurzer Bericht: was geprüft, was gefunden, was behoben
-- Liste der Dinge, die nur auf Ihrem Server geprüft werden können, mit fertigen Befehlen
+- Bericht in einfachen Worten: wo, woran und weshalb Bewerber stecken bleiben
+- Alles, was im Code behebbar ist, wird direkt behoben
+- Fertige Befehle für die Dinge, die nur auf Ihrem Server geprüft oder behoben werden können (z. B. hängende Konten freischalten)
 
 ## Technische Details
-- Test per Playwright gegen die Vorschau; für echte Konten brauche ich ein Test-Konto auf Ihrem Server (api.mb-portal.com) bzw. Sie führen die Server-Tests mit meinen Befehlen aus
-- Geprüfte Dateien u. a.: register.tsx, login.tsx, reset-password, Invite-Route, Onboarding, router.tsx, supabase/functions/send-signup-confirmation, RLS-Policies auf profiles/tenants/Aufträge
-- Neue Tabelle auth_failure_log (mit GRANTs + RLS nur Admin via has_role) plus Migration; Protokollierung in Edge Function und Client-Fehlerpfaden
-- Kein Umbau der bestehenden Struktur
+- Playwright gegen die Vorschau; für echte Konten auf api.mb-portal.com liefere ich SQL-Prüfbefehle (z. B. auth.users ohne email_confirmed_at, Profile ohne tenant_id, Zusagen ohne Konto)
+- Geprüft u. a.: register.tsx, login.tsx, Reset-/Invite-/Onboarding-Routen, AuthContext, router.tsx, EmployeeLayout, Edge Functions send-signup-confirmation/resend/invitation, RLS auf profiles/tenants/Aufträge, GoTrue-Einstellung „Autoconfirm"
+- Keine neue Tabelle, kein Umbau der bestehenden Struktur
