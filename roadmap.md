@@ -57,3 +57,8 @@
 - [x] Registrierung: fehlgeschlagene Auto-Anmeldung nicht mehr verschluckt, Profil-Speichern mit Wiederholung
 - [x] Login: „nicht bestätigt" leitet zur Registrierung statt Sackgasse
 - [ ] Deploy Portal + send-signup-confirmation, SQL-Freischaltung hängender Konten (Nutzer)
+
+## Onboarding verpflichtend (27.09.)
+- [x] Zurück-Pfeil aus der Onboarding-Kopfzeile entfernt; Hinweis „Bitte nehmen Sie sich kurz Zeit für das Onboarding." oben eingeblendet
+- [x] Mitarbeiter-Layout leitet ohne abgeschlossenes Onboarding (nach Vertragsunterschrift) immer auf /onboarding weiter
+- [ ] Nach Deploy: Einmal als Test-Mitarbeiter prüfen, dass /dashboard auf /onboarding umleitet
