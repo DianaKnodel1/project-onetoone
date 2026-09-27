@@ -414,7 +414,20 @@ function RegisterPage() {
       // Profil-Daten unter der echten Session (RLS) gespeichert werden.
       const autoConfirmed = (fnData as any)?.auto_confirmed === true;
       if (autoConfirmed) {
-        await supabase.auth.signInWithPassword({ email: trimmedEmail, password }).catch(() => {});
+        let signedIn = false;
+        for (let i = 0; i < 3 && !signedIn; i++) {
+          const { error: sErr } = await supabase.auth.signInWithPassword({ email: trimmedEmail, password });
+          if (!sErr) signedIn = true;
+          else await new Promise((r) => setTimeout(r, 800));
+        }
+        if (!signedIn) {
+          toast({
+            title: "Konto angelegt",
+            description: "Bitte melde dich jetzt mit deiner E-Mail und deinem Passwort an.",
+          });
+          ls.setItem(`pending_profile_updates:${newUserId}`, "");
+          setTimeout(() => { window.location.href = `/login?email=${encodeURIComponent(trimmedEmail)}`; }, 1500);
+        }
       }
 
       // 2. Invitation-Token konsumieren (falls vorhanden)
@@ -474,7 +487,13 @@ function RegisterPage() {
       };
       if (invApplicationId) profileUpdates.application_id = invApplicationId;
 
-      await supabase.from("profiles").update(profileUpdates).eq("user_id", newUserId);
+      let { error: profErr } = await supabase.from("profiles").update(profileUpdates).eq("user_id", newUserId);
+      if (profErr) {
+        // Profil-Zeile evtl. noch nicht fertig angelegt → kurz warten, erneut
+        await new Promise((r) => setTimeout(r, 1200));
+        ({ error: profErr } = await supabase.from("profiles").update(profileUpdates).eq("user_id", newUserId));
+      }
+      if (profErr) console.warn("profile update failed", profErr.message);
 
       // Fallback: the update above runs with the anonymous session because the
       // user has not yet confirmed their email. RLS may block it silently,
