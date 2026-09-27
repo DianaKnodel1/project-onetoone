@@ -62,3 +62,6 @@
 - [x] Zurück-Pfeil aus der Onboarding-Kopfzeile entfernt; Hinweis „Bitte nehmen Sie sich kurz Zeit für das Onboarding." oben eingeblendet
 - [x] Mitarbeiter-Layout leitet ohne abgeschlossenes Onboarding (nach Vertragsunterschrift) immer auf /onboarding weiter
 - [ ] Nach Deploy: Einmal als Test-Mitarbeiter prüfen, dass /dashboard auf /onboarding umleitet
+
+## Pflicht-Ablauf Vertrag → Ausweis → Einführung + Teamleiter-Kasten (27.09.)
+- [x] Umgesetzt, Deploy + Live-Test offen

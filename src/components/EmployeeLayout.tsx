@@ -241,6 +241,8 @@ export default function EmployeeLayout() {
   const [kycRejected, setKycRejected] = useState(false);
   const [contractPending, setContractPending] = useState(false);
   const [onboardingDone, setOnboardingDone] = useState(false);
+  const [kycOpen, setKycOpen] = useState(false);
+  const [checkedPath, setCheckedPath] = useState<string | null>(null);
   const [smsVisible, setSmsVisible] = useState(false);
 
   useEffect(() => {
@@ -272,6 +274,7 @@ export default function EmployeeLayout() {
 
   useEffect(() => {
     if (!user) return;
+    const path = location.pathname;
     Promise.all([
       supabase.from("profiles").select("status, contract_signed_at, onboarding_status").eq("user_id", user.id).maybeSingle(),
       supabase.from("kyc_verifications").select("status").eq("user_id", user.id).maybeSingle(),
@@ -281,10 +284,12 @@ export default function EmployeeLayout() {
       setOnboardingDone(profileRes.data?.onboarding_status === "abgeschlossen");
       const kycStatus = kycRes.data?.status;
       setKycRejected(kycStatus === "abgelehnt");
+      setKycOpen(!kycStatus || kycStatus === "nicht_gestartet" || kycStatus === "abgelehnt");
+      setCheckedPath(path);
       setKycPending(!kycStatus || kycStatus === "nicht_gestartet" || kycStatus === "in_pruefung");
       setStatusLoading(false);
     });
-  }, [user]);
+  }, [user, location.pathname]);
 
   // SMS tab visibility: visible as soon as the employee has at least one
   // active sms_assignment (no task linkage required).
@@ -317,15 +322,17 @@ export default function EmployeeLayout() {
     if (!isAllowed) navigate("/dashboard");
   }, [location.pathname, employeeStatus, statusLoading, navigate]);
 
-  // Onboarding ist verpflichtend: Wer den Vertrag unterschrieben, aber das
-  // Onboarding noch nicht abgeschlossen hat, wird immer dorthin weitergeleitet.
+  // Pflicht-Ablauf nach der Registrierung: Vertrag -> Ausweis -> Einführung.
+  // Jeder wird zum ersten offenen Schritt geleitet; der Chat bleibt erreichbar.
   useEffect(() => {
     if (statusLoading || !user) return;
-    if (contractPending) return; // erst Vertrag, dann Onboarding
-    if (onboardingDone) return;
-    if (location.pathname.startsWith("/onboarding")) return;
-    navigate("/onboarding");
-  }, [location.pathname, statusLoading, user, contractPending, onboardingDone, navigate]);
+    if (checkedPath !== location.pathname) return; // erst frischen Stand abwarten
+    const target = contractPending ? "/contract" : kycOpen ? "/verification" : !onboardingDone ? "/onboarding" : null;
+    if (!target) return;
+    const p = location.pathname;
+    if (p.startsWith(target) || p.startsWith("/chat")) return;
+    navigate(target);
+  }, [location.pathname, statusLoading, user, checkedPath, contractPending, kycOpen, onboardingDone, navigate]);
 
   if (loading || statusLoading) {
     return (

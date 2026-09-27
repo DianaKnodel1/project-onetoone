@@ -7,6 +7,7 @@ export const Route = createFileRoute("/_employee/onboarding")({
 import { useState, useEffect } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
+import { OnboardingStepHeader } from "@/components/OnboardingStepHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -169,6 +170,15 @@ function OnboardingPage() {
           navigate("/contract");
           return;
         }
+        if (data.onboarding_status !== "abgeschlossen") {
+          const { data: kyc } = await supabase
+            .from("kyc_verifications").select("status").eq("user_id", user.id).maybeSingle();
+          const st = String(kyc?.status ?? "");
+          if (!st || st === "nicht_gestartet" || st === "abgelehnt") {
+            navigate("/verification");
+            return;
+          }
+        }
         if (data.onboarding_status === "abgeschlossen") setCompleted(true);
       } catch (err: any) {
         console.error("Onboarding load error:", err);
@@ -283,9 +293,7 @@ function OnboardingPage() {
       </header>
 
       <main className="container py-8 max-w-2xl space-y-6">
-        <p className="text-sm text-muted-foreground text-center">
-          Bitte nehmen Sie sich kurz Zeit für das Onboarding.
-        </p>
+        <OnboardingStepHeader step={3} />
         <Progress value={progress} className="h-2" />
 
         <Card className="animate-fade-in" key={step}>

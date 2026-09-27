@@ -95,21 +95,21 @@ function AdminMitarbeiterPage() {
   function stagesFor(r: typeof rows[number]): Stage[] {
     const s = (state: Stage["state"], label: string, key: string): Stage => ({ key, label, state });
     const registered: Stage["state"] = "done";
-    const perso: Stage["state"] =
-      r.status === "abgelehnt" ? "failed" :
-      r.idUploaded ? "done" : "current";
     const vertrag: Stage["state"] =
       r.status === "abgelehnt" ? "failed" :
-      r.contractSigned ? "done" :
-      r.idUploaded ? "current" : "todo";
+      r.contractSigned ? "done" : "current";
+    const perso: Stage["state"] =
+      r.status === "abgelehnt" ? "failed" :
+      r.idUploaded ? "done" :
+      r.contractSigned ? "current" : "todo";
     const aktiv: Stage["state"] =
       r.status === "angenommen" ? "done" :
       r.status === "abgelehnt" ? "failed" :
       (r.contractSigned && r.idUploaded) ? "current" : "todo";
     return [
       s(registered, "Registriert", "reg"),
-      s(perso, "Perso", "id"),
       s(vertrag, "Vertrag", "contract"),
+      s(perso, "Perso", "id"),
       s(aktiv, "Freigegeben", "active"),
     ];
   }

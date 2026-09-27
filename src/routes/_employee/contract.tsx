@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { OnboardingStepHeader } from "@/components/OnboardingStepHeader";
 import { ArrowLeft, CheckCircle2, Loader2, Download, Briefcase } from "lucide-react";
 import StepContract from "@/components/register/StepContract";
 import { SupportCTA } from "@/components/SupportCTA";
@@ -454,10 +455,8 @@ function ContractPage() {
       };
       return (
         <div className="p-6 lg:p-8 max-w-2xl mx-auto space-y-4">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}><ArrowLeft className="h-4 w-4" /></Button>
-            <h1 className="text-xl font-heading font-bold">Beschäftigungsart wählen</h1>
-          </div>
+          <OnboardingStepHeader step={1} reassurance="Ihr Vertrag ist fair geregelt und kann jederzeit fristgerecht gekündigt werden." />
+          <h1 className="text-xl font-heading font-bold">Beschäftigungsart wählen</h1>
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-start gap-3">
@@ -509,10 +508,8 @@ function ContractPage() {
 
     return (
       <div className="p-6 lg:p-8 max-w-2xl mx-auto space-y-4">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}><ArrowLeft className="h-4 w-4" /></Button>
-          <h1 className="text-xl font-heading font-bold">Arbeitsvertrag unterschreiben</h1>
-        </div>
+        <OnboardingStepHeader step={1} reassurance="Ihr Vertrag ist fair geregelt und kann jederzeit fristgerecht gekündigt werden." />
+        <h1 className="text-xl font-heading font-bold">Arbeitsvertrag unterschreiben</h1>
         <Card>
           <CardContent className="pt-6">
             <StepContract
