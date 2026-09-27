@@ -1,24 +1,20 @@
-# Landing Generator: Bilderzeugung prüfen und Kurz-Anleitung erstellen
+# Bilderzeugung im Landing-Baukasten reparieren
 
-## Ziel
+## Befund
 
-Den Fehler bei „Mit KI erzeugen“ anhand des geteilten Screenshots eingrenzen und beheben; anschließend eine **einseitige, schön gestaltete PDF-Anleitung** für den Kollegen erstellen, die nur das Anlegen einer neuen Seite beschreibt.
+Der Baukasten bevorzugt apinet.cloud, sobald dort ein Schlüssel hinterlegt ist. Die Bilderzeugung ruft dort aber die Google-Gemini-Schnittstelle (`generateContent`, Modell `gemini-2.5-flash-image`) auf. apinet.cloud ist OpenAI-kompatibel und kennt dieses Format sehr wahrscheinlich nicht — daher die 400-Antwort. Der Schlüssel ist vermutlich gültig; das Anfrageformat passt nicht zum Dienst.
 
-## Bilderzeugung
+## Vorgehen
 
-- Die Fehlermeldung im Screenshot zeigt eine Antwort mit Status 400 vom Bilddienst. Daraus allein folgt **nicht**, dass der Schlüssel ungültig ist.
-- Prüfen, welche sichere vollständige Fehlermeldung der Dienst zurückgibt und ob der hinterlegte Zugang das fest eingestellte Bildmodell unterstützt. Der Code bevorzugt derzeit apinet, sobald dort ein Schlüssel hinterlegt ist; das Bildmodell ist unabhängig vom eingestellten Textmodell festgelegt.
-- Nur den bestätigten Fehler beheben: etwa die Anfrage an das unterstützte Bildmodell anpassen oder im Baukasten verständlich auf fehlende Berechtigung hinweisen. Keine stillschweigende Umschaltung auf einen anderen Zugang oder ein anderes Modell.
-- Einen Bildversuch mit Admin-Zugang bis zur sichtbaren Vorschau prüfen; falls der Zugang beim Bilddienst nicht freigeschaltet ist, die konkrete Freischaltung als offenen Punkt nennen.
-
-## Einseitiges PDF
-
-- Kurzer, bebilderungsfreier Spickzettel auf Deutsch: Admin → Landing-Baukasten → „Neue Seite“ → „Komplette Seite in einem Schritt erstellen“ → Vorlage, Firmenname, Branche, Stelle und echte Stichworte → „Seite generieren“.
-- Danach Texte und Bilder kontrollieren, bei Bedarf Bild hochladen oder nach erfolgreicher Fehlerbehebung per KI erzeugen, Grundeinstellungen einschließlich Kontakt und Calendly prüfen, Vorschau auf Handy/Desktop ansehen und speichern.
-- Den Schritt zum Live-Schalten **vor dem Druck anhand des tatsächlichen Speicher- und Veröffentlichungswegs verifizieren**. Der Baukasten speichert neue Seiten derzeit ohne Domain und zunächst pausiert; die Anleitung darf nicht behaupten, dass ein Klick auf „Speichern“ die Seite schon veröffentlicht. Domain-Zuweisung und Aktivierung nur mit tatsächlich funktionierendem Ablauf beschreiben.
-- PDF unter `/mnt/documents/landing-generator-anleitung.pdf` ausgeben, als A4-Seite rendern und visuell auf Lesbarkeit, Abstände und Überlappungen prüfen.
+1. **Verifizieren, was apinet.cloud kann:** Einmal serverseitig prüfen, ob apinet ein Bildmodell anbietet (Modell-Liste abrufen bzw. eine Testanfrage im OpenAI-Bildformat stellen). Ergebnis entscheidet den Weg.
+2. **Fall A — apinet kann Bilder:** `generateAiImage` in `src/lib/landing-ai.server.ts` so umbauen, dass bei apinet das OpenAI-Bildformat (`/v1/images/generations` oder Chat-Completions mit Bildmodell, je nachdem was apinet anbietet) genutzt wird. Texte bleiben unverändert.
+3. **Fall B — apinet kann keine Bilder:** Bilderzeugung läuft immer über den Gemini-Zugang (`gemini_api_key`), Texte bleiben bei apinet. Fehlt der Gemini-Schlüssel, zeigt der Baukasten eine verständliche Meldung: „Für KI-Bilder bitte einen Gemini-Schlüssel in den KI-Einstellungen hinterlegen."
+4. **Keine stillschweigende Modell-Umschaltung:** Das Bildmodell wird nur angepasst, wenn die Prüfung in Schritt 1 ein unterstütztes Bildmodell bestätigt.
+5. **Test:** Einen Bildversuch im Baukasten bis zur sichtbaren Vorschau durchspielen.
 
 ## Technische Details
 
-- Betroffene Stellen: `src/lib/landing-ai.server.ts`, `src/lib/landing-builder.functions.ts` und Bildfeld in `src/routes/admin.landing-baukasten.tsx`; zur Veröffentlichung auch `src/lib/landing-pages.functions.ts` und die beiden Admin-Seiten prüfen.
-- Die neue Prüfaufgabe in `roadmap.md` festhalten und nach Abschluss aktualisieren; keine Änderung an bestehendem Landing- oder Bewerberfluss ohne bestätigte Ursache.
+- Betroffen: `src/lib/landing-ai.server.ts` (`generateAiImage`, `loadAiCreds`), Aufrufer `generateLandingImage` in `src/lib/landing-builder.functions.ts`.
+- Zugangsdaten kommen aus `system_settings` (id=1): `apinet_api_key` bevorzugt, `gemini_api_key` als Fallback.
+- Kein Eingriff in Textgenerierung, Bewerberfluss oder WebID.
+- Deploy danach: `cd /opt/apps/portal && git pull && bash scripts/deploy.sh`.
