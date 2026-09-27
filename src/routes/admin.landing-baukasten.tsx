@@ -101,6 +101,8 @@ function LandingBaukastenPage() {
   const [sections, setSections] = useState<LandingSection[]>([]);
   const [branding, setBranding] = useState<Record<string, any>>({ ...EMPTY_BRANDING });
   const [slug, setSlug] = useState("");
+  const [domain, setDomain] = useState("");
+  const [templatesError, setTemplatesError] = useState<string | null>(null);
   const [calendlyUrl, setCalendlyUrl] = useState("");
   const [previewHtml, setPreviewHtml] = useState("");
   const [loading, setLoading] = useState(true);
@@ -173,6 +175,7 @@ function LandingBaukastenPage() {
   const applyState = (lp: LandingRow | null, secs: LandingSection[]) => {
     setCurrent(lp);
     setSlug(lp?.slug || "");
+    setDomain(lp?.domain && !lp.domain.endsWith(".entwurf.invalid") ? lp.domain : "");
     setCalendlyUrl(lp?.calendly_url || "");
     const b = lp ? { telefon: "", kontakt_email: "", ...(lp.branding || {}) } : { ...EMPTY_BRANDING };
     setBranding(b);
@@ -208,8 +211,10 @@ function LandingBaukastenPage() {
     try {
       const res = (await tplListFn()) as unknown as { rows: TemplateRow[] };
       setTemplates(res.rows || []);
-    } catch {
+      setTemplatesError(null);
+    } catch (e) {
       setTemplates([]); // Tabelle evtl. noch nicht eingespielt — Baukasten bleibt nutzbar
+      setTemplatesError(String((e as Error)?.message || e));
     }
   }, [tplListFn]);
 
@@ -302,6 +307,7 @@ function LandingBaukastenPage() {
     setSections(copy);
     setSelectedId(copy[0]?.id || null);
     setSlug(next);
+    setDomain("");
     savedSnapshot.current = "";
     setDirty(true);
     setShowSettings(true);
@@ -444,8 +450,20 @@ function LandingBaukastenPage() {
       setShowSettings(true);
       return;
     }
+    if (!String(branding.firmenname || "").trim()) {
+      toast({ title: "Firmenname fehlt", description: "Bitte unter Grundeinstellungen einen Firmennamen eintragen.", variant: "destructive" });
+      setShowSettings(true);
+      return;
+    }
     if (!current?.id && landings.some((l) => l.slug === slug.trim())) {
       toast({ title: "Kurzname schon vergeben", description: "Es gibt bereits eine Seite mit diesem Kurznamen.", variant: "destructive" });
+      setShowSettings(true);
+      return;
+    }
+    const cleanDom = domain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+    const finalDomain = cleanDom || `${slug.trim()}.entwurf.invalid`;
+    if (landings.some((l) => l.id !== current?.id && (l.domain || "").toLowerCase() === finalDomain)) {
+      toast({ title: "Domain schon vergeben", description: "Diese Domain gehört bereits zu einer anderen Seite.", variant: "destructive" });
       setShowSettings(true);
       return;
     }
@@ -453,7 +471,7 @@ function LandingBaukastenPage() {
     try {
       const payload: Record<string, unknown> = {
         slug: slug.trim(),
-        domain: current?.domain || "",
+        domain: finalDomain,
         tenant_id: current?.tenant_id || null,
         theme_id: current?.theme_id || "theme-10",
         flow_type: current?.flow_type || "classic",
@@ -478,6 +496,10 @@ function LandingBaukastenPage() {
         title: "Speichern fehlgeschlagen",
         description: msg.includes("sections")
           ? "Die Datenbank kennt das Feld „sections“ noch nicht — bitte zuerst die Migration supabase/manual-migrations/20260922000000_landing_sections.sql einspielen."
+          : /duplicate key.*domain/i.test(msg)
+          ? "Diese Domain gehört bereits zu einer anderen Seite."
+          : /duplicate key.*slug/i.test(msg)
+          ? "Dieser Kurzname ist bereits vergeben."
           : msg,
         variant: "destructive",
       });
@@ -578,6 +600,8 @@ function LandingBaukastenPage() {
             setBranding={setBranding}
             slug={slug}
             setSlug={setSlug}
+            domain={domain}
+            setDomain={setDomain}
             calendlyUrl={calendlyUrl}
             setCalendlyUrl={setCalendlyUrl}
             onClose={() => setShowSettings(false)}
@@ -799,12 +823,14 @@ function Overlay({ title, children, onClose }: { title: string; children: React.
 }
 
 function BasicSettings({
-  branding, setBranding, slug, setSlug, calendlyUrl, setCalendlyUrl, onClose,
+  branding, setBranding, slug, setSlug, domain, setDomain, calendlyUrl, setCalendlyUrl, onClose,
 }: {
   branding: Record<string, any>;
   setBranding: (b: Record<string, any>) => void;
   slug: string;
   setSlug: (s: string) => void;
+  domain: string;
+  setDomain: (s: string) => void;
   calendlyUrl: string;
   setCalendlyUrl: (s: string) => void;
   onClose: () => void;
@@ -826,6 +852,10 @@ function BasicSettings({
         <div>
           <Label>Kurzname (Slug, z. B. firma-stadt)</Label>
           <Input value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))} />
+        </div>
+        <div className="md:col-span-2">
+          <Label>Domain (optional, z. B. firma-xyz.de)</Label>
+          <Input value={domain} onChange={(e) => setDomain(e.target.value)} placeholder="Leer lassen = Entwurf ohne Domain" />
         </div>
         <div>
           <Label>Hauptfarbe</Label>
