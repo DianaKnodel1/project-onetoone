@@ -14,7 +14,7 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -58,6 +58,10 @@ function LoginPage() {
   const t = usePortalTheme().tokens;
   const whatsapp = useWhatsAppSupport();
   const supportEmail = tenant?.company_email || null;
+  useEffect(() => {
+    const qs = new URLSearchParams(window.location.search).get("email");
+    if (qs) setEmail(qs.trim().toLowerCase());
+  }, []);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,13 +95,11 @@ function LoginPage() {
     if (error) {
       const msg = (error.message || "").toLowerCase();
       if (msg.includes("email not confirmed") || msg.includes("not confirmed")) {
+        // Altes, halb angelegtes Konto: erneute Registrierung schaltet es frei.
         setNeedsVerify(true);
-        setAuthError("Bitte bestätige zuerst deine E-Mail-Adresse. Wir haben dir einen Link gesendet.");
-        toast({
-          title: "E-Mail nicht bestätigt",
-          description: "Bitte bestätige zuerst deine E-Mail-Adresse. Wir haben dir einen Link gesendet.",
-          variant: "destructive",
-        });
+        setAuthError("Dein Konto ist noch nicht fertig angelegt. Bitte registriere dich einfach noch einmal mit derselben E-Mail – danach klappt die Anmeldung.");
+        toast({ title: "Konto noch nicht fertig", description: "Du wirst zur Registrierung weitergeleitet." });
+        setTimeout(() => navigate(`/register?email=${encodeURIComponent(email.trim())}`), 2000);
         return;
       }
       const description = translateAuthError(error.message);
@@ -219,7 +221,7 @@ function LoginPage() {
         <div className={t.warnBox}>
           <MailCheck className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
           <div className="space-y-1.5 flex-1">
-            <p className={t.warnText}>Dein Konto ist noch nicht freigeschaltet. Bitte wende dich kurz an dein Team – wir schalten dich sofort frei.</p>
+            <p className={t.warnText}>Dein Konto ist noch nicht fertig angelegt. Du wirst gleich zur Registrierung weitergeleitet – bitte dort noch einmal mit derselben E-Mail abschließen.</p>
           </div>
         </div>
       )}
