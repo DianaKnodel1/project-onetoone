@@ -14,7 +14,7 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
