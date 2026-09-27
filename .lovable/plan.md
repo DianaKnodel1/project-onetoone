@@ -12,6 +12,10 @@ Der Baukasten bevorzugt apinet.cloud, sobald dort ein Schlüssel hinterlegt ist.
 4. **Keine stillschweigende Modell-Umschaltung:** Das Bildmodell wird nur angepasst, wenn die Prüfung in Schritt 1 ein unterstütztes Bildmodell bestätigt.
 5. **Test:** Einen Bildversuch im Baukasten bis zur sichtbaren Vorschau durchspielen.
 
+## Alternative ohne eigenen KI-Bildzugang (sofort nutzbar)
+
+Der Baukasten hat bereits einen „Bild hochladen"-Knopf pro Bildfeld. Bilder können hier im Chat erzeugt und dann manuell hochgeladen werden — ganz ohne apinet/Gemini-Bildzugang. Optional: Ich erzeuge auf Wunsch einen kleinen Satz passender Stock-Bilder (z. B. 5–10 Motive für Recruiting-Seiten), die Sie im Baukasten wiederverwenden können.
+
 ## Technische Details
 
 - Betroffen: `src/lib/landing-ai.server.ts` (`generateAiImage`, `loadAiCreds`), Aufrufer `generateLandingImage` in `src/lib/landing-builder.functions.ts`.
