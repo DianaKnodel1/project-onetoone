@@ -274,9 +274,6 @@ function OnboardingPage() {
       <header className="border-b border-border bg-card">
         <div className="container flex items-center justify-between py-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
             <h1 className="text-xl font-heading font-bold">Onboarding</h1>
           </div>
           <Badge variant="secondary">
@@ -286,6 +283,9 @@ function OnboardingPage() {
       </header>
 
       <main className="container py-8 max-w-2xl space-y-6">
+        <p className="text-sm text-muted-foreground text-center">
+          Bitte nehmen Sie sich kurz Zeit für das Onboarding.
+        </p>
         <Progress value={progress} className="h-2" />
 
         <Card className="animate-fade-in" key={step}>

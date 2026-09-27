@@ -240,6 +240,7 @@ export default function EmployeeLayout() {
   const [kycPending, setKycPending] = useState(false);
   const [kycRejected, setKycRejected] = useState(false);
   const [contractPending, setContractPending] = useState(false);
+  const [onboardingDone, setOnboardingDone] = useState(false);
   const [smsVisible, setSmsVisible] = useState(false);
 
   useEffect(() => {
@@ -272,11 +273,12 @@ export default function EmployeeLayout() {
   useEffect(() => {
     if (!user) return;
     Promise.all([
-      supabase.from("profiles").select("status, contract_signed_at").eq("user_id", user.id).maybeSingle(),
+      supabase.from("profiles").select("status, contract_signed_at, onboarding_status").eq("user_id", user.id).maybeSingle(),
       supabase.from("kyc_verifications").select("status").eq("user_id", user.id).maybeSingle(),
     ]).then(([profileRes, kycRes]) => {
       setEmployeeStatus((profileRes.data?.status as EmployeeStatus) ?? null);
       setContractPending(!profileRes.data?.contract_signed_at);
+      setOnboardingDone(profileRes.data?.onboarding_status === "abgeschlossen");
       const kycStatus = kycRes.data?.status;
       setKycRejected(kycStatus === "abgelehnt");
       setKycPending(!kycStatus || kycStatus === "nicht_gestartet" || kycStatus === "in_pruefung");
@@ -314,6 +316,16 @@ export default function EmployeeLayout() {
     const isAllowed = ALWAYS_ALLOWED_PATHS.some((p) => location.pathname.startsWith(p));
     if (!isAllowed) navigate("/dashboard");
   }, [location.pathname, employeeStatus, statusLoading, navigate]);
+
+  // Onboarding ist verpflichtend: Wer den Vertrag unterschrieben, aber das
+  // Onboarding noch nicht abgeschlossen hat, wird immer dorthin weitergeleitet.
+  useEffect(() => {
+    if (statusLoading || !user) return;
+    if (contractPending) return; // erst Vertrag, dann Onboarding
+    if (onboardingDone) return;
+    if (location.pathname.startsWith("/onboarding")) return;
+    navigate("/onboarding");
+  }, [location.pathname, statusLoading, user, contractPending, onboardingDone, navigate]);
 
   if (loading || statusLoading) {
     return (
