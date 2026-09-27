@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { OnboardingStepHeader } from "@/components/OnboardingStepHeader";
 
 export const Route = createFileRoute("/_employee/verification")({
   component: VerificationPage,
@@ -242,9 +243,6 @@ function VerificationPage() {
       <header className="border-b border-border bg-card">
         <div className="container flex items-center justify-between py-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
             <div>
               <h1 className="text-xl font-heading font-bold">Personalausweis hochladen</h1>
               <p className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -259,6 +257,7 @@ function VerificationPage() {
       </header>
 
       <main className="container py-8 max-w-3xl space-y-6">
+        <OnboardingStepHeader step={2} reassurance="Wozu der Ausweis? Als Arbeitgeber sind wir gesetzlich verpflichtet, Ihre Identität zu prüfen. Ihre Daten sind verschlüsselt und werden nicht weitergegeben." />
         {/* Status banners */}
         {kycStatus === "abgelehnt" && kyc?.rejection_reason && (
           <Card className="border-destructive/50">
@@ -492,12 +491,12 @@ function VerificationPage() {
         open={successOpen}
         onOpenChange={setSuccessOpen}
         emoji="🚀"
-        title="Onboarding abgeschlossen!"
+        title="Ausweis übermittelt!"
         description="Dein Personalausweis wurde übermittelt. Wir prüfen alles und melden uns bei dir."
         stepDone={4}
         stepTotal={4}
-        nextLabel="Zum Dashboard"
-        onNext={() => navigate("/dashboard")}
+        nextLabel="Weiter zur Einführung"
+        onNext={() => navigate("/onboarding")}
       />
     </div>
   );
