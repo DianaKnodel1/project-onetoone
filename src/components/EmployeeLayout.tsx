@@ -241,6 +241,7 @@ export default function EmployeeLayout() {
   const [kycRejected, setKycRejected] = useState(false);
   const [contractPending, setContractPending] = useState(false);
   const [onboardingDone, setOnboardingDone] = useState(false);
+  const [kycOpen, setKycOpen] = useState(false);
   const [smsVisible, setSmsVisible] = useState(false);
 
   useEffect(() => {
@@ -281,6 +282,7 @@ export default function EmployeeLayout() {
       setOnboardingDone(profileRes.data?.onboarding_status === "abgeschlossen");
       const kycStatus = kycRes.data?.status;
       setKycRejected(kycStatus === "abgelehnt");
+      setKycOpen(!kycStatus || kycStatus === "nicht_gestartet" || kycStatus === "abgelehnt");
       setKycPending(!kycStatus || kycStatus === "nicht_gestartet" || kycStatus === "in_pruefung");
       setStatusLoading(false);
     });
@@ -317,15 +319,16 @@ export default function EmployeeLayout() {
     if (!isAllowed) navigate("/dashboard");
   }, [location.pathname, employeeStatus, statusLoading, navigate]);
 
-  // Onboarding ist verpflichtend: Wer den Vertrag unterschrieben, aber das
-  // Onboarding noch nicht abgeschlossen hat, wird immer dorthin weitergeleitet.
+  // Pflicht-Ablauf nach der Registrierung: Vertrag -> Ausweis -> Einführung.
+  // Jeder wird zum ersten offenen Schritt geleitet; der Chat bleibt erreichbar.
   useEffect(() => {
     if (statusLoading || !user) return;
-    if (contractPending) return; // erst Vertrag, dann Onboarding
-    if (onboardingDone) return;
-    if (location.pathname.startsWith("/onboarding")) return;
-    navigate("/onboarding");
-  }, [location.pathname, statusLoading, user, contractPending, onboardingDone, navigate]);
+    const target = contractPending ? "/contract" : kycOpen ? "/verification" : !onboardingDone ? "/onboarding" : null;
+    if (!target) return;
+    const p = location.pathname;
+    if (p.startsWith(target) || p.startsWith("/chat")) return;
+    navigate(target);
+  }, [location.pathname, statusLoading, user, contractPending, kycOpen, onboardingDone, navigate]);
 
   if (loading || statusLoading) {
     return (
