@@ -425,8 +425,9 @@ function RegisterPage() {
             title: "Konto angelegt",
             description: "Bitte melde dich jetzt mit deiner E-Mail und deinem Passwort an.",
           });
-          ls.setItem(`pending_profile_updates:${newUserId}`, "");
+          resetWizard();
           setTimeout(() => { window.location.href = `/login?email=${encodeURIComponent(trimmedEmail)}`; }, 1500);
+          return;
         }
       }
 
