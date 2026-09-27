@@ -16,7 +16,6 @@ import {
   toggleLandingPublished,
 } from "@/lib/landing-pages.functions";
 import { listPartnerCompanies } from "@/lib/partner-companies.functions";
-import { listLandingTemplates } from "@/lib/landing-templates.functions";
 import { adminListSchedules } from "@/lib/appointments.functions";
 import { THEME_LIST, THEMES } from "@/lib/landing-themes";
 import { THEME_ASSETS } from "@/lib/theme-assets.generated";
@@ -43,11 +42,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Globe, Loader2, CheckCircle2, Eye, ExternalLink, Save, Trash2, Power, Pencil, Plus, ExternalLink as LinkIcon } from "lucide-react";
+import { Download, Globe, Loader2, CheckCircle2, Eye, ExternalLink, Save, Trash2, Power, Pencil, Plus, Copy, ExternalLink as LinkIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { applyFlowCopy } from "@/lib/flow-copy";
 
 export const Route = createFileRoute("/admin/landing-generator")({
+  head: () => ({
+    meta: [
+      { title: "Landing-Page-Generator — MB Portal" },
+      { name: "description", content: "Landingpages erstellen, kopieren und veröffentlichen." },
+      { property: "og:title", content: "Landing-Page-Generator — MB Portal" },
+      { property: "og:description", content: "Landingpages erstellen, kopieren und veröffentlichen." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: LandingGeneratorPage,
   errorComponent: ({ error }) => (
     <div className="p-8 text-center space-y-4">
@@ -269,16 +278,6 @@ function LandingGeneratorPage() {
   const [deleteBusy, setDeleteBusy] = useState(false);
   const toggleFn = useServerFn(toggleLandingPublished);
   const setPortalThemeFn = useServerFn(setTenantPortalTheme);
-  const listTplFn = useServerFn(listLandingTemplates);
-  const [ownTemplates, setOwnTemplates] = useState<Array<{ id: string; name: string; description: string }>>([]);
-  const [ownTemplatesError, setOwnTemplatesError] = useState<string | null>(null);
-  useEffect(() => {
-    listTplFn()
-      .then((r: any) => setOwnTemplates(r?.rows ?? []))
-      .catch((e: any) => setOwnTemplatesError(String(e?.message ?? e)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const [landings, setLandings] = useState<any[]>([]);
   const [landingsLoading, setLandingsLoading] = useState(true);
   const listPartnersFn = useServerFn(listPartnerCompanies);
@@ -1065,6 +1064,13 @@ document.addEventListener('submit', function(e){
                           <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => handleEditLanding(l.id)} title="Bearbeiten">
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
+                          {Array.isArray(l.sections) && l.sections.length > 0 && (
+                            <Link to="/admin/landing-baukasten" search={{ kopie: l.id }}>
+                              <Button size="sm" variant="ghost" className="h-7 px-2" title="Als neue Seite kopieren">
+                                <Copy className="h-3.5 w-3.5" />
+                              </Button>
+                            </Link>
+                          )}
                           <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => handleTogglePublished(l.id, !l.is_published)} title={l.is_published ? "Pausieren" : "Aktivieren"}>
                             <Power className="h-3.5 w-3.5" />
                           </Button>
@@ -1155,29 +1161,40 @@ document.addEventListener('submit', function(e){
               </div>
 
               <div className="mt-4 border-t pt-3 space-y-2">
-                <div className="text-sm font-semibold">Eigene gespeicherte Vorlagen</div>
-                {ownTemplatesError ? (
-                  <p className="text-xs text-muted-foreground">Vorlagen konnten nicht geladen werden: {ownTemplatesError}</p>
-                ) : ownTemplates.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">Noch keine Vorlage gespeichert.</p>
+                <div className="text-sm font-semibold">Gespeicherte Baukasten-Seiten verwenden</div>
+                <p className="text-xs text-muted-foreground">
+                  Erstellt eine neue, unveröffentlichte Kopie. Die bestehende Seite bleibt unverändert.
+                </p>
+                {landingsLoading ? (
+                  <p className="text-xs text-muted-foreground">Seiten werden geladen …</p>
+                ) : landings.filter((landing) => Array.isArray(landing.sections) && landing.sections.length > 0).length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Noch keine Seite aus dem Baukasten gespeichert.</p>
                 ) : (
                   <div className="grid grid-cols-1 gap-2">
-                    {ownTemplates.map((t) => (
-                      <Link
-                        key={t.id}
-                        to="/admin/landing-baukasten"
-                        search={{ vorlage: t.id }}
-                        className="text-left rounded-lg border-2 border-border hover:border-primary/40 p-3 transition-all block"
-                      >
-                        <div className="font-semibold text-sm truncate">{t.name}</div>
-                        <p className="text-xs text-muted-foreground">
-                          {t.description || "Neue Seite mit dieser Vorlage erstellen"}
-                        </p>
-                      </Link>
-                    ))}
+                    {landings
+                      .filter((landing) => Array.isArray(landing.sections) && landing.sections.length > 0)
+                      .map((landing) => (
+                        <Link
+                          key={landing.id}
+                          to="/admin/landing-baukasten"
+                          search={{ kopie: landing.id }}
+                          className="text-left rounded-lg border-2 border-border hover:border-primary/40 p-3 transition-all block"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-semibold text-sm truncate">
+                              {landing.branding?.firmenname?.trim?.() || landing.slug}
+                            </span>
+                            <span className="inline-flex items-center gap-1 text-xs text-primary shrink-0">
+                              <Copy className="h-3.5 w-3.5" /> Als neue Seite kopieren
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate">{landing.domain || landing.slug}</p>
+                        </Link>
+                      ))}
                   </div>
                 )}
               </div>
+
             </CardContent>
           </Card>
 
