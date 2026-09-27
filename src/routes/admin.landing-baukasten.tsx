@@ -142,9 +142,11 @@ function LandingBaukastenPage() {
 
   useEffect(() => {
     (async () => {
+      // Vorlagen unabhängig von der Seitenliste laden, damit ein Fehler dort
+      // die Vorlagen nicht verschwinden lässt.
+      void refreshTemplates();
       try {
         await refreshList();
-        await refreshTemplates();
       } catch (e) {
         toast({ title: "Fehler", description: String((e as Error).message), variant: "destructive" });
       } finally {
@@ -153,6 +155,12 @@ function LandingBaukastenPage() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Beim Öffnen von „Neue Seite“ die Vorlagen frisch laden.
+  useEffect(() => {
+    if (showNewDialog) void refreshTemplates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showNewDialog]);
 
   // ── Ungespeicherte Änderungen ────────────────────────────────────────────
   useEffect(() => {
@@ -545,6 +553,21 @@ function LandingBaukastenPage() {
           <Button variant="outline" size="sm" onClick={() => { if (confirmLeave()) setShowNewDialog(true); }}>
             <Plus className="h-4 w-4 mr-1" /> Neue Seite
           </Button>
+          {templates.length > 0 && (
+            <select
+              className="border rounded-md px-3 py-2 bg-background text-sm max-w-[240px]"
+              value=""
+              onChange={(e) => {
+                const t = templates.find((x) => x.id === e.target.value);
+                if (t && confirmLeave()) startFromTemplate(t);
+              }}
+            >
+              <option value="">Vorlage verwenden …</option>
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+          )}
           <Link to="/admin/landing-generator">
             <Button variant="ghost" size="sm">Klassischer Generator</Button>
           </Link>
