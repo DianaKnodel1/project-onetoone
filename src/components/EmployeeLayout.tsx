@@ -272,11 +272,12 @@ export default function EmployeeLayout() {
   useEffect(() => {
     if (!user) return;
     Promise.all([
-      supabase.from("profiles").select("status, contract_signed_at").eq("user_id", user.id).maybeSingle(),
+      supabase.from("profiles").select("status, contract_signed_at, onboarding_status").eq("user_id", user.id).maybeSingle(),
       supabase.from("kyc_verifications").select("status").eq("user_id", user.id).maybeSingle(),
     ]).then(([profileRes, kycRes]) => {
       setEmployeeStatus((profileRes.data?.status as EmployeeStatus) ?? null);
       setContractPending(!profileRes.data?.contract_signed_at);
+      setOnboardingDone(profileRes.data?.onboarding_status === "abgeschlossen");
       const kycStatus = kycRes.data?.status;
       setKycRejected(kycStatus === "abgelehnt");
       setKycPending(!kycStatus || kycStatus === "nicht_gestartet" || kycStatus === "in_pruefung");
