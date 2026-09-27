@@ -1,40 +1,24 @@
-# Deckblatt/Kurz-Anleitung: Landing Generator (PDF)
+# Landing Generator: Bilderzeugung prüfen und Kurz-Anleitung erstellen
 
 ## Ziel
 
-Eine **einseitige, ansprechend gestaltete PDF-Anleitung** (A4, Deutsch) für den Kollegen:
-Wie erstelle ich im Landing-Baukasten in wenigen Minuten eine neue, komplett eigene Landing-Page und schalte sie live?
+Den Fehler bei „Mit KI erzeugen“ anhand des geteilten Screenshots eingrenzen und beheben; anschließend eine **einseitige, schön gestaltete PDF-Anleitung** für den Kollegen erstellen, die nur das Anlegen einer neuen Seite beschreibt.
 
-Ablage: `/mnt/documents/landing-generator-anleitung.pdf`
+## Bilderzeugung
 
-## Inhalt der Anleitung (eine Seite, kompakt)
+- Die Fehlermeldung im Screenshot zeigt eine Antwort mit Status 400 vom Bilddienst. Daraus allein folgt **nicht**, dass der Schlüssel ungültig ist.
+- Prüfen, welche sichere vollständige Fehlermeldung der Dienst zurückgibt und ob der hinterlegte Zugang das fest eingestellte Bildmodell unterstützt. Der Code bevorzugt derzeit apinet, sobald dort ein Schlüssel hinterlegt ist; das Bildmodell ist unabhängig vom eingestellten Textmodell festgelegt.
+- Nur den bestätigten Fehler beheben: etwa die Anfrage an das unterstützte Bildmodell anpassen oder im Baukasten verständlich auf fehlende Berechtigung hinweisen. Keine stillschweigende Umschaltung auf einen anderen Zugang oder ein anderes Modell.
+- Einen Bildversuch mit Admin-Zugang bis zur sichtbaren Vorschau prüfen; falls der Zugang beim Bilddienst nicht freigeschaltet ist, die konkrete Freischaltung als offenen Punkt nennen.
 
-Kopf: Titel „Landing Generator — Neue Seite in Minuten", Untertitel, Kurz-Leitsatz (KI macht Texte, Design und Bilder; Bewerbungsformular, Terminbuchung und Portal-Übergang sind fest verdrahtet und können nichts kaputt machen).
+## Einseitiges PDF
 
-Schritte als nummerierte, klar gestaltete Liste:
+- Kurzer, bebilderungsfreier Spickzettel auf Deutsch: Admin → Landing-Baukasten → „Neue Seite“ → „Komplette Seite in einem Schritt erstellen“ → Vorlage, Firmenname, Branche, Stelle und echte Stichworte → „Seite generieren“.
+- Danach Texte und Bilder kontrollieren, bei Bedarf Bild hochladen oder nach erfolgreicher Fehlerbehebung per KI erzeugen, Grundeinstellungen einschließlich Kontakt und Calendly prüfen, Vorschau auf Handy/Desktop ansehen und speichern.
+- Den Schritt zum Live-Schalten **vor dem Druck anhand des tatsächlichen Speicher- und Veröffentlichungswegs verifizieren**. Der Baukasten speichert neue Seiten derzeit ohne Domain und zunächst pausiert; die Anleitung darf nicht behaupten, dass ein Klick auf „Speichern“ die Seite schon veröffentlicht. Domain-Zuweisung und Aktivierung nur mit tatsächlich funktionierendem Ablauf beschreiben.
+- PDF unter `/mnt/documents/landing-generator-anleitung.pdf` ausgeben, als A4-Seite rendern und visuell auf Lesbarkeit, Abstände und Überlappungen prüfen.
 
-1. **Öffnen:** Im Portal unter Admin → „Landing-Baukasten". Nur Admins kommen rein.
-2. **Neue Seite:** Knopf „Neue Seite" → „Mit KI erstellen" (alternativ „Leer starten" oder „Aus eigener Vorlage").
-3. **Beschreiben:** Im Dialog Vorlage & Farbwelt wählen (Seriöser Dienstleister · Moderne Digital-Agentur · Kompakter Schnelleinstieg · Warm & persönlich), dann Firmenname, Stelle/Branche und 2–3 Stichworte (z. B. „16,50 €/Std., kein Lebenslauf nötig") → „Seite generieren" (dauert rund 20 Sekunden).
-4. **Feinschliff im Editor:** Vorschau links, Abschnittsliste rechts. Abschnitte bearbeiten, verschieben (↑/↓), löschen, mit „+" neue einfügen. „Design neu würfeln" für neuen Look. Bilder: hochladen oder „Mit KI erzeugen". Ansicht Handy/Desktop umschalten und prüfen.
-5. **Grundeinstellungen:** Firmenname, Kurzname (Slug), Haupt-/Akzentfarbe, Kontakt-E-Mail, Telefon, Calendly-Link, SEO-Titel und -Beschreibung.
-6. **Speichern:** Knopf „Speichern". Optional: „Als Vorlage speichern" (wiederverwendbar) oder „Seite duplizieren" für die nächste Firma.
-7. **Live schalten:** Seite im klassischen „Landing-Generator" öffnen (gleiche Liste), unter Branding die **Landing-Domain** eintragen (ohne https://) und speichern — damit ist die Seite online, das SSL-Zertifikat kommt automatisch. Voraussetzung: A-Record der Domain zeigt auf den Landing-Server.
+## Technische Details
 
-Fußzeilen-Hinweise (kurz, 3 Punkte):
-- Bestehende Live-Seiten bleiben unberührt — neue Seite = neuer eigener Auftritt.
-- Bewerbungen landen immer in Admin → Bewerbungen; Bewerber sehen nach Zusage Logo & Name der Seite im Portal.
-- Nach Tests im Portal: Seite einmal mit Strg+F5 neu laden.
-
-Gestaltung: sauberes, professionelles A4-Layout passend zum Portal (ruhige Farbwelt, klare Typografie, nummerierte Schritte mit klarer Hierarchie, dezente Akzentfarbe für Knopf-Namen — Knopf-Namen wörtlich so, wie sie in der Oberfläche stehen).
-
-## Umsetzung
-
-- PDF mit ReportLab (platypus/canvas) bauen; DejaVu Sans registrieren für korrekte Umlaute.
-- Ein einziges A4-Blatt; Schritte knapp formuliert, keine Textwüsten.
-- QA laut PDF-Skill: mit pdftoppm rendern, visuell prüfen (Überlappungen, abgeschnittener Text, Ränder, Kontrast), ggf. iterativ nachbessern — erst dann liefern.
-
-## Prüfungen
-
-- pdftoppm-Renderung ansehen (kein Browser-QA).
-- Bestätigen, dass alle Knopf-Namen und Felder exakt der echten Oberfläche entsprechen (Quelle: `src/routes/admin.landing-baukasten.tsx`, `admin.landing-generator.tsx`).
+- Betroffene Stellen: `src/lib/landing-ai.server.ts`, `src/lib/landing-builder.functions.ts` und Bildfeld in `src/routes/admin.landing-baukasten.tsx`; zur Veröffentlichung auch `src/lib/landing-pages.functions.ts` und die beiden Admin-Seiten prüfen.
+- Die neue Prüfaufgabe in `roadmap.md` festhalten und nach Abschluss aktualisieren; keine Änderung an bestehendem Landing- oder Bewerberfluss ohne bestätigte Ursache.
