@@ -94,32 +94,31 @@ serve(async (req) => {
       options: { data: { full_name: full_name ?? "", tenant_id }, redirectTo },
     });
 
-    // Fallback: User existiert bereits. Wenn er NICHT bestätigt ist → neuen Link
-    // erzeugen und resenden. Wenn bestätigt → echter Fehler.
-    if (lErr || !linkData?.properties?.action_link || !linkData?.user) {
+    // Fallback: User existiert bereits (z. B. halb angelegtes Konto aus der alten
+    // Mail-Zeit). Unbestätigt → Passwort auf das NEUE setzen und freischalten,
+    // sonst kann sich der Bewerber danach nicht mit seinem Passwort anmelden.
+    if (lErr || !linkData?.user) {
       const msg = (lErr?.message ?? "").toLowerCase();
       const looksLikeExists = msg.includes("already") || msg.includes("registered") || msg.includes("exists");
-      if (looksLikeExists) {
-        const { data: list } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-        const existing = list?.users.find((u) => (u.email ?? "").toLowerCase() === email.toLowerCase());
-        if (existing?.email_confirmed_at) {
-          await abort("skipped", "already_confirmed", tenant.id);
-          return json({ error: "Diese E-Mail-Adresse ist bereits registriert und bestätigt. Bitte melde dich an." }, 409);
-        }
-        const retry = await supabaseAdmin.auth.admin.generateLink({
-          type: "signup",
-          email,
-          options: { data: { full_name: full_name ?? "", tenant_id }, redirectTo },
-        });
-        if (retry.error || !retry.data?.properties?.action_link || !retry.data?.user) {
-          await abort("failed", `link_generation_failed: ${retry.error?.message ?? "unbekannt"}`, tenant.id);
-          return json({ error: retry.error?.message ?? "Confirmation-Link konnte nicht erzeugt werden" }, 400);
-        }
-        linkData = retry.data;
-      } else {
+      if (!looksLikeExists) {
         await abort("failed", `link_generation_failed: ${lErr?.message ?? "unbekannt"}`, tenant.id);
-        return json({ error: lErr?.message ?? "Confirmation-Link konnte nicht generiert werden" }, 400);
+        return json({ error: lErr?.message ?? "Konto konnte nicht angelegt werden" }, 400);
       }
+      const existing = await findUserByEmail(supabaseAdmin, email);
+      if (!existing) {
+        return json({ error: "Konto konnte nicht angelegt werden. Bitte versuche es in einer Minute erneut." }, 500);
+      }
+      if (existing.email_confirmed_at) {
+        await abort("skipped", "already_confirmed", tenant.id);
+        return json({ error: "Diese E-Mail-Adresse ist bereits registriert. Bitte melde dich an." }, 409);
+      }
+      const { error: upErr } = await supabaseAdmin.auth.admin.updateUserById(existing.id, {
+        password,
+        email_confirm: true,
+        user_metadata: { ...(existing.user_metadata ?? {}), full_name: full_name ?? "", tenant_id },
+      });
+      if (upErr) return json({ error: `Konto konnte nicht aktiviert werden: ${upErr.message}` }, 500);
+      return json({ success: true, user_id: existing.id, auto_confirmed: true, reused: true }, 200);
     }
     const userId = linkData!.user!.id;
 
@@ -229,6 +228,19 @@ serve(async (req) => {
     return json({ error: err?.message ?? "Unknown error" }, 500);
   }
 });
+
+// Sucht über ALLE Seiten (nicht nur die ersten 1000 Konten).
+async function findUserByEmail(admin: any, email: string): Promise<any | null> {
+  const target = email.trim().toLowerCase();
+  for (let page = 1; page <= 50; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) return null;
+    const hit = data?.users?.find((u: any) => (u.email ?? "").toLowerCase() === target);
+    if (hit) return hit;
+    if (!data?.users || data.users.length < 1000) return null;
+  }
+  return null;
+}
 
 function json(body: unknown, status: number) {
   return new Response(JSON.stringify(body), {
