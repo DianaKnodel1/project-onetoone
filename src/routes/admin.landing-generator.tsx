@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { generateLandingZip } from "@/lib/landing-generator.functions";
+import { listLandingTemplates } from "@/lib/landing-templates.functions";
 
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -329,6 +330,11 @@ function LandingGeneratorPage() {
   }, [listFn, toast]);
 
   useEffect(() => { reloadLandings(); }, [reloadLandings]);
+  const listTemplatesFn = useServerFn(listLandingTemplates);
+  const [savedTemplates, setSavedTemplates] = useState<any[]>([]);
+  useEffect(() => {
+    listTemplatesFn().then((r: any) => setSavedTemplates(r?.rows ?? [])).catch(() => setSavedTemplates([]));
+  }, [listTemplatesFn]);
 
   // Slot-Werte pro Theme — bei Theme-Wechsel mit Defaults vorbelegen.
   const [slotValues, setSlotValues] = useState<Record<string, string>>(() => {
@@ -1159,6 +1165,33 @@ document.addEventListener('submit', function(e){
                   </button>
                 ))}
               </div>
+
+              {savedTemplates.length > 0 && (
+                <div className="mt-4 border-t pt-3 space-y-2">
+                  <div className="text-sm font-semibold">Eigene gespeicherte Vorlagen</div>
+                  <p className="text-xs text-muted-foreground">
+                    Erstellt eine neue Seite auf Basis dieser Vorlage.
+                  </p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {savedTemplates.map((t) => (
+                      <Link
+                        key={t.id}
+                        to="/admin/landing-baukasten"
+                        search={{ vorlage: t.id }}
+                        className="text-left rounded-lg border-2 border-border hover:border-primary/40 p-3 transition-all block"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-sm truncate">{t.name}</span>
+                          <span className="inline-flex items-center gap-1 text-xs text-primary shrink-0">
+                            <Plus className="h-3.5 w-3.5" /> Vorlage verwenden
+                          </span>
+                        </div>
+                        {t.description && <p className="text-xs text-muted-foreground truncate">{t.description}</p>}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="mt-4 border-t pt-3 space-y-2">
                 <div className="text-sm font-semibold">Gespeicherte Baukasten-Seiten verwenden</div>
