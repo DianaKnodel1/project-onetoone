@@ -58,6 +58,10 @@ function LoginPage() {
   const t = usePortalTheme().tokens;
   const whatsapp = useWhatsAppSupport();
   const supportEmail = tenant?.company_email || null;
+  useEffect(() => {
+    const qs = new URLSearchParams(window.location.search).get("email");
+    if (qs) setEmail(qs.trim().toLowerCase());
+  }, []);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
