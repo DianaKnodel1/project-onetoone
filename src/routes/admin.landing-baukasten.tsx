@@ -67,6 +67,7 @@ type LandingRow = {
 type LandingListItem = {
   id: string;
   slug: string;
+  domain?: string | null;
   branding?: unknown;
   is_published?: boolean;
 };
@@ -769,6 +770,11 @@ function LandingBaukastenPage() {
               </div>
             </div>
 
+            {templatesError && (
+              <p className="text-xs text-destructive">
+                Eigene Vorlagen konnten nicht geladen werden ({templatesError}). Evtl. fehlt die Migration 20260923000000_landing_templates.sql.
+              </p>
+            )}
             {templates.length > 0 && (
               <div>
                 <p className="text-xs font-medium text-muted-foreground mb-2">Aus eigener Vorlage</p>
