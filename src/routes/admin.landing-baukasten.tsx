@@ -41,6 +41,16 @@ export const Route = createFileRoute("/admin/landing-baukasten")({
     ...(typeof s.vorlage === "string" && s.vorlage ? { vorlage: s.vorlage } : {}),
     ...(typeof s.kopie === "string" && s.kopie ? { kopie: s.kopie } : {}),
   }),
+  head: () => ({
+    meta: [
+      { title: "Landing-Baukasten — MB Portal" },
+      { name: "description", content: "Landingpages aus Abschnitten erstellen und bearbeiten." },
+      { property: "og:title", content: "Landing-Baukasten — MB Portal" },
+      { property: "og:description", content: "Landingpages aus Abschnitten erstellen und bearbeiten." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: LandingBaukastenPage,
   errorComponent: ({ error }) => (
     <div className="p-8 text-center space-y-4">

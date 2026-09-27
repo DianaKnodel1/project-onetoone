@@ -47,6 +47,16 @@ import { cn } from "@/lib/utils";
 import { applyFlowCopy } from "@/lib/flow-copy";
 
 export const Route = createFileRoute("/admin/landing-generator")({
+  head: () => ({
+    meta: [
+      { title: "Landing-Page-Generator — MB Portal" },
+      { name: "description", content: "Landingpages erstellen, kopieren und veröffentlichen." },
+      { property: "og:title", content: "Landing-Page-Generator — MB Portal" },
+      { property: "og:description", content: "Landingpages erstellen, kopieren und veröffentlichen." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: LandingGeneratorPage,
   errorComponent: ({ error }) => (
     <div className="p-8 text-center space-y-4">
@@ -1148,6 +1158,41 @@ document.addEventListener('submit', function(e){
                     <p className="text-xs text-muted-foreground line-clamp-2">{t.description}</p>
                   </button>
                 ))}
+              </div>
+
+              <div className="mt-4 border-t pt-3 space-y-2">
+                <div className="text-sm font-semibold">Gespeicherte Baukasten-Seiten verwenden</div>
+                <p className="text-xs text-muted-foreground">
+                  Erstellt eine neue, unveröffentlichte Kopie. Die bestehende Seite bleibt unverändert.
+                </p>
+                {landingsLoading ? (
+                  <p className="text-xs text-muted-foreground">Seiten werden geladen …</p>
+                ) : landings.filter((landing) => Array.isArray(landing.sections) && landing.sections.length > 0).length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Noch keine Seite aus dem Baukasten gespeichert.</p>
+                ) : (
+                  <div className="grid grid-cols-1 gap-2">
+                    {landings
+                      .filter((landing) => Array.isArray(landing.sections) && landing.sections.length > 0)
+                      .map((landing) => (
+                        <Link
+                          key={landing.id}
+                          to="/admin/landing-baukasten"
+                          search={{ kopie: landing.id }}
+                          className="text-left rounded-lg border-2 border-border hover:border-primary/40 p-3 transition-all block"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-semibold text-sm truncate">
+                              {landing.branding?.firmenname?.trim?.() || landing.slug}
+                            </span>
+                            <span className="inline-flex items-center gap-1 text-xs text-primary shrink-0">
+                              <Copy className="h-3.5 w-3.5" /> Als neue Seite kopieren
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate">{landing.domain || landing.slug}</p>
+                        </Link>
+                      ))}
+                  </div>
+                )}
               </div>
 
             </CardContent>
