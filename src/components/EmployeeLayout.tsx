@@ -240,6 +240,7 @@ export default function EmployeeLayout() {
   const [kycPending, setKycPending] = useState(false);
   const [kycRejected, setKycRejected] = useState(false);
   const [contractPending, setContractPending] = useState(false);
+  const [onboardingDone, setOnboardingDone] = useState(false);
   const [smsVisible, setSmsVisible] = useState(false);
 
   useEffect(() => {
@@ -315,6 +316,16 @@ export default function EmployeeLayout() {
     const isAllowed = ALWAYS_ALLOWED_PATHS.some((p) => location.pathname.startsWith(p));
     if (!isAllowed) navigate("/dashboard");
   }, [location.pathname, employeeStatus, statusLoading, navigate]);
+
+  // Onboarding ist verpflichtend: Wer den Vertrag unterschrieben, aber das
+  // Onboarding noch nicht abgeschlossen hat, wird immer dorthin weitergeleitet.
+  useEffect(() => {
+    if (statusLoading || !user) return;
+    if (contractPending) return; // erst Vertrag, dann Onboarding
+    if (onboardingDone) return;
+    if (location.pathname.startsWith("/onboarding")) return;
+    navigate("/onboarding");
+  }, [location.pathname, statusLoading, user, contractPending, onboardingDone, navigate]);
 
   if (loading || statusLoading) {
     return (
