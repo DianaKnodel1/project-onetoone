@@ -398,6 +398,7 @@ function LandingGeneratorPage() {
     .map(([label]) => label);
 
   const selectTheme = (id: string) => {
+    setTemplateId(null);
     setThemeId(id);
     setSlotValues(normalizeSlotsForTheme(id, {}, withSeoDefaults(branding)));
   };
@@ -773,8 +774,18 @@ document.addEventListener('submit', function(e){
           seo_title: b.seo_title, seo_description: b.seo_description, seo_image: b.seo_image,
           recruiter_name: b.recruiter_name || "Martin Schneider",
           recruiter_avatar_url: b.recruiter_avatar_url || null,
+          ...(selectedTemplate ? { style: selectedTemplate.style || {} } : {}),
         },
         slots: slotsForOutput,
+        ...(selectedTemplate
+          ? {
+              sections: (Array.isArray(selectedTemplate.sections) ? selectedTemplate.sections : []).map((s: any) => ({
+                ...s,
+                data: { ...s.data },
+                id: `sec_${Math.random().toString(36).slice(2, 10)}`,
+              })),
+            }
+          : {}),
         flow_type: branding.flow_type,
         source_slug: branding.source_slug || "",
         is_published: true,
