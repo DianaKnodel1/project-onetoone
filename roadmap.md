@@ -17,6 +17,7 @@
 - Alte Theme-Defaults mit erfundenen Kennzahlen/Stimmen bereinigen (Social Proof verworfen)
 
 ## Erledigt
+- [x] Gespeicherte Baukasten-Vorlagen werden direkt im klassischen Landinggenerator ausgewählt, mit ihren Abschnitten/Bildern angezeigt, über die vorhandenen Firmen- und Farbfelder angepasst und als neue Landing gespeichert; kein Baukasten-Wechsel im Vorlagenflow
 - [x] Login/Registrierung auf Landing-Daten vereinheitlicht; feste fremde Support-Adresse entfernt
 - [x] Migrationen `20260922000000_landing_sections.sql` und `20260922010000_landing_media_bucket.sql` erfolgreich auf dem Backend angewendet
 - [x] Landing-Baukasten: falsche Admin-Prüfung über `profiles.role` auf `user_roles` korrigiert
