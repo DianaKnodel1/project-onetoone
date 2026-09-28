@@ -89,7 +89,7 @@ export function useTeamLeader() {
     // Live-Aktualisierung: der Teamleiter kann sich jederzeit umstellen.
     if (!user) return;
     const channel = supabase
-      .channel(`leader-presence-${user.id}`)
+      .channel(`leader-presence-${user.id}-${Math.random().toString(36).slice(2, 10)}`)
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles" }, () => { load(); })
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
