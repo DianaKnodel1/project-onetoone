@@ -1873,7 +1873,7 @@ document.addEventListener('submit', function(e){
                 variant="outline"
                 className="h-7 gap-1.5 text-xs"
                 onClick={() => {
-                  const blob = new Blob([previewSrcDoc], { type: "text/html" });
+                  const blob = new Blob([selectedTemplate ? templatePreviewHtml : previewSrcDoc], { type: "text/html" });
                   const url = URL.createObjectURL(blob);
                   window.open(url, "_blank", "noopener,noreferrer");
                   setTimeout(() => URL.revokeObjectURL(url), 60_000);
@@ -1895,7 +1895,7 @@ document.addEventListener('submit', function(e){
               </div>
               <iframe
                 title="Landing Preview"
-                srcDoc={previewSrcDoc}
+                srcDoc={selectedTemplate ? templatePreviewHtml : previewSrcDoc}
                 sandbox="allow-same-origin allow-scripts"
                 className="w-full h-[calc(100vh-180px)] min-h-[600px] border-0 bg-white"
               />
