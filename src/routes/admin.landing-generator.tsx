@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { generateLandingZip } from "@/lib/landing-generator.functions";
 import { listLandingTemplates } from "@/lib/landing-templates.functions";
+import { renderSectionsPreview } from "@/lib/landing-builder.functions";
 
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -335,6 +336,38 @@ function LandingGeneratorPage() {
   useEffect(() => {
     listTemplatesFn().then((r: any) => setSavedTemplates(r?.rows ?? [])).catch(() => setSavedTemplates([]));
   }, [listTemplatesFn]);
+  // Eigene Baukasten-Vorlage als Grundlage (statt festem Theme)
+  const [templateId, setTemplateId] = useState<string | null>(null);
+  const selectedTemplate = savedTemplates.find((t) => t.id === templateId) ?? null;
+  const sectionsPreviewFn = useServerFn(renderSectionsPreview);
+  const [templatePreviewHtml, setTemplatePreviewHtml] = useState("");
+  useEffect(() => {
+    if (!selectedTemplate) return;
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      try {
+        const res: any = await sectionsPreviewFn({
+          data: {
+            sections: Array.isArray(selectedTemplate.sections) ? selectedTemplate.sections : [],
+            branding: {
+              firmenname: branding.firmenname, primary_color: branding.primary_color,
+              secondary_color: branding.secondary_color, kontakt_email: branding.email,
+              email: branding.email, telefon: branding.telefon,
+              whatsapp_number: branding.whatsapp_number, whatsapp_enabled: branding.whatsapp_enabled,
+              impressum: branding.impressum, seo_title: branding.seo_title,
+              seo_description: branding.seo_description, style: selectedTemplate.style || {},
+            },
+            logo_url: logoDataUrl && logoDataUrl.length < 500 ? logoDataUrl : null,
+          },
+        });
+        if (!cancelled) setTemplatePreviewHtml(res?.html ?? "");
+      } catch {
+        if (!cancelled) setTemplatePreviewHtml("");
+      }
+    }, 450);
+    return () => { cancelled = true; clearTimeout(t); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTemplate, branding, logoDataUrl]);
 
   // Slot-Werte pro Theme — bei Theme-Wechsel mit Defaults vorbelegen.
   const [slotValues, setSlotValues] = useState<Record<string, string>>(() => {
@@ -365,6 +398,7 @@ function LandingGeneratorPage() {
     .map(([label]) => label);
 
   const selectTheme = (id: string) => {
+    setTemplateId(null);
     setThemeId(id);
     setSlotValues(normalizeSlotsForTheme(id, {}, withSeoDefaults(branding)));
   };
@@ -740,8 +774,18 @@ document.addEventListener('submit', function(e){
           seo_title: b.seo_title, seo_description: b.seo_description, seo_image: b.seo_image,
           recruiter_name: b.recruiter_name || "Martin Schneider",
           recruiter_avatar_url: b.recruiter_avatar_url || null,
+          ...(selectedTemplate ? { style: selectedTemplate.style || {} } : {}),
         },
         slots: slotsForOutput,
+        ...(selectedTemplate
+          ? {
+              sections: (Array.isArray(selectedTemplate.sections) ? selectedTemplate.sections : []).map((s: any) => ({
+                ...s,
+                data: { ...s.data },
+                id: `sec_${Math.random().toString(36).slice(2, 10)}`,
+              })),
+            }
+          : {}),
         flow_type: branding.flow_type,
         source_slug: branding.source_slug || "",
         is_published: true,
@@ -1137,7 +1181,7 @@ document.addEventListener('submit', function(e){
                     onClick={() => selectTheme(t.id)}
                     className={cn(
                       "text-left rounded-lg border-2 p-3 transition-all",
-                      themeId === t.id
+                      themeId === t.id && !templateId
                         ? "border-primary bg-primary/5 shadow-sm"
                         : "border-border hover:border-primary/40",
                     )}
@@ -1158,40 +1202,39 @@ document.addEventListener('submit', function(e){
                           {t.flow === "fast" ? "Partner-Firma" : t.flow === "broker" ? "Vermittlung" : "beides"}
                         </span>
                         <span className="text-[10px] text-muted-foreground/70 font-mono">{t.id}</span>
-                        {themeId === t.id && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                        {themeId === t.id && !templateId && <CheckCircle2 className="h-4 w-4 text-primary" />}
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2">{t.description}</p>
                   </button>
                 ))}
+                {savedTemplates.map((t) => (
+                  <button
+                    key={`tpl-${t.id}`}
+                    type="button"
+                    onClick={() => setTemplateId(t.id)}
+                    className={cn(
+                      "text-left rounded-lg border-2 p-3 transition-all",
+                      templateId === t.id
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border hover:border-primary/40",
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="font-semibold text-sm truncate">{t.name}</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[10px] rounded px-1.5 py-0.5 font-medium bg-muted text-muted-foreground">
+                          Eigene Vorlage
+                        </span>
+                        {templateId === t.id && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {t.description || `${Array.isArray(t.sections) ? t.sections.length : 0} Abschnitte aus dem Baukasten`}
+                    </p>
+                  </button>
+                ))}
               </div>
-
-              {savedTemplates.length > 0 && (
-                <div className="mt-4 border-t pt-3 space-y-2">
-                  <div className="text-sm font-semibold">Eigene gespeicherte Vorlagen</div>
-                  <p className="text-xs text-muted-foreground">
-                    Erstellt eine neue Seite auf Basis dieser Vorlage.
-                  </p>
-                  <div className="grid grid-cols-1 gap-2">
-                    {savedTemplates.map((t) => (
-                      <Link
-                        key={t.id}
-                        to="/admin/landing-baukasten"
-                        search={{ vorlage: t.id }}
-                        className="text-left rounded-lg border-2 border-border hover:border-primary/40 p-3 transition-all block"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-semibold text-sm truncate">{t.name}</span>
-                          <span className="inline-flex items-center gap-1 text-xs text-primary shrink-0">
-                            <Plus className="h-3.5 w-3.5" /> Vorlage verwenden
-                          </span>
-                        </div>
-                        {t.description && <p className="text-xs text-muted-foreground truncate">{t.description}</p>}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               <div className="mt-4 border-t pt-3 space-y-2">
                 <div className="text-sm font-semibold">Gespeicherte Baukasten-Seiten verwenden</div>
@@ -1830,7 +1873,7 @@ document.addEventListener('submit', function(e){
                 variant="outline"
                 className="h-7 gap-1.5 text-xs"
                 onClick={() => {
-                  const blob = new Blob([previewSrcDoc], { type: "text/html" });
+                  const blob = new Blob([selectedTemplate ? templatePreviewHtml : previewSrcDoc], { type: "text/html" });
                   const url = URL.createObjectURL(blob);
                   window.open(url, "_blank", "noopener,noreferrer");
                   setTimeout(() => URL.revokeObjectURL(url), 60_000);
@@ -1852,7 +1895,7 @@ document.addEventListener('submit', function(e){
               </div>
               <iframe
                 title="Landing Preview"
-                srcDoc={previewSrcDoc}
+                srcDoc={selectedTemplate ? templatePreviewHtml : previewSrcDoc}
                 sandbox="allow-same-origin allow-scripts"
                 className="w-full h-[calc(100vh-180px)] min-h-[600px] border-0 bg-white"
               />
