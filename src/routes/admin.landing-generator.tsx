@@ -338,7 +338,21 @@ function LandingGeneratorPage() {
   }, [listTemplatesFn]);
   // Eigene Baukasten-Vorlage als Grundlage (statt festem Theme)
   const [templateId, setTemplateId] = useState<string | null>(null);
-  const selectedTemplate = savedTemplates.find((t) => t.id === templateId) ?? null;
+  // Gespeicherte Baukasten-Seite als Vorlage im Generator (Original bleibt unverändert)
+  const [pageTemplate, setPageTemplate] = useState<any | null>(null);
+  const selectedTemplate =
+    savedTemplates.find((t) => t.id === templateId) ??
+    (pageTemplate && pageTemplate.id === templateId ? pageTemplate : null);
+  const usePageAsTemplate = (landing: any) => {
+    setPageTemplate({
+      id: `page-${landing.id}`,
+      name: landing.branding?.firmenname?.trim?.() || landing.slug,
+      sections: Array.isArray(landing.sections) ? landing.sections : [],
+      style: landing.branding?.style || {},
+    });
+    setTemplateId(`page-${landing.id}`);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const sectionsPreviewFn = useServerFn(renderSectionsPreview);
   const [templatePreviewHtml, setTemplatePreviewHtml] = useState("");
   useEffect(() => {
@@ -1115,11 +1129,9 @@ document.addEventListener('submit', function(e){
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                           {Array.isArray(l.sections) && l.sections.length > 0 && (
-                            <Link to="/admin/landing-baukasten" search={{ kopie: l.id }}>
-                              <Button size="sm" variant="ghost" className="h-7 px-2" title="Als neue Seite kopieren">
-                                <Copy className="h-3.5 w-3.5" />
-                              </Button>
-                            </Link>
+                            <Button size="sm" variant="ghost" className="h-7 px-2" title="Als Vorlage für neue Seite verwenden" onClick={() => usePageAsTemplate(l)}>
+                              <Copy className="h-3.5 w-3.5" />
+                            </Button>
                           )}
                           <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => handleTogglePublished(l.id, !l.is_published)} title={l.is_published ? "Pausieren" : "Aktivieren"}>
                             <Power className="h-3.5 w-3.5" />
@@ -1250,22 +1262,25 @@ document.addEventListener('submit', function(e){
                     {landings
                       .filter((landing) => Array.isArray(landing.sections) && landing.sections.length > 0)
                       .map((landing) => (
-                        <Link
+                        <button
                           key={landing.id}
-                          to="/admin/landing-baukasten"
-                          search={{ kopie: landing.id }}
-                          className="text-left rounded-lg border-2 border-border hover:border-primary/40 p-3 transition-all block"
+                          type="button"
+                          onClick={() => usePageAsTemplate(landing)}
+                          className={cn(
+                            "text-left rounded-lg border-2 p-3 transition-all block w-full",
+                            templateId === `page-${landing.id}` ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-primary/40",
+                          )}
                         >
                           <div className="flex items-center justify-between gap-2">
                             <span className="font-semibold text-sm truncate">
                               {landing.branding?.firmenname?.trim?.() || landing.slug}
                             </span>
                             <span className="inline-flex items-center gap-1 text-xs text-primary shrink-0">
-                              <Copy className="h-3.5 w-3.5" /> Als neue Seite kopieren
+                              {templateId === `page-${landing.id}` ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} Als Vorlage verwenden
                             </span>
                           </div>
                           <p className="text-xs text-muted-foreground truncate">{landing.domain || landing.slug}</p>
-                        </Link>
+                        </button>
                       ))}
                   </div>
                 )}
