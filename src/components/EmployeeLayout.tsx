@@ -44,7 +44,7 @@ import { hasFullAccess } from "@/lib/employee-utils";
 import { isLocalOrPreview } from "@/lib/domain-utils";
 import { cn } from "@/lib/utils";
 
-const ALWAYS_ALLOWED_PATHS = ["/dashboard", "/verification", "/contract", "/onboarding", "/personal-data", "/payroll-data", "/settings", "/documents"];
+const ALWAYS_ALLOWED_PATHS = ["/dashboard", "/verification", "/contract", "/onboarding", "/chat", "/personal-data", "/payroll-data", "/settings", "/documents"];
 
 // Mitbewerber-Navigation (1:1) – mit farbigen Icons
 type NavItem = {
@@ -318,9 +318,11 @@ export default function EmployeeLayout() {
   useEffect(() => {
     if (statusLoading || !employeeStatus) return;
     if (hasFullAccess(employeeStatus)) return;
+    // Pflicht-Ablauf offen: dort übernimmt die Ablauf-Weiterleitung (kein Ping-Pong).
+    if (contractPending || kycOpen || !onboardingDone) return;
     const isAllowed = ALWAYS_ALLOWED_PATHS.some((p) => location.pathname.startsWith(p));
     if (!isAllowed) navigate("/dashboard");
-  }, [location.pathname, employeeStatus, statusLoading, navigate]);
+  }, [location.pathname, employeeStatus, statusLoading, contractPending, kycOpen, onboardingDone, navigate]);
 
   // Pflicht-Ablauf nach der Registrierung: Vertrag -> Ausweis -> Einführung.
   // Jeder wird zum ersten offenen Schritt geleitet; der Chat bleibt erreichbar.
@@ -377,7 +379,7 @@ export default function EmployeeLayout() {
           </header>
           <MissingPayrollDataBanner />
           <main className="flex-1 overflow-auto pb-20 md:pb-0">
-            <GuidedOnboarding />
+            {!contractPending && !kycOpen && onboardingDone && <GuidedOnboarding />}
             <Outlet />
           </main>
           <FloatingChat />
