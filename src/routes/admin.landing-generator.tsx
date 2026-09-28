@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { generateLandingZip } from "@/lib/landing-generator.functions";
 import { listLandingTemplates } from "@/lib/landing-templates.functions";
+import { renderSectionsPreview } from "@/lib/landing-builder.functions";
 
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -335,6 +336,38 @@ function LandingGeneratorPage() {
   useEffect(() => {
     listTemplatesFn().then((r: any) => setSavedTemplates(r?.rows ?? [])).catch(() => setSavedTemplates([]));
   }, [listTemplatesFn]);
+  // Eigene Baukasten-Vorlage als Grundlage (statt festem Theme)
+  const [templateId, setTemplateId] = useState<string | null>(null);
+  const selectedTemplate = savedTemplates.find((t) => t.id === templateId) ?? null;
+  const sectionsPreviewFn = useServerFn(renderSectionsPreview);
+  const [templatePreviewHtml, setTemplatePreviewHtml] = useState("");
+  useEffect(() => {
+    if (!selectedTemplate) return;
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      try {
+        const res: any = await sectionsPreviewFn({
+          data: {
+            sections: Array.isArray(selectedTemplate.sections) ? selectedTemplate.sections : [],
+            branding: {
+              firmenname: branding.firmenname, primary_color: branding.primary_color,
+              secondary_color: branding.secondary_color, kontakt_email: branding.email,
+              email: branding.email, telefon: branding.telefon,
+              whatsapp_number: branding.whatsapp_number, whatsapp_enabled: branding.whatsapp_enabled,
+              impressum: branding.impressum, seo_title: branding.seo_title,
+              seo_description: branding.seo_description, style: selectedTemplate.style || {},
+            },
+            logo_url: logoDataUrl && logoDataUrl.length < 500 ? logoDataUrl : null,
+          },
+        });
+        if (!cancelled) setTemplatePreviewHtml(res?.html ?? "");
+      } catch {
+        if (!cancelled) setTemplatePreviewHtml("");
+      }
+    }, 450);
+    return () => { cancelled = true; clearTimeout(t); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTemplate, branding, logoDataUrl]);
 
   // Slot-Werte pro Theme — bei Theme-Wechsel mit Defaults vorbelegen.
   const [slotValues, setSlotValues] = useState<Record<string, string>>(() => {
