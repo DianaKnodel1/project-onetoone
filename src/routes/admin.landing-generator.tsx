@@ -343,14 +343,40 @@ function LandingGeneratorPage() {
   const selectedTemplate =
     savedTemplates.find((t) => t.id === templateId) ??
     (pageTemplate && pageTemplate.id === templateId ? pageTemplate : null);
+  const selectTemplate = (template: any) => {
+    const style = template?.style && typeof template.style === "object" ? template.style : {};
+    setPageTemplate(null);
+    setTemplateId(template.id);
+    setEditingId(null);
+    setSlug("");
+    setBranding((current) => ({
+      ...current,
+      primary_color: typeof style.primary === "string" ? style.primary : current.primary_color,
+      secondary_color: typeof style.accent === "string" ? style.accent : current.secondary_color,
+    }));
+    setLogoDataUrl(null);
+    setFaviconDataUrl(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const usePageAsTemplate = (landing: any) => {
-    setPageTemplate({
+    const template = {
       id: `page-${landing.id}`,
       name: landing.branding?.firmenname?.trim?.() || landing.slug,
       sections: Array.isArray(landing.sections) ? landing.sections : [],
       style: landing.branding?.style || {},
-    });
-    setTemplateId(`page-${landing.id}`);
+    };
+    setPageTemplate(template);
+    const style = template.style && typeof template.style === "object" ? template.style : {};
+    setTemplateId(template.id);
+    setEditingId(null);
+    setSlug("");
+    setBranding((current) => ({
+      ...current,
+      primary_color: typeof style.primary === "string" ? style.primary : current.primary_color,
+      secondary_color: typeof style.accent === "string" ? style.accent : current.secondary_color,
+    }));
+    setLogoDataUrl(null);
+    setFaviconDataUrl(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const sectionsPreviewFn = useServerFn(renderSectionsPreview);
@@ -369,7 +395,12 @@ function LandingGeneratorPage() {
               email: branding.email, telefon: branding.telefon,
               whatsapp_number: branding.whatsapp_number, whatsapp_enabled: branding.whatsapp_enabled,
               impressum: branding.impressum, seo_title: branding.seo_title,
-              seo_description: branding.seo_description, style: selectedTemplate.style || {},
+              seo_description: branding.seo_description,
+              style: {
+                ...(selectedTemplate.style || {}),
+                primary: branding.primary_color,
+                accent: branding.secondary_color,
+              },
             },
             logo_url: logoDataUrl && logoDataUrl.length < 500 ? logoDataUrl : null,
           },
@@ -413,6 +444,7 @@ function LandingGeneratorPage() {
 
   const selectTheme = (id: string) => {
     setTemplateId(null);
+    setPageTemplate(null);
     setThemeId(id);
     setSlotValues(normalizeSlotsForTheme(id, {}, withSeoDefaults(branding)));
   };
@@ -788,7 +820,15 @@ document.addEventListener('submit', function(e){
           seo_title: b.seo_title, seo_description: b.seo_description, seo_image: b.seo_image,
           recruiter_name: b.recruiter_name || "Martin Schneider",
           recruiter_avatar_url: b.recruiter_avatar_url || null,
-          ...(selectedTemplate ? { style: selectedTemplate.style || {} } : {}),
+          ...(selectedTemplate
+            ? {
+                style: {
+                  ...(selectedTemplate.style || {}),
+                  primary: b.primary_color,
+                  accent: b.secondary_color,
+                },
+              }
+            : {}),
         },
         slots: slotsForOutput,
         ...(selectedTemplate
@@ -872,6 +912,8 @@ document.addEventListener('submit', function(e){
       const row: any = await getFn({ data: { id } } as any);
       setEditingId(row.id);
       setSlug(row.slug);
+      setTemplateId(null);
+      setPageTemplate(null);
       setLogoDataUrl(null); setFaviconDataUrl(null);
       const loadedBranding = {
         ...EMPTY,
@@ -908,6 +950,7 @@ document.addEventListener('submit', function(e){
   const handleNewLanding = () => {
     const nextThemeId = THEME_LIST[0]?.id ?? "";
     setEditingId(null); setSlug(""); setBranding(EMPTY);
+    setTemplateId(null); setPageTemplate(null);
     setLogoDataUrl(null); setFaviconDataUrl(null); setSlotValues({});
     setThemeId(nextThemeId);
     setSlotValues(themeSlotDefaults(nextThemeId));
@@ -1224,7 +1267,7 @@ document.addEventListener('submit', function(e){
                   <button
                     key={`tpl-${t.id}`}
                     type="button"
-                    onClick={() => setTemplateId(t.id)}
+                    onClick={() => selectTemplate(t)}
                     className={cn(
                       "text-left rounded-lg border-2 p-3 transition-all",
                       templateId === t.id
