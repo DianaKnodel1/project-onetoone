@@ -1,57 +1,50 @@
-# Landing-Seiten: Warum alles gleich aussieht – und welche Wege es gibt
+# 15 hochwertige Landing-Vorlagen, alle anpassbar
 
-Brainstorming – noch keine Umsetzung.
+## Warum der Baukasten heute fast gleiche Seiten baut
 
-## Warum der Baukasten fast identische Seiten baut
+- Alle Design-Welten (Modern, Warm, Seriös, Express) nutzen dieselben 7 Bausteine, und jeder Baustein hat genau ein Aussehen.
+- Die Welten ändern nur Farben, Schrift und Rundungen. Die KI schreibt nur die Texte.
+- Deshalb entsteht immer dasselbe Gerüst in anderen Farben.
 
-- Alle vier Vorlagen (Modern, Warm, Seriös, Express) nutzen **dieselben 7 Abschnitts-Bausteine** mit **genau einem Layout pro Baustein** (Hero, Stelle, Text+Bild, Ablauf, FAQ, Kontakt, Formular).
-- Die Vorlagen ändern nur Farben, Schrift, Eckenrundung und Abstände. Aufbau, Anordnung und Optik der Blöcke bleiben gleich.
-- Die KI füllt nur Texte. Das Design kann sie nicht ändern.
-- Ergebnis: dasselbe Gerüst, nur in anderen Farben. So wie jetzt gebaut, wird das nie „hochwertig und unterschiedlich“ aussehen.
+## Beste Lösung: 15 fertige Premium-Vorlagen mit Varianten-Bausteinen
 
-## Option 1 – Fertige Premium-Webseiten (schnellster Weg zu Qualität)
+Wir geben die Designs fest vor, damit sie professionell aussehen. Inhalte und einzelne Teile bleiben trotzdem änderbar.
 
-Wir gestalten 8–12 komplette, hochwertige Firmenauftritte von Hand, jeder mit eigenem Layout, eigener Bildsprache und eigener Typografie (z. B. „Beratungshaus“, „Tech-Studio“, „Logistik“, „Pflege-Team“, „Editorial/Magazin“).
-- Du wählst eine Seite aus und änderst Firmenname, Texte, Bilder, Farben und Kontakt. Das Formular und der Weg ins Portal sind fest eingebaut.
-- Vorteil: garantiert professionell, jede Seite sieht wirklich anders aus.
-- Nachteil: Der Aufbau bleibt pro Vorlage weitgehend fest.
-- Das ist im Grunde der klassische Generator, nur neu und hochwertiger. Die bestehenden 27 Themes könnten wir dafür aussortieren und aufwerten.
+1. **Neue Bausteine in mehreren Varianten.** Jeder Baustein bekommt 3–5 professionell gestaltete Varianten:
+   - Kopfbereich: Vollbild-Foto, geteilt, Magazin, große Schrift, dunkel und elegant
+   - Vorteile: Karten, Icon-Raster, Zickzack mit Bildern
+   - Ablauf: Zeitstrahl, nummerierte Karten, horizontale Schritte
+   - Stelle, FAQ, Kontakt, Formular-Rahmen: je 2–3 Varianten
+   - Neue Bausteine: Vorteile, Team/Ansprechpartner, Bildergalerie, Zitat-Banner, Standort, Fakten (nur mit echten Angaben)
+2. **15 fertige Vorlagen** aus diesen Bausteinen, jede mit eigener Kombination, Farbwelt, Schrift und Bildsprache. Beispiele: Beratungshaus, Tech-Studio, Logistik, Pflege-Team, Magazin, Luxus-Dunkel, Minimal-Schweiz, Handwerk, Kanzlei-Stil, Startup, Finanz, Service-Center, Nordisch-Hell, Klassisch-Blau, Energie.
+3. **Frei änderbar pro Vorlage und pro Seite:**
+   - alle Texte, Bilder (Upload), Farben, Schrift, Firmendaten
+   - Abschnitte ein- und ausblenden, verschieben, hinzufügen
+   - pro Abschnitt eine andere Variante wählen (Beispiel: Kopfbereich „geteilt“ statt „Vollbild“)
+   - geänderte Vorlage als neue eigene Vorlage speichern oder die Vorlage selbst aktualisieren
+4. **Ein Ablauf:** Die 15 Vorlagen erscheinen im klassischen Generator unter „Vorlagen“ (wie die gespeicherten Vorlagen jetzt). Bearbeitet werden sie im Baukasten.
+5. **KI optional:** Die KI füllt Texte passend zur gewählten Vorlage. Das Design ändert sie nicht, damit die Qualität gleich bleibt.
 
-## Option 2 – Baukasten mit echten Design-Varianten (flexibel und trotzdem schön)
+## Warum das die beste Lösung ist
 
-Jeder Baustein bekommt 3–5 professionell gestaltete Varianten, zum Beispiel:
-- Hero: Vollbild-Foto, geteilt, Magazin-Stil, große Typo, Video-Look
-- Vorteile: Karten, Icon-Raster, Zahlen-Leiste, Zickzack
-- Ablauf: Zeitstrahl, nummerierte Karten, horizontale Schritte
-- Dazu neue Bausteine: Vorteile/Benefits, Team, Galerie, Standorte, Zitat-Banner, Zahlen/Fakten (nur mit echten Angaben)
-- Jede „Design-Welt“ (Modern, Warm …) wählt automatisch andere Varianten. So entstehen wirklich verschiedene Seiten.
-- Vorteil: bleibt flexibel und verwendet die heutige Technik weiter.
-- Nachteil: mehr Arbeit (etwa 25–35 Varianten), Qualität hängt am Design jeder Variante.
+- Das Design kommt von Hand: seriös und hochwertig, nicht zufällig.
+- 15 Vorlagen mit Varianten und Farben ergeben sehr viele sichtbar unterschiedliche Firmenauftritte.
+- Alles bleibt dauerhaft änderbar, ohne dass eine Seite „kaputt“ gebaut werden kann.
 
-## Option 3 – Kombination (Empfehlung)
+## Was gleich bleibt
 
-- Aus den Bausteinen von Option 2 bauen wir 6–10 **fertige Premium-Seiten** (Option 1) als Startpunkte.
-- Du wählst eine fertige Seite, änderst Texte, Bilder und Farben. Wer will, tauscht einzelne Blöcke gegen eine andere Variante.
-- Die KI wählt beim Erstellen zufällig eine andere Premium-Seite und andere Varianten. Dadurch sehen auch KI-Seiten verschieden aus.
-- Ein Weg für alles, gespeichert als Vorlagen, nutzbar im klassischen Generator (wie jetzt schon verbunden).
+Bewerbungsformular, Datenschutz, Calendly, Weg ins Mitarbeiterportal, Domains und Server. Bestehende Live-Seiten und alte Themes bleiben unverändert.
 
-## Option 4 – Seite aus einer Vorbild-Webseite nachbauen
+## Umsetzung in Etappen
 
-Du nennst eine Webseite, die dir gefällt. Wir bauen daraus einmalig eine eigene Vorlage im gleichen Stil (nicht kopiert, eigene Texte und Bilder). Das geht gut ergänzend zu Option 1 oder 3.
+1. Varianten-System und neue Bausteine (Kopfbereich, Vorteile, Ablauf zuerst)
+2. Vorlagen 1–5 fertig bauen, dann gemeinsam prüfen und Feedback geben
+3. Vorlagen 6–15
+4. Varianten-Auswahl im Baukasten, KI-Texte passend zur Vorlage
 
-## Was in jedem Fall gleich bleibt
+## Technische Details
 
-Bewerbungsformular, Datenschutz, Terminbuchung über Calendly, Weg ins Mitarbeiterportal, Domains und Server. Bestehende Live-Seiten bleiben unverändert.
-
-## Offene Fragen an dich
-
-1. Welche Richtung gefällt dir: fertige Seiten (1), flexible Varianten (2) oder die Kombination (3)?
-2. Hast du 2–3 Beispiel-Webseiten, die dir optisch gefallen?
-3. Wie viele unterschiedliche Firmenauftritte brauchst du etwa gleichzeitig (10, 30, 100)?
-4. Eigene Fotos oder KI-/Stockbilder? Aktuell klappt die KI-Bilderzeugung nicht zuverlässig.
-
-## Technische Details (für später)
-
-- Varianten als `variant`-Feld je Abschnitt in `landing-sections.ts` und im Server-Renderer `sections-renderer.js` (beide synchron halten, Build-Skript `build-sections-renderer-js.mjs`).
-- Premium-Seiten als Einträge in `landing_templates` (bestehende Tabelle), damit sie automatisch im klassischen Generator erscheinen.
-- Blueprints bekommen feste Varianten-Kombinationen; die KI wählt Blueprint und Varianten, füllt nur Texte.
+- `variant`-Feld je Abschnitt in `src/lib/landing-sections.ts`, danach Mirror neu erzeugen (`bun scripts/build-sections-renderer-js.mjs`) für den Live-Server.
+- Die 15 Vorlagen als fest im Code definierte System-Vorlagen (wie die Blueprints) mit Abschnitten, Varianten und Stil. Sie werden zusammen mit den `landing_templates` im Generator gelistet. Eine Änderung speichert eine Kopie in `landing_templates`.
+- Baukasten-Editor: Varianten-Auswahl je Abschnitt als einfaches Auswahlfeld in der bestehenden Abschnitts-Bearbeitung.
+- Bilder: Upload wie bisher, zusätzlich passende Standardbilder je Vorlage.
