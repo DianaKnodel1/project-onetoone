@@ -1181,7 +1181,7 @@ document.addEventListener('submit', function(e){
                     onClick={() => selectTheme(t.id)}
                     className={cn(
                       "text-left rounded-lg border-2 p-3 transition-all",
-                      themeId === t.id
+                      themeId === t.id && !templateId
                         ? "border-primary bg-primary/5 shadow-sm"
                         : "border-border hover:border-primary/40",
                     )}
@@ -1202,40 +1202,39 @@ document.addEventListener('submit', function(e){
                           {t.flow === "fast" ? "Partner-Firma" : t.flow === "broker" ? "Vermittlung" : "beides"}
                         </span>
                         <span className="text-[10px] text-muted-foreground/70 font-mono">{t.id}</span>
-                        {themeId === t.id && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                        {themeId === t.id && !templateId && <CheckCircle2 className="h-4 w-4 text-primary" />}
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2">{t.description}</p>
                   </button>
                 ))}
+                {savedTemplates.map((t) => (
+                  <button
+                    key={`tpl-${t.id}`}
+                    type="button"
+                    onClick={() => setTemplateId(t.id)}
+                    className={cn(
+                      "text-left rounded-lg border-2 p-3 transition-all",
+                      templateId === t.id
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border hover:border-primary/40",
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="font-semibold text-sm truncate">{t.name}</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[10px] rounded px-1.5 py-0.5 font-medium bg-muted text-muted-foreground">
+                          Eigene Vorlage
+                        </span>
+                        {templateId === t.id && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {t.description || `${Array.isArray(t.sections) ? t.sections.length : 0} Abschnitte aus dem Baukasten`}
+                    </p>
+                  </button>
+                ))}
               </div>
-
-              {savedTemplates.length > 0 && (
-                <div className="mt-4 border-t pt-3 space-y-2">
-                  <div className="text-sm font-semibold">Eigene gespeicherte Vorlagen</div>
-                  <p className="text-xs text-muted-foreground">
-                    Erstellt eine neue Seite auf Basis dieser Vorlage.
-                  </p>
-                  <div className="grid grid-cols-1 gap-2">
-                    {savedTemplates.map((t) => (
-                      <Link
-                        key={t.id}
-                        to="/admin/landing-baukasten"
-                        search={{ vorlage: t.id }}
-                        className="text-left rounded-lg border-2 border-border hover:border-primary/40 p-3 transition-all block"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-semibold text-sm truncate">{t.name}</span>
-                          <span className="inline-flex items-center gap-1 text-xs text-primary shrink-0">
-                            <Plus className="h-3.5 w-3.5" /> Vorlage verwenden
-                          </span>
-                        </div>
-                        {t.description && <p className="text-xs text-muted-foreground truncate">{t.description}</p>}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               <div className="mt-4 border-t pt-3 space-y-2">
                 <div className="text-sm font-semibold">Gespeicherte Baukasten-Seiten verwenden</div>
