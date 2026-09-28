@@ -1,4 +1,8 @@
-# 15 hochwertige Landing-Vorlagen, alle anpassbar
+# 15 Premium-Landing-Vorlagen auf Großunternehmens-Niveau
+
+## Ziel
+
+Hochprofessionelle, seriöse Landing-Seiten, die aussehen wie Webseiten großer Unternehmen. Die bisherigen Vorlagen und alten Themes werden entfernt, weil sie nicht gut aussehen.
 
 ## Warum der Baukasten heute fast gleiche Seiten baut
 
@@ -6,45 +10,64 @@
 - Die Welten ändern nur Farben, Schrift und Rundungen. Die KI schreibt nur die Texte.
 - Deshalb entsteht immer dasselbe Gerüst in anderen Farben.
 
-## Beste Lösung: 15 fertige Premium-Vorlagen mit Varianten-Bausteinen
+## Die Lösung: 15 fest designte Premium-Vorlagen
 
-Wir geben die Designs fest vor, damit sie professionell aussehen. Inhalte und einzelne Teile bleiben trotzdem änderbar.
+Jede Vorlage wird von Hand gestaltet, mit eigenem Aufbau, eigener Bildsprache, eigener Typografie und eigenen Farben. Kein Zufall, kein „alles gleich in anderen Farben“.
 
-1. **Neue Bausteine in mehreren Varianten.** Jeder Baustein bekommt 3–5 professionell gestaltete Varianten:
-   - Kopfbereich: Vollbild-Foto, geteilt, Magazin, große Schrift, dunkel und elegant
-   - Vorteile: Karten, Icon-Raster, Zickzack mit Bildern
-   - Ablauf: Zeitstrahl, nummerierte Karten, horizontale Schritte
-   - Stelle, FAQ, Kontakt, Formular-Rahmen: je 2–3 Varianten
-   - Neue Bausteine: Vorteile, Team/Ansprechpartner, Bildergalerie, Zitat-Banner, Standort, Fakten (nur mit echten Angaben)
-2. **15 fertige Vorlagen** aus diesen Bausteinen, jede mit eigener Kombination, Farbwelt, Schrift und Bildsprache. Beispiele: Beratungshaus, Tech-Studio, Logistik, Pflege-Team, Magazin, Luxus-Dunkel, Minimal-Schweiz, Handwerk, Kanzlei-Stil, Startup, Finanz, Service-Center, Nordisch-Hell, Klassisch-Blau, Energie.
-3. **Frei änderbar pro Vorlage und pro Seite:**
-   - alle Texte, Bilder (Upload), Farben, Schrift, Firmendaten
-   - Abschnitte ein- und ausblenden, verschieben, hinzufügen
-   - pro Abschnitt eine andere Variante wählen (Beispiel: Kopfbereich „geteilt“ statt „Vollbild“)
-   - geänderte Vorlage als neue eigene Vorlage speichern oder die Vorlage selbst aktualisieren
-4. **Ein Ablauf:** Die 15 Vorlagen erscheinen im klassischen Generator unter „Vorlagen“ (wie die gespeicherten Vorlagen jetzt). Bearbeitet werden sie im Baukasten.
-5. **KI optional:** Die KI füllt Texte passend zur gewählten Vorlage. Das Design ändert sie nicht, damit die Qualität gleich bleibt.
+### Beispiele für die 15 Vorlagen
 
-## Warum das die beste Lösung ist
+1. Beratungshaus (hell, viel Weißraum, klare Linien)
+2. Tech-Konzern (dunkel, große Typografie, Akzentfarbe)
+3. Logistik & Transport (kräftig, klare Fakten, große Bilder)
+4. Pflege & Gesundheit (warm, menschlich, vertrauensvoll)
+5. Magazin / Editorial (Zeitungs-Stil, elegante Serifen)
+6. Luxus / Executive (dunkel, Gold-Akzente, ruhig)
+7. Minimal / Schweizer Stil (strenges Raster, rote Akzente)
+8. Handwerk & Bau (erdige Töne, robuste Optik)
+9. Kanzlei / Finanzen (klassisch, dunkelblau, seriös)
+10. Modernes Startup (frisch, große Abstände, weiche Formen)
+11. Industrie & Technik (sachlich, grau/blau, strukturiert)
+12. Service & Kundendienst (freundlich, hell, einladend)
+13. Nordisch / Skandinavisch (hell, luftig, natürliche Farben)
+14. Energie & Zukunft (grün/dunkel, modern, kraftvoll)
+15. Klassisch Corporate (blau, traditionell, vertrauenswürdig)
 
-- Das Design kommt von Hand: seriös und hochwertig, nicht zufällig.
-- 15 Vorlagen mit Varianten und Farben ergeben sehr viele sichtbar unterschiedliche Firmenauftritte.
-- Alles bleibt dauerhaft änderbar, ohne dass eine Seite „kaputt“ gebaut werden kann.
+### Was pro Vorlage und pro Seite änderbar bleibt
+
+- Alle Texte und Überschriften
+- Bilder (eigener Upload)
+- Farben und Schriftart
+- Firmenname, Kontaktdaten, Impressum
+- Abschnitte ein-/ausblenden, verschieben, hinzufügen
+- Geänderte Version als eigene Vorlage speichern
+
+### Ablauf
+
+1. Die 15 Vorlagen erscheinen im klassischen Generator unter „Vorlagen“ (wie die gespeicherten Vorlagen jetzt).
+2. Du wählst eine Vorlage, änderst Texte, Bilder, Farben und Firmendaten.
+3. Speichern erstellt eine neue Live-Seite oder eine eigene Vorlage.
+4. Die KI kann optional die Texte passend zur Vorlage schreiben, ändert aber nie das Design.
+
+## Was entfernt wird
+
+- Die 27 alten Themes (theme-1 bis theme-27 und weitere) aus dem Generator
+- Die 4 bisherigen Design-Welten (Modern, Warm, Seriös, Express) als Auswahl
+- Bestehende Live-Seiten, die ein altes Theme nutzen, bleiben online und funktionieren weiter. Nur für neue Seiten stehen die alten Themes nicht mehr zur Verfügung.
 
 ## Was gleich bleibt
 
-Bewerbungsformular, Datenschutz, Calendly, Weg ins Mitarbeiterportal, Domains und Server. Bestehende Live-Seiten und alte Themes bleiben unverändert.
+Bewerbungsformular, Datenschutz, Calendly-Terminbuchung, Weg ins Mitarbeiterportal, Domains und Server.
 
 ## Umsetzung in Etappen
 
-1. Varianten-System und neue Bausteine (Kopfbereich, Vorteile, Ablauf zuerst)
-2. Vorlagen 1–5 fertig bauen, dann gemeinsam prüfen und Feedback geben
-3. Vorlagen 6–15
-4. Varianten-Auswahl im Baukasten, KI-Texte passend zur Vorlage
+1. Erste 5 Vorlagen bauen und gemeinsam prüfen
+2. Feedback einarbeiten, dann Vorlagen 6–15
+3. Alte Themes aus der Auswahl entfernen
+4. KI-Texte passend zur gewählten Vorlage
 
 ## Technische Details
 
-- `variant`-Feld je Abschnitt in `src/lib/landing-sections.ts`, danach Mirror neu erzeugen (`bun scripts/build-sections-renderer-js.mjs`) für den Live-Server.
-- Die 15 Vorlagen als fest im Code definierte System-Vorlagen (wie die Blueprints) mit Abschnitten, Varianten und Stil. Sie werden zusammen mit den `landing_templates` im Generator gelistet. Eine Änderung speichert eine Kopie in `landing_templates`.
-- Baukasten-Editor: Varianten-Auswahl je Abschnitt als einfaches Auswahlfeld in der bestehenden Abschnitts-Bearbeitung.
-- Bilder: Upload wie bisher, zusätzlich passende Standardbilder je Vorlage.
+- Jede Vorlage ist eine fertige HTML/CSS-Seite im gleichen Format wie die bisherigen Themes (`template.html`, `style.css`, `meta.json` mit editierbaren Feldern), aber deutlich hochwertiger gestaltet.
+- Die Vorlagen nutzen das bestehende Slot-System: Texte, Bilder und Farben sind als Felder im Generator editierbar.
+- Alte Themes bleiben im Code für bestehende Live-Seiten, werden aber im Generator nicht mehr angezeigt.
+- Der Live-Server (`landing-server`) rendert die neuen Vorlagen genau wie die alten, keine Server-Änderung nötig.
