@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
 import { IndividualContractDialog } from "@/components/admin/IndividualContractDialog";
-import { updateEmployeeEmployment } from "@/lib/admin-employees.functions";
+import { updateEmployeeEmployment, skipEmployeeOnboarding } from "@/lib/admin-employees.functions";
 import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft, User, CalendarDays, Mic, Mail, UserCheck, FileText,
@@ -80,6 +80,8 @@ function PersonDetailPage() {
   const [savingEmp, setSavingEmp] = useState(false);
   const { toast } = useToast();
   const updateEmp = useServerFn(updateEmployeeEmployment);
+  const skipOnboarding = useServerFn(skipEmployeeOnboarding);
+  const [skippingOnboarding, setSkippingOnboarding] = useState(false);
 
   const resolved = useMemo(() => {
     const apps = applications as any[];
