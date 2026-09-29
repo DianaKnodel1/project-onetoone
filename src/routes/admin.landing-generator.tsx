@@ -19,7 +19,7 @@ import {
 } from "@/lib/landing-pages.functions";
 import { listPartnerCompanies } from "@/lib/partner-companies.functions";
 import { adminListSchedules } from "@/lib/appointments.functions";
-import { THEME_LIST, THEMES } from "@/lib/landing-themes";
+import { THEME_LIST, THEMES, ACTIVE_THEME_LIST, ARCHIVE_THEME_LIST, isActiveTheme } from "@/lib/landing-themes";
 import { THEME_ASSETS } from "@/lib/theme-assets.generated";
 import { PORTAL_THEMES, type PortalThemeId } from "@/lib/portal-themes";
 import { setTenantPortalTheme } from "@/lib/portal-theme.functions";
@@ -788,6 +788,16 @@ document.addEventListener('submit', function(e){
 
 
   const handleSaveLive = async () => {
+    // Archivierte Themes sind für bestehende Seiten weiter bearbeitbar,
+    // dürfen aber nicht versehentlich für eine neue Seite verwendet werden.
+    if (!editingId && !selectedTemplate && themeId && !isActiveTheme(themeId)) {
+      toast({
+        title: "Archiv-Theme nicht wählbar",
+        description: "Alte Vorlagen laufen nur für bestehende Seiten weiter. Bitte eine der 6 aktuellen Vorlagen auswählen.",
+        variant: "destructive",
+      });
+      return;
+    }
     const err = validateRequired();
     if (err) { toast({ title: "Pflichtfelder fehlen", description: err, variant: "destructive" }); return; }
     ensureSlug();
@@ -1204,13 +1214,13 @@ document.addEventListener('submit', function(e){
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">1. Theme wählen</CardTitle>
               <CardDescription>
-                Alle Vorlagen führen direkt zur Bewerbung — es gibt keinen
-                Fast-Track/Vermittlung-Unterschied mehr.
+                Sechs aktuelle Premium-Vorlagen — alle führen direkt zur Bewerbung.
+                Frühere Vorlagen liegen im Archiv und laufen nur für bestehende Seiten weiter.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-2">
-                {THEME_LIST.map((t) => (
+                {ACTIVE_THEME_LIST.map((t) => (
                   <button
                     key={t.id}
                     type="button"
