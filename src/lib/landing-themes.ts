@@ -296,6 +296,12 @@ const FORM_OVERRIDES: Record<string, string> = {
 };
 
 function pickFormAssets(id: string): { html: string; css: string } {
+  if (id === "theme-consulting-corporate") return { html: ccFormHtml, css: ccFormCss };
+  if (id === "theme-modern-business") return { html: mbFormHtml, css: mbFormCss };
+  if (id === "theme-minimal-professional") return { html: mpFormHtml, css: mpFormCss };
+  if (id === "theme-executive-premium") return { html: epFormHtml, css: epFormCss };
+  if (id === "theme-human-business") return { html: hbFormHtml, css: hbFormCss };
+  if (id === "theme-digital-professional") return { html: dpFormHtml, css: dpFormCss };
   if (id === "theme-tts-consultant") return { html: ttsFormHtml, css: ttsFormCss };
   if (id === "theme-eilers-replica") return { html: eilFormHtml, css: eilFormCss };
   if (id === "theme-azb-replica") return { html: azbFormHtml, css: azbFormCss };
@@ -391,6 +397,13 @@ function withSharedForm(t: ThemeFiles): ThemeFiles {
 
 
 export const THEMES: ThemeFiles[] = [
+  // Neue Premium-Generation zuerst — sie sind die einzige Auswahl bei „Neue Landing".
+  { id: tccMeta.id, name: tccMeta.name, description: tccMeta.description, html: tccHtml, css: tccCss, js: tccJs, slots: pickSlots(tccMeta) },
+  { id: tmbMeta.id, name: tmbMeta.name, description: tmbMeta.description, html: tmbHtml, css: tmbCss, js: tmbJs, slots: pickSlots(tmbMeta) },
+  { id: tmpMeta2.id, name: tmpMeta2.name, description: tmpMeta2.description, html: tmpHtml2, css: tmpCss2, js: tmpJs2, slots: pickSlots(tmpMeta2) },
+  { id: tepMeta.id, name: tepMeta.name, description: tepMeta.description, html: tepHtml, css: tepCss, js: tepJs, slots: pickSlots(tepMeta) },
+  { id: thbMeta.id, name: thbMeta.name, description: thbMeta.description, html: thbHtml, css: thbCss, js: thbJs, slots: pickSlots(thbMeta) },
+  { id: tdpMeta.id, name: tdpMeta.name, description: tdpMeta.description, html: tdpHtml, css: tdpCss, js: tdpJs, slots: pickSlots(tdpMeta) },
   { id: t10Meta.id, name: t10Meta.name, description: t10Meta.description, html: t10Html, css: t10Css, js: t10Js, slots: pickSlots(t10Meta) },
   { id: tttsMeta.id, name: tttsMeta.name, description: tttsMeta.description, html: tttsHtml, css: tttsCss, js: tttsJs, slots: pickSlots(tttsMeta) },
   
