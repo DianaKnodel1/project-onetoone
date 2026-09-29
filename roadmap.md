@@ -66,3 +66,10 @@
 
 ## Pflicht-Ablauf Vertrag → Ausweis → Einführung + Teamleiter-Kasten (27.09.)
 - [x] Umgesetzt, Deploy + Live-Test offen
+## Landing-Vorlagen aufwerten (2026-09-29)
+
+- [x] Fast-Track/Vermittlung-Trennung in der Vorlagen-Auswahl entfernt — alle Vorlagen direkt
+- [x] Stichprobe aufgewertet: theme-amber-consult, theme-device-stack, theme-quality-report
+- [ ] Feedback des Nutzers zur Stichprobe abwarten
+- [ ] Restliche Vorlagen im abgestimmten Stil aufwerten
+- [ ] Deploy: cd /opt/apps/portal && git pull && bash scripts/deploy.sh
