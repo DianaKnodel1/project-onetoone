@@ -424,7 +424,7 @@ export const THEMES: ThemeFiles[] = [
   { id: tnoirMeta.id, name: tnoirMeta.name, description: tnoirMeta.description, html: tnoirHtml, css: tnoirCss, js: tnoirJs, slots: pickSlots(tnoirMeta) },
   { id: tmpMeta.id, name: tmpMeta.name, description: tmpMeta.description, html: tmpHtml, css: tmpCss, js: tmpJs, slots: pickSlots(tmpMeta) },
   { id: tqapMeta.id, name: tqapMeta.name, description: tqapMeta.description, html: tqapHtml, css: tqapCss, js: tqapJs, slots: pickSlots(tqapMeta) },
-  { id: texpMeta.id, name: texpMeta.name, description: texpMeta.description, html: texpHtml, css: texpCss, js: texpJs, slots: pickSlots(texpMeta) },
+  { id: tepMeta.id, name: tepMeta.name, description: tepMeta.description, html: tepHtml, css: tepCss, js: tepJs, slots: pickSlots(tepMeta) },
   { id: tqtMeta.id, name: tqtMeta.name, description: tqtMeta.description, html: tqtHtml, css: tqtCss, js: tqtJs, slots: pickSlots(tqtMeta) },
   { id: tnfMeta.id, name: tnfMeta.name, description: tnfMeta.description, html: tnfHtml, css: tnfCss, js: tnfJs, slots: pickSlots(tnfMeta) },
   { id: tamberMeta.id, name: tamberMeta.name, description: tamberMeta.description, html: tamberHtml, css: tamberCss, js: tamberJs, slots: pickSlots(tamberMeta) },
