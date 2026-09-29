@@ -1,29 +1,43 @@
-# Deckblätter direkt im Chat: Landing-Generator + Login & Status
+# Landing-Generator: 6 neue Premium-Themes + Archiv (nach hochgeladener Spezifikation)
 
-## Ziel
-Zwei vollständige, gut gegliederte Anleitungen („Deckblätter"), die direkt hier im Chat erscheinen und zum Weiterschicken an den Kollegen gedacht sind. Kein Code, keine App-Änderung.
+## Basis (im Code geprüft)
+- Themes liegen in `src/landing-themes/<theme>/` (template.html, style.css, script.js, meta.json, assets/). Registrierung in `src/lib/landing-themes.ts` (THEME_LIST, HIDDEN_THEMES, THEME_DISPLAY).
+- Alle Bilder werden beim Build in `src/lib/theme-assets.generated.ts` (Base64) gepackt: `bun scripts/build-theme-assets.mjs` — so landen sie in der ZIP und beim Live-Server.
+- Bestehende Live-Seiten bleiben unangetastet: alte Theme-Ordner bleiben vollständig im Code, nur die Auswahl im Generator wird angepasst.
 
-## Deckblatt 1 — Landing-Generator
-1. Was der Generator macht (eigene Domain, Hosting Server 1, SSL automatisch; Weg: Bewerbung → Calendly-Termin → Mitarbeiterportal).
-2. Oberfläche: Kopfzeile, Liste der gespeicherten Landings (Domain, Slug, Theme, Flow, Setup-Prüfung, Status live/pausiert), Aktionen Bearbeiten / Als Vorlage verwenden / Aktivieren-Pausieren / Löschen (Termine bleiben erhalten).
-3. Schritt 1 — Theme wählen: alle Vorlagen sind „direkt" (kein Fast-Track/Vermittlung mehr bei neuen Seiten); „Eigene Vorlage" aus dem Baukasten lädt direkt im Generator; „Gespeicherte Baukasten-Seiten verwenden" = Kopie.
-4. Schritt 2 — Branding & Inhalte: Pflichtfelder (Firmenname, Kontakt-E-Mail, Landing-Domain, API-Endpoint, Tenant-ID, Portal-URL), optionale Felder (Logo, Favicon, Farben, WhatsApp, Adresse, Impressums-Daten, Tracking-Slug, Meta-Pixel), KI-Bewerbungsgespräch (Chat/Telefon/Beides, Stimme, Profilbild, eigener System-Prompt), Terminbuchung über Calendly.
-5. Schritt 2b — Theme-Inhalte (Slots je Vorlage).
-6. Schritt 2c — SEO & Browser-Tab (Seitentitel, Meta-Beschreibung, OG-Bild).
-7. Schritt 3 — Speichern & live schalten (Slug, Speichern, ZIP-Backup, Impressums-Prüfung, DNS-Anleitung A-Record + Cloudflare).
-8. Live-Vorschau rechts (sofort, „In neuem Tab öffnen").
-9. Checkliste: neue Seite von null bis live.
-10. Häufige Fehler & Tipps.
+## Vorab (vor dem Umbau)
+- Die zwei angefragten Deckblätter (Anleitungen) kommen direkt im Chat: erst **Login & Status**, dann **Landing-Generator** — das Landing-Deckblatt nach dem Umbau, damit es die neue Theme-Welt beschreibt.
 
-## Deckblatt 2 — Login & Status
-1. Anmeldeseite: E-Mail + Passwort, Fehlermeldungen und ihre Bedeutung (falsche Zugangsdaten, nicht bestätigtes Konto → Neu-Registrierung, deaktivierter Zugang, Sperr-Sperre zeigt bewusst „E-Mail oder Passwort ist falsch", Server-Antwortet-nicht-Hinweis).
-2. Who-goes-where nach Login: Admin → /admin, admin_mitarbeiter → /admin/tasks, alle anderen → /dashboard.
-3. Mandanten-Prüfung: Nicht-Admins müssen sich über die Unternehmensseite (Tenant) anmelden, sonst Abbruch.
-4. Registrierung: nur über Einladungs-Link, E-Mail-Verifikation deaktiviert, Konto-Halbannahme-Fall (erneut registrieren), Support über WhatsApp/E-Mail bei Problemen (kein automatischer Mailversand).
-5. Status-System im Portal: Mitarbeiter-Status (Registriert → Angenommen, Abgelehnt, Deaktiviert) mit Bedeutung und Freischalt-Logik; KYC-Status (Nicht gestartet → Eingereicht → In Prüfung → Verifiziert/Abgelehnt); Onboarding-Status (Nicht gestartet / In Bearbeitung / Abgeschlossen) — Onboarding ist verpflichtend, kann im Admin-Profil per „Onboarding überspringen" manuell abgeschlossen werden.
-6. Auftrags-Status (Entwurf → Zugewiesen → Geplant → In Bearbeitung → Eingereicht → In Prüfung → Genehmigt/Abgelehnt/Nachbesserung → Abgeschlossen).
-7. Auszahlungs-Status (Ausstehend → Gutgeschrieben → Genehmigt → Ausgezahlt).
-8. Häufige Fehler & was der Kollege dann tun kann.
+## Phase 1 — 6 neue Themes anlegen
+Je Theme ein eigener Ordner mit komplett eigenem Aufbau (kein Kopieren alter Themes):
+1. **corporate-consulting** — Navy/Anthrazit/Weiß, ruhig, großzügiger Weißraum, klare horizontale Bereiche, dezente Linien.
+2. **modern-business** — dunkles Anthrazit/Off-White, asymmetrische Layouts, Cards, dezente Verläufe.
+3. **minimal-professional** — Weiß/Hellgrau, extrem reduziert, starke Typografie, feine Linien.
+4. **executive-premium** — sehr dunkles Navy/Creme, Editorial-Headlines, große Bildflächen, elegante Zurückhaltung (kein Gold/Glitzer).
+5. **human-business** — warme Neutraltöne/Creme, authentische Menschen, seriös-menschlich.
+6. **digital-professional** — Anthrazit/Navy mit dezenten Blau/Cyan-Akzenten, modernes Grid, subtile technische Elemente (kein Neon/Gaming).
 
-## Vorgehen
-- Beide Anleitungen als je eine Markdown-Nachricht im Chat senden (Titel, 8–12 Abschnitte, kompakt aber vollständig).
+Pro Theme:
+- Eigene Section-Reihenfolge und Hero-Aufbau (gemäß Spezifikation unterschiedlich je Theme).
+- Eigene Typografie (Google-Fonts je Theme), eigene Bildpositionierung, eigene Karten/CTA-Gestaltung, dezente Animationen (nur Fade-ins, Hover, sanfte Reveals — kein Blinken/Countdown).
+- Text-Welt: seriös — Tätigkeit, klare Aufgaben, Einarbeitung, professioneller Bewerbungsprozess; KEIN Gehalt/Homeoffice/„schnell Geld"-Fokus.
+- Eigene default-Bilder (assets/) passend zur Bildsprache des Themes.
+- Eigener Formular-Abschnitt `_shared/form-section-<theme>.html/.css` im Look des Themes, Anschluss an das bestehende Bewerbungsformular-System.
+- meta.json mit editierbaren Slots (Texte, Bilder, Farben) — bestehendes Slot-System, kein neues Backend.
+- Responsive von Anfang an: geprüft bei 390/768/1024/1440 px, sinnvolle Mobile-Neuanordnung, keine Überläufe.
+
+## Phase 2 — Generator-UI: aktive Themes + Archiv
+- Schritt 1 zeigt nur die 6 neuen Themes (Name, Beschreibung, visuelle Preview, Auswahl wie bisher).
+- Neuer optisch getrennter Bereich **„Archiv"**: alle alten Themes weiterhin ansehbar/auswählbar, aber klar abgesetzt (z. B. eingeklappt), nicht Standard bei „Neue Landing".
+- Alles Bestehende bleibt: eigene Vorlagen, gespeicherte Baukasten-Seiten, Duplizieren, Bearbeiten, Live-Vorschau (inkl. „In neuem Tab öffnen"), Speichern & live schalten, ZIP-Export, Impressumsprüfung, Live/Pausiert, Löschen (Termine bleiben), DNS-Hinweise, SEO-Felder.
+- Bestehende Landing auf altem Theme wird beim Bearbeiten weiter mit ihrem alten Theme geladen — keine automatische Migration.
+
+## Phase 3 — Verifikation
+- `bun scripts/build-theme-assets.mjs`, Typecheck/Build.
+- Jedes neue Theme in der Live-Vorschau und bei 390/768/1024/1440 px prüfen (Screenshots).
+- Bestehende Funktionen durchtesten (Speichern, Bearbeiten, Duplizieren, Vorschau, eigene Vorlagen).
+- Keine Änderungen außerhalb des Landing-Generators (keine DB-, Auth-, Portal-, API-Änderungen).
+
+## Abschluss
+- Deployment-Hinweis wie üblich: `cd /opt/apps/portal && git pull && bash scripts/deploy.sh`.
+- Danach: Deckblatt „Landing-Generator" im Chat mit den 6 neuen Themes + Archiv.
