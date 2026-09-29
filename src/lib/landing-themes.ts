@@ -36,6 +36,49 @@ import cpFormHtml from "../landing-themes/_shared/form-section-connect-people.ht
 import cpFormCss from "../landing-themes/_shared/form-section-connect-people.css?raw";
 import noirFormHtml from "../landing-themes/_shared/form-section-noir.html?raw";
 import noirFormCss from "../landing-themes/_shared/form-section-noir.css?raw";
+import ccFormHtml from "../landing-themes/_shared/form-section-cc.html?raw";
+import ccFormCss from "../landing-themes/_shared/form-section-cc.css?raw";
+import mbFormHtml from "../landing-themes/_shared/form-section-mb.html?raw";
+import mbFormCss from "../landing-themes/_shared/form-section-mb.css?raw";
+import mpFormHtml from "../landing-themes/_shared/form-section-mp.html?raw";
+import mpFormCss from "../landing-themes/_shared/form-section-mp.css?raw";
+import epFormHtml from "../landing-themes/_shared/form-section-ep.html?raw";
+import epFormCss from "../landing-themes/_shared/form-section-ep.css?raw";
+import hbFormHtml from "../landing-themes/_shared/form-section-hb.html?raw";
+import hbFormCss from "../landing-themes/_shared/form-section-hb.css?raw";
+import dpFormHtml from "../landing-themes/_shared/form-section-dp.html?raw";
+import dpFormCss from "../landing-themes/_shared/form-section-dp.css?raw";
+
+// ===== Neue Premium-Theme-Generation (2026) =====
+import tccHtml from "../landing-themes/theme-consulting-corporate/template.html?raw";
+import tccCss from "../landing-themes/theme-consulting-corporate/style.css?raw";
+import tccJs from "../landing-themes/theme-consulting-corporate/script.js?raw";
+import tccMeta from "../landing-themes/theme-consulting-corporate/meta.json";
+
+import tmbHtml from "../landing-themes/theme-modern-business/template.html?raw";
+import tmbCss from "../landing-themes/theme-modern-business/style.css?raw";
+import tmbJs from "../landing-themes/theme-modern-business/script.js?raw";
+import tmbMeta from "../landing-themes/theme-modern-business/meta.json";
+
+import tmpHtml2 from "../landing-themes/theme-minimal-professional/template.html?raw";
+import tmpCss2 from "../landing-themes/theme-minimal-professional/style.css?raw";
+import tmpJs2 from "../landing-themes/theme-minimal-professional/script.js?raw";
+import tmpMeta2 from "../landing-themes/theme-minimal-professional/meta.json";
+
+import tepHtml from "../landing-themes/theme-executive-premium/template.html?raw";
+import tepCss from "../landing-themes/theme-executive-premium/style.css?raw";
+import tepJs from "../landing-themes/theme-executive-premium/script.js?raw";
+import tepMeta from "../landing-themes/theme-executive-premium/meta.json";
+
+import thbHtml from "../landing-themes/theme-human-business/template.html?raw";
+import thbCss from "../landing-themes/theme-human-business/style.css?raw";
+import thbJs from "../landing-themes/theme-human-business/script.js?raw";
+import thbMeta from "../landing-themes/theme-human-business/meta.json";
+
+import tdpHtml from "../landing-themes/theme-digital-professional/template.html?raw";
+import tdpCss from "../landing-themes/theme-digital-professional/style.css?raw";
+import tdpJs from "../landing-themes/theme-digital-professional/script.js?raw";
+import tdpMeta from "../landing-themes/theme-digital-professional/meta.json";
 
 import tqgHtml from "../landing-themes/theme-qa-grid/template.html?raw";
 import tqgCss from "../landing-themes/theme-qa-grid/style.css?raw";
