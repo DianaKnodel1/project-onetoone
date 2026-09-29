@@ -36,6 +36,49 @@ import cpFormHtml from "../landing-themes/_shared/form-section-connect-people.ht
 import cpFormCss from "../landing-themes/_shared/form-section-connect-people.css?raw";
 import noirFormHtml from "../landing-themes/_shared/form-section-noir.html?raw";
 import noirFormCss from "../landing-themes/_shared/form-section-noir.css?raw";
+import ccFormHtml from "../landing-themes/_shared/form-section-cc.html?raw";
+import ccFormCss from "../landing-themes/_shared/form-section-cc.css?raw";
+import mbFormHtml from "../landing-themes/_shared/form-section-mb.html?raw";
+import mbFormCss from "../landing-themes/_shared/form-section-mb.css?raw";
+import mpFormHtml from "../landing-themes/_shared/form-section-mp.html?raw";
+import mpFormCss from "../landing-themes/_shared/form-section-mp.css?raw";
+import epFormHtml from "../landing-themes/_shared/form-section-ep.html?raw";
+import epFormCss from "../landing-themes/_shared/form-section-ep.css?raw";
+import hbFormHtml from "../landing-themes/_shared/form-section-hb.html?raw";
+import hbFormCss from "../landing-themes/_shared/form-section-hb.css?raw";
+import dpFormHtml from "../landing-themes/_shared/form-section-dp.html?raw";
+import dpFormCss from "../landing-themes/_shared/form-section-dp.css?raw";
+
+// ===== Neue Premium-Theme-Generation (2026) =====
+import tccHtml from "../landing-themes/theme-consulting-corporate/template.html?raw";
+import tccCss from "../landing-themes/theme-consulting-corporate/style.css?raw";
+import tccJs from "../landing-themes/theme-consulting-corporate/script.js?raw";
+import tccMeta from "../landing-themes/theme-consulting-corporate/meta.json";
+
+import tmbHtml from "../landing-themes/theme-modern-business/template.html?raw";
+import tmbCss from "../landing-themes/theme-modern-business/style.css?raw";
+import tmbJs from "../landing-themes/theme-modern-business/script.js?raw";
+import tmbMeta from "../landing-themes/theme-modern-business/meta.json";
+
+import tmpHtml2 from "../landing-themes/theme-minimal-professional/template.html?raw";
+import tmpCss2 from "../landing-themes/theme-minimal-professional/style.css?raw";
+import tmpJs2 from "../landing-themes/theme-minimal-professional/script.js?raw";
+import tmpMeta2 from "../landing-themes/theme-minimal-professional/meta.json";
+
+import texpHtml from "../landing-themes/theme-executive-premium/template.html?raw";
+import texpCss from "../landing-themes/theme-executive-premium/style.css?raw";
+import texpJs from "../landing-themes/theme-executive-premium/script.js?raw";
+import texpMeta from "../landing-themes/theme-executive-premium/meta.json";
+
+import thbHtml from "../landing-themes/theme-human-business/template.html?raw";
+import thbCss from "../landing-themes/theme-human-business/style.css?raw";
+import thbJs from "../landing-themes/theme-human-business/script.js?raw";
+import thbMeta from "../landing-themes/theme-human-business/meta.json";
+
+import tdpHtml from "../landing-themes/theme-digital-professional/template.html?raw";
+import tdpCss from "../landing-themes/theme-digital-professional/style.css?raw";
+import tdpJs from "../landing-themes/theme-digital-professional/script.js?raw";
+import tdpMeta from "../landing-themes/theme-digital-professional/meta.json";
 
 import tqgHtml from "../landing-themes/theme-qa-grid/template.html?raw";
 import tqgCss from "../landing-themes/theme-qa-grid/style.css?raw";
@@ -253,6 +296,12 @@ const FORM_OVERRIDES: Record<string, string> = {
 };
 
 function pickFormAssets(id: string): { html: string; css: string } {
+  if (id === "theme-consulting-corporate") return { html: ccFormHtml, css: ccFormCss };
+  if (id === "theme-modern-business") return { html: mbFormHtml, css: mbFormCss };
+  if (id === "theme-minimal-professional") return { html: mpFormHtml, css: mpFormCss };
+  if (id === "theme-executive-premium") return { html: epFormHtml, css: epFormCss };
+  if (id === "theme-human-business") return { html: hbFormHtml, css: hbFormCss };
+  if (id === "theme-digital-professional") return { html: dpFormHtml, css: dpFormCss };
   if (id === "theme-tts-consultant") return { html: ttsFormHtml, css: ttsFormCss };
   if (id === "theme-eilers-replica") return { html: eilFormHtml, css: eilFormCss };
   if (id === "theme-azb-replica") return { html: azbFormHtml, css: azbFormCss };
@@ -348,6 +397,13 @@ function withSharedForm(t: ThemeFiles): ThemeFiles {
 
 
 export const THEMES: ThemeFiles[] = [
+  // Neue Premium-Generation zuerst — sie sind die einzige Auswahl bei „Neue Landing".
+  { id: tccMeta.id, name: tccMeta.name, description: tccMeta.description, html: tccHtml, css: tccCss, js: tccJs, slots: pickSlots(tccMeta) },
+  { id: tmbMeta.id, name: tmbMeta.name, description: tmbMeta.description, html: tmbHtml, css: tmbCss, js: tmbJs, slots: pickSlots(tmbMeta) },
+  { id: tmpMeta2.id, name: tmpMeta2.name, description: tmpMeta2.description, html: tmpHtml2, css: tmpCss2, js: tmpJs2, slots: pickSlots(tmpMeta2) },
+  { id: texpMeta.id, name: texpMeta.name, description: texpMeta.description, html: texpHtml, css: texpCss, js: texpJs, slots: pickSlots(texpMeta) },
+  { id: thbMeta.id, name: thbMeta.name, description: thbMeta.description, html: thbHtml, css: thbCss, js: thbJs, slots: pickSlots(thbMeta) },
+  { id: tdpMeta.id, name: tdpMeta.name, description: tdpMeta.description, html: tdpHtml, css: tdpCss, js: tdpJs, slots: pickSlots(tdpMeta) },
   { id: t10Meta.id, name: t10Meta.name, description: t10Meta.description, html: t10Html, css: t10Css, js: t10Js, slots: pickSlots(t10Meta) },
   { id: tttsMeta.id, name: tttsMeta.name, description: tttsMeta.description, html: tttsHtml, css: tttsCss, js: tttsJs, slots: pickSlots(tttsMeta) },
   
@@ -433,6 +489,14 @@ export function themeFlow(id: string): ThemeFlow {
  * weiterlaufen — es ändert sich ausschließlich die Anzeige im Generator.
  */
 const THEME_DISPLAY: Record<string, { name: string; description: string }> = {
+  // ---- Neue Premium-Generation (aktive Auswahl) ----
+  "theme-consulting-corporate": { name: "Corporate Consulting", description: "Klassisch, seriös und strukturiert. Navy/Weiß, ruhige Beratungsoptik mit klaren horizontalen Bereichen." },
+  "theme-modern-business": { name: "Modern Business", description: "Modern, dynamisch und professionell. Dunkles Anthrazit mit Petrol-Akzenten und überlappenden Karten." },
+  "theme-minimal-professional": { name: "Minimal Professional", description: "Reduziert, klar und hochwertig. Viel Weißraum, starke Typografie, feine Linien." },
+  "theme-executive-premium": { name: "Executive Premium", description: "Elegant, hochwertig und zurückhaltend. Tiefes Navy, Creme-Flächen, Editorial-Typografie." },
+  "theme-human-business": { name: "Human Business", description: "Persönlich, vertrauenswürdig und professionell. Warme Cremetöne, authentische Bildsprache." },
+  "theme-digital-professional": { name: "Digital Professional", description: "Modern, digital und technisch orientiert. Anthrazit mit dezenten Cyan-Akzenten, klares Raster." },
+
   // ---- Vermittlung (Personalagentur, leitet an Partnerfirmen weiter) ----
   "theme-connect-people": { name: "Kontor", description: "Warm und persönlich, Creme/Terrakotta. Klassische Personalvermittlung mit Ansprechpartner-Fokus." },
   "theme-talent-hub": { name: "Meridian", description: "Klar und ruhig, Weiß/Waldgrün. Seriöse Vermittlung mit starken Vertrauenszahlen." },
@@ -484,3 +548,33 @@ export const THEME_LIST = THEMES.filter((t) => !HIDDEN_THEMES.has(t.id)).map((t)
   slots: t.slots,
   flow: themeFlow(t.id),
 }));
+
+// ===== Aktive Premium-Generation vs. Archiv =====
+// Bei „Neue Landing" sind ausschließlich die 6 neuen Themes auswählbar. Alle
+// älteren Themes bleiben technisch vollständig erhalten (bestehende Landings
+// laufen unverändert weiter) und werden im Archiv angezeigt — keine Migration.
+export const ACTIVE_THEME_IDS = new Set<string>([
+  "theme-consulting-corporate",
+  "theme-modern-business",
+  "theme-minimal-professional",
+  "theme-executive-premium",
+  "theme-human-business",
+  "theme-digital-professional",
+]);
+
+function toThemeEntry(t: ThemeFiles) {
+  return {
+    id: t.id,
+    name: THEME_DISPLAY[t.id]?.name ?? t.name,
+    description: THEME_DISPLAY[t.id]?.description ?? t.description,
+    slots: t.slots,
+    flow: themeFlow(t.id),
+  };
+}
+
+export const ACTIVE_THEME_LIST = THEMES.filter((t) => ACTIVE_THEME_IDS.has(t.id)).map(toThemeEntry);
+export const ARCHIVE_THEME_LIST = THEMES.filter((t) => !ACTIVE_THEME_IDS.has(t.id)).map(toThemeEntry);
+
+export function isActiveTheme(id: string): boolean {
+  return ACTIVE_THEME_IDS.has(id);
+}

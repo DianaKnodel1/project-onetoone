@@ -19,7 +19,7 @@ import {
 } from "@/lib/landing-pages.functions";
 import { listPartnerCompanies } from "@/lib/partner-companies.functions";
 import { adminListSchedules } from "@/lib/appointments.functions";
-import { THEME_LIST, THEMES } from "@/lib/landing-themes";
+import { THEME_LIST, THEMES, ACTIVE_THEME_LIST, ARCHIVE_THEME_LIST, isActiveTheme } from "@/lib/landing-themes";
 import { THEME_ASSETS } from "@/lib/theme-assets.generated";
 import { PORTAL_THEMES, type PortalThemeId } from "@/lib/portal-themes";
 import { setTenantPortalTheme } from "@/lib/portal-theme.functions";
@@ -788,6 +788,16 @@ document.addEventListener('submit', function(e){
 
 
   const handleSaveLive = async () => {
+    // Archivierte Themes sind für bestehende Seiten weiter bearbeitbar,
+    // dürfen aber nicht versehentlich für eine neue Seite verwendet werden.
+    if (!editingId && !selectedTemplate && themeId && !isActiveTheme(themeId)) {
+      toast({
+        title: "Archiv-Theme nicht wählbar",
+        description: "Alte Vorlagen laufen nur für bestehende Seiten weiter. Bitte eine der 6 aktuellen Vorlagen auswählen.",
+        variant: "destructive",
+      });
+      return;
+    }
     const err = validateRequired();
     if (err) { toast({ title: "Pflichtfelder fehlen", description: err, variant: "destructive" }); return; }
     ensureSlug();
@@ -1204,13 +1214,13 @@ document.addEventListener('submit', function(e){
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">1. Theme wählen</CardTitle>
               <CardDescription>
-                Alle Vorlagen führen direkt zur Bewerbung — es gibt keinen
-                Fast-Track/Vermittlung-Unterschied mehr.
+                Sechs aktuelle Premium-Vorlagen — alle führen direkt zur Bewerbung.
+                Frühere Vorlagen liegen im Archiv und laufen nur für bestehende Seiten weiter.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-2">
-                {THEME_LIST.map((t) => (
+                {ACTIVE_THEME_LIST.map((t) => (
                   <button
                     key={t.id}
                     type="button"
@@ -1296,6 +1306,49 @@ document.addEventListener('submit', function(e){
                       ))}
                   </div>
                 )}
+              </div>
+
+              {/* Archiv: frühere Themes — nur ansehen, keine Auswahl für neue Seiten */}
+              <div className="mt-4 rounded-lg border border-dashed border-muted-foreground/40 bg-muted/30">
+                <details className="px-3 py-2.5">
+                  <summary className="cursor-pointer select-none flex items-center justify-between gap-2 text-sm font-semibold">
+                    <span>Archiv — frühere Vorlagen</span>
+                    <span className="text-[11px] font-normal text-muted-foreground">nur ansehen · keine neue Auswahl</span>
+                  </summary>
+                  <p className="text-xs text-muted-foreground mt-2 mb-3">
+                    Alte Themes laufen für bestehende Landingpages unverändert weiter. Neue Seiten bitte mit einer der 6 aktuellen Vorlagen erstellen.
+                  </p>
+                  <div className="grid grid-cols-1 gap-2 pb-1">
+                    {ARCHIVE_THEME_LIST.map((t) => (
+                      <div
+                        key={`arch-${t.id}`}
+                        className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background/60 p-3 opacity-90"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-sm truncate">{t.name}</span>
+                            <span className="text-[10px] rounded px-1.5 py-0.5 font-medium bg-muted text-muted-foreground shrink-0">
+                              Archiv
+                            </span>
+                            {themeId === t.id && !templateId && (
+                              <span className="text-[10px] text-muted-foreground shrink-0">wird angezeigt</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground line-clamp-1">{t.description}</p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 shrink-0"
+                          title="Theme nur in der Vorschau ansehen"
+                          onClick={() => selectTheme(t.id)}
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </details>
               </div>
 
             </CardContent>
