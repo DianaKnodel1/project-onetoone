@@ -65,10 +65,10 @@ import tmpCss2 from "../landing-themes/theme-minimal-professional/style.css?raw"
 import tmpJs2 from "../landing-themes/theme-minimal-professional/script.js?raw";
 import tmpMeta2 from "../landing-themes/theme-minimal-professional/meta.json";
 
-import tepHtml from "../landing-themes/theme-executive-premium/template.html?raw";
-import tepCss from "../landing-themes/theme-executive-premium/style.css?raw";
-import tepJs from "../landing-themes/theme-executive-premium/script.js?raw";
-import tepMeta from "../landing-themes/theme-executive-premium/meta.json";
+import texpHtml from "../landing-themes/theme-executive-premium/template.html?raw";
+import texpCss from "../landing-themes/theme-executive-premium/style.css?raw";
+import texpJs from "../landing-themes/theme-executive-premium/script.js?raw";
+import texpMeta from "../landing-themes/theme-executive-premium/meta.json";
 
 import thbHtml from "../landing-themes/theme-human-business/template.html?raw";
 import thbCss from "../landing-themes/theme-human-business/style.css?raw";
@@ -401,7 +401,7 @@ export const THEMES: ThemeFiles[] = [
   { id: tccMeta.id, name: tccMeta.name, description: tccMeta.description, html: tccHtml, css: tccCss, js: tccJs, slots: pickSlots(tccMeta) },
   { id: tmbMeta.id, name: tmbMeta.name, description: tmbMeta.description, html: tmbHtml, css: tmbCss, js: tmbJs, slots: pickSlots(tmbMeta) },
   { id: tmpMeta2.id, name: tmpMeta2.name, description: tmpMeta2.description, html: tmpHtml2, css: tmpCss2, js: tmpJs2, slots: pickSlots(tmpMeta2) },
-  { id: tepMeta.id, name: tepMeta.name, description: tepMeta.description, html: tepHtml, css: tepCss, js: tepJs, slots: pickSlots(tepMeta) },
+  { id: texpMeta.id, name: texpMeta.name, description: texpMeta.description, html: texpHtml, css: texpCss, js: texpJs, slots: pickSlots(texpMeta) },
   { id: thbMeta.id, name: thbMeta.name, description: thbMeta.description, html: thbHtml, css: thbCss, js: thbJs, slots: pickSlots(thbMeta) },
   { id: tdpMeta.id, name: tdpMeta.name, description: tdpMeta.description, html: tdpHtml, css: tdpCss, js: tdpJs, slots: pickSlots(tdpMeta) },
   { id: t10Meta.id, name: t10Meta.name, description: t10Meta.description, html: t10Html, css: t10Css, js: t10Js, slots: pickSlots(t10Meta) },
@@ -424,7 +424,7 @@ export const THEMES: ThemeFiles[] = [
   { id: tnoirMeta.id, name: tnoirMeta.name, description: tnoirMeta.description, html: tnoirHtml, css: tnoirCss, js: tnoirJs, slots: pickSlots(tnoirMeta) },
   { id: tmpMeta.id, name: tmpMeta.name, description: tmpMeta.description, html: tmpHtml, css: tmpCss, js: tmpJs, slots: pickSlots(tmpMeta) },
   { id: tqapMeta.id, name: tqapMeta.name, description: tqapMeta.description, html: tqapHtml, css: tqapCss, js: tqapJs, slots: pickSlots(tqapMeta) },
-  { id: tepMeta.id, name: tepMeta.name, description: tepMeta.description, html: tepHtml, css: tepCss, js: tepJs, slots: pickSlots(tepMeta) },
+  { id: texpMeta.id, name: texpMeta.name, description: texpMeta.description, html: texpHtml, css: texpCss, js: texpJs, slots: pickSlots(texpMeta) },
   { id: tqtMeta.id, name: tqtMeta.name, description: tqtMeta.description, html: tqtHtml, css: tqtCss, js: tqtJs, slots: pickSlots(tqtMeta) },
   { id: tnfMeta.id, name: tnfMeta.name, description: tnfMeta.description, html: tnfHtml, css: tnfCss, js: tnfJs, slots: pickSlots(tnfMeta) },
   { id: tamberMeta.id, name: tamberMeta.name, description: tamberMeta.description, html: tamberHtml, css: tamberCss, js: tamberJs, slots: pickSlots(tamberMeta) },
