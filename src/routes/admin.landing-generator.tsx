@@ -1308,6 +1308,49 @@ document.addEventListener('submit', function(e){
                 )}
               </div>
 
+              {/* Archiv: frühere Themes — nur ansehen, keine Auswahl für neue Seiten */}
+              <div className="mt-4 rounded-lg border border-dashed border-muted-foreground/40 bg-muted/30">
+                <details className="px-3 py-2.5">
+                  <summary className="cursor-pointer select-none flex items-center justify-between gap-2 text-sm font-semibold">
+                    <span>Archiv — frühere Vorlagen</span>
+                    <span className="text-[11px] font-normal text-muted-foreground">nur ansehen · keine neue Auswahl</span>
+                  </summary>
+                  <p className="text-xs text-muted-foreground mt-2 mb-3">
+                    Alte Themes laufen für bestehende Landingpages unverändert weiter. Neue Seiten bitte mit einer der 6 aktuellen Vorlagen erstellen.
+                  </p>
+                  <div className="grid grid-cols-1 gap-2 pb-1">
+                    {ARCHIVE_THEME_LIST.map((t) => (
+                      <div
+                        key={`arch-${t.id}`}
+                        className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background/60 p-3 opacity-90"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-sm truncate">{t.name}</span>
+                            <span className="text-[10px] rounded px-1.5 py-0.5 font-medium bg-muted text-muted-foreground shrink-0">
+                              Archiv
+                            </span>
+                            {themeId === t.id && !templateId && (
+                              <span className="text-[10px] text-muted-foreground shrink-0">wird angezeigt</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground line-clamp-1">{t.description}</p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 shrink-0"
+                          title="Theme nur in der Vorschau ansehen"
+                          onClick={() => selectTheme(t.id)}
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              </div>
+
             </CardContent>
           </Card>
 
