@@ -165,3 +165,11 @@ a{color:inherit;text-decoration:none}
   .cc-footer-grid{grid-template-columns:1fr}
   .cc-cta-inner{flex-direction:column;align-items:flex-start}
 }
+
+/* ===== Premium-Feinschliff ===== */
+.cc-btn{border-radius:0;padding:14px 30px;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;font-weight:500}
+.cc-btn:hover{transform:none}
+.cc-hero-content h1,.cc-h2{font-weight:500}
+.cc-trust{background:transparent}
+.cc-section{padding-top:112px;padding-bottom:112px}
+@media (max-width:640px){.cc-section{padding-top:72px;padding-bottom:72px}}

@@ -158,3 +158,29 @@ h1,h2,h3{font-family:'Sora',system-ui,sans-serif;color:var(--mb-ink)}
   .mb-hero-actions .mb-btn-lg{width:100%}
   .mb-split-quote{padding:18px 18px}
 }
+
+/* ===== Premium-Feinschliff (Qualitätsniveau Executive Premium) ===== */
+:root{--mb-radius:2px}
+h1,h2{font-weight:500;letter-spacing:-.02em}
+.mb-hero h1{font-weight:500;line-height:1.08}
+.mb-btn{border-radius:0;padding:14px 30px;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;font-weight:500}
+.mb-btn-solid{box-shadow:none;background:var(--mb-ink);color:#fff;border:1px solid var(--mb-ink)}
+.mb-btn-solid:hover{background:transparent;color:var(--mb-ink);transform:none}
+.mb-nav .mb-btn-solid,.mb-hero .mb-btn-solid{background:transparent;border-color:rgba(255,255,255,.45);color:#fff}
+.mb-nav .mb-btn-solid{color:var(--mb-ink);border-color:var(--mb-ink)}
+.mb-nav .mb-btn-solid:hover{background:var(--mb-ink);color:#fff}
+.mb-hero .mb-btn-solid:hover{background:#fff;color:var(--mb-ink)}
+.mb-hero-bg{background:linear-gradient(90deg,rgba(18,22,26,.94) 0%,rgba(18,22,26,.72) 55%,rgba(18,22,26,.45) 100%),url('assets/hero.jpg') center/cover no-repeat}
+.mb-stats{box-shadow:none;border-radius:0;border:1px solid var(--mb-line);border-top:2px solid var(--mb-accent)}
+.mb-stat strong{font-weight:500}
+.mb-asym-media,.mb-split-media > img{box-shadow:none;border-radius:0}
+.mb-card{border-radius:0;border:0;border-top:1px solid var(--mb-line);padding:28px 0 8px;background:transparent}
+.mb-card:hover{transform:none;box-shadow:none;border-top-color:var(--mb-accent)}
+.mb-flow-step{border-radius:0;background:transparent;border:0;border-top:1px solid rgba(255,255,255,.14);padding:26px 0}
+.mb-split-quote{border-radius:0;box-shadow:none;border-left:2px solid var(--mb-accent)}
+.mb-req{border-radius:0;background:transparent;border-bottom:1px solid var(--mb-line);padding:20px 0}
+.mb-cta{background:var(--mb-ink)}
+.mb-cta .mb-btn-solid{background:transparent;color:#fff;border-color:rgba(255,255,255,.5);box-shadow:none}
+.mb-cta .mb-btn-solid:hover{background:#fff;color:var(--mb-ink)}
+.mb-section{padding-top:112px;padding-bottom:112px}
+@media (max-width:640px){.mb-section{padding-top:72px;padding-bottom:72px}}

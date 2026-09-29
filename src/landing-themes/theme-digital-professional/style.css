@@ -136,3 +136,19 @@ h1,h2,h3{font-family:'Space Grotesk',system-ui,sans-serif;color:#f2f6fa}
   .dp-cta-panel{padding:36px 26px;flex-direction:column;align-items:flex-start}
   .dp-hero-actions .dp-btn-solid{width:100%;text-align:center}
 }
+
+/* ===== Premium-Feinschliff (Qualitätsniveau Executive Premium) ===== */
+h1,h2{font-weight:500;letter-spacing:-.02em}
+.dp-btn{border-radius:0;padding:14px 28px;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.dp-btn-solid{box-shadow:none;background:transparent;color:#f2f6fa;border:1px solid var(--dp-accent)}
+.dp-btn-solid:hover{background:var(--dp-accent);color:#0b1524;transform:none}
+.dp-hero::before{background:linear-gradient(180deg,rgba(13,17,23,0) 0%,var(--dp-bg) 95%)}
+.dp-hero-media img{border-radius:0;box-shadow:none;height:540px;filter:saturate(.8)}
+.dp-card,.dp-step{border-radius:0;background:transparent;border:0;border-top:1px solid var(--dp-line);padding:26px 0 0}
+.dp-card:hover{transform:none;border-top-color:var(--dp-accent)}
+.dp-media-row img{border-radius:0;height:360px;filter:saturate(.8)}
+.dp-req-list{border-radius:0;background:transparent;border:0;padding:0}
+.dp-cta-panel{background:transparent;border-radius:0;border:0;border-top:1px solid var(--dp-line);border-bottom:1px solid var(--dp-line);padding:56px 0}
+.dp-section{padding-top:112px;padding-bottom:112px}
+@media (max-width:900px){.dp-hero-media img{height:360px}.dp-media-row img{height:260px}}
+@media (max-width:640px){.dp-section{padding-top:72px;padding-bottom:72px}}

@@ -136,3 +136,23 @@ h1,h2,h3{font-family:'Lora',Georgia,serif;color:#2e2a24}
   .hb-cta-inner{flex-direction:column;align-items:flex-start}
   .hb-hero-actions .hb-btn{width:100%}
 }
+
+/* ===== Premium-Feinschliff (Qualitätsniveau Executive Premium) ===== */
+:root{--hb-radius:4px}
+h1,h2{font-weight:500;letter-spacing:-.01em}
+.hb-btn{border-radius:2px;padding:14px 30px;font-size:.84rem;letter-spacing:.06em;font-weight:500}
+.hb-btn:hover{transform:none}
+.hb-chip{border-radius:0;background:transparent;border:0;border-left:1px solid var(--hb-green);padding:2px 12px;font-weight:500}
+.hb-blob{display:none}
+.hb-hero-media img{box-shadow:none;height:560px}
+.hb-card{background:transparent;border:0;border-top:1px solid var(--hb-line);border-radius:0;padding:28px 4px 0}
+.hb-card:hover{transform:none;box-shadow:none;border-top-color:var(--hb-green)}
+.hb-card-icon{display:none}
+.hb-card h3{font-size:1.25rem}
+.hb-step{background:transparent;border:0;border-top:1px solid var(--hb-line);border-radius:0;padding:24px 0}
+.hb-dot{width:8px;height:8px}
+.hb-dot::after{display:none}
+.hb-quote-card{background:transparent;border:0;border-left:1px solid var(--hb-green);border-radius:0;padding:8px 0 8px 28px}
+.hb-quote-card blockquote{font-size:1.2rem;font-style:italic}
+.hb-section{padding-top:112px;padding-bottom:112px}
+@media (max-width:640px){.hb-section{padding-top:72px;padding-bottom:72px}.hb-hero-media img{height:340px}}

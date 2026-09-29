@@ -123,3 +123,8 @@ h1,h2,h3{font-family:'Archivo',system-ui,sans-serif;color:var(--mp-ink);letter-s
   .mp-footer-top{grid-template-columns:1fr}
   .mp-cta{padding:72px 0}
 }
+
+/* ===== Premium-Feinschliff ===== */
+.mp-btn{border-radius:0;padding:14px 30px;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.mp-btn:hover{transform:none}
+h1{font-weight:600;letter-spacing:-.035em}
