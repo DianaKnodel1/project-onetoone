@@ -604,6 +604,21 @@ function PersonDetailPage() {
           items={[
             ["Status", prof?.status || app?.status],
             ["Onboarding", prof?.onboarding_status],
+            ...(prof && prof.onboarding_status !== "abgeschlossen"
+              ? [[
+                  "",
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs gap-1"
+                    disabled={skippingOnboarding}
+                    onClick={handleSkipOnboarding}
+                  >
+                    {skippingOnboarding ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                    Onboarding überspringen
+                  </Button>,
+                ] as [string, React.ReactNode]]
+              : []),
             ["Beschäftigungsart", prof?.employment_type],
             ["Startdatum", fmtDate(prof?.employment_start_date)],
             ["Registriert", fmt(prof?.created_at)],
