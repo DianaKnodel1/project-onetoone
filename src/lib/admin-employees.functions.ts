@@ -99,6 +99,30 @@ export const createEmployeeAccount = createServerFn({ method: "POST" })
     return { ok: true, user_id: uid, recovery_link: recoveryLink };
   });
 
+export const skipEmployeeOnboarding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ user_id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const sb = supabaseAdmin as any;
+    const { error } = await sb
+      .from("profiles")
+      .update({ onboarding_status: "abgeschlossen" })
+      .eq("user_id", data.user_id);
+    if (error) throw new Error(error.message);
+    try {
+      await sb.from("activity_log").insert({
+        action: "onboarding_uebersprungen",
+        entity_type: "profile",
+        entity_id: data.user_id,
+        actor_id: context.userId,
+        comment: "Onboarding manuell übersprungen (Admin)",
+      });
+    } catch {}
+    return { ok: true };
+  });
+
 const UpdateEmpSchema = z.object({
   user_id: z.string().uuid(),
   employment_type: z.enum(["minijob", "teilzeit", "vollzeit"]).nullable(),

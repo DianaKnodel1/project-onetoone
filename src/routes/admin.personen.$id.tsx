@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
 import { IndividualContractDialog } from "@/components/admin/IndividualContractDialog";
-import { updateEmployeeEmployment } from "@/lib/admin-employees.functions";
+import { updateEmployeeEmployment, skipEmployeeOnboarding } from "@/lib/admin-employees.functions";
 import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft, User, CalendarDays, Mic, Mail, UserCheck, FileText,
@@ -80,6 +80,8 @@ function PersonDetailPage() {
   const [savingEmp, setSavingEmp] = useState(false);
   const { toast } = useToast();
   const updateEmp = useServerFn(updateEmployeeEmployment);
+  const skipOnboarding = useServerFn(skipEmployeeOnboarding);
+  const [skippingOnboarding, setSkippingOnboarding] = useState(false);
 
   const resolved = useMemo(() => {
     const apps = applications as any[];
@@ -213,6 +215,20 @@ function PersonDetailPage() {
       toast({ title: "Fehler", description: e.message, variant: "destructive" });
     } finally {
       setSavingEmp(false);
+    }
+  };
+
+  const handleSkipOnboarding = async () => {
+    if (!resolved.prof?.user_id) return;
+    setSkippingOnboarding(true);
+    try {
+      await skipOnboarding({ data: { user_id: resolved.prof.user_id } });
+      toast({ title: "Onboarding übersprungen", description: "Das Onboarding wurde als abgeschlossen markiert." });
+      await loadData();
+    } catch (e: any) {
+      toast({ title: "Fehler", description: e.message, variant: "destructive" });
+    } finally {
+      setSkippingOnboarding(false);
     }
   };
 
@@ -588,6 +604,21 @@ function PersonDetailPage() {
           items={[
             ["Status", prof?.status || app?.status],
             ["Onboarding", prof?.onboarding_status],
+            ...(prof && prof.onboarding_status !== "abgeschlossen"
+              ? [[
+                  "",
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs gap-1"
+                    disabled={skippingOnboarding}
+                    onClick={handleSkipOnboarding}
+                  >
+                    {skippingOnboarding ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                    Onboarding überspringen
+                  </Button>,
+                ] as [string, React.ReactNode]]
+              : []),
             ["Beschäftigungsart", prof?.employment_type],
             ["Startdatum", fmtDate(prof?.employment_start_date)],
             ["Registriert", fmt(prof?.created_at)],
