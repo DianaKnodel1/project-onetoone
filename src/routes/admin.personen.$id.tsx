@@ -218,6 +218,20 @@ function PersonDetailPage() {
     }
   };
 
+  const handleSkipOnboarding = async () => {
+    if (!resolved.prof?.user_id) return;
+    setSkippingOnboarding(true);
+    try {
+      await skipOnboarding({ data: { user_id: resolved.prof.user_id } });
+      toast({ title: "Onboarding übersprungen", description: "Das Onboarding wurde als abgeschlossen markiert." });
+      await loadData();
+    } catch (e: any) {
+      toast({ title: "Fehler", description: e.message, variant: "destructive" });
+    } finally {
+      setSkippingOnboarding(false);
+    }
+  };
+
   if (loading) {
     return <div className="p-6"><TableSkeleton /></div>;
   }
