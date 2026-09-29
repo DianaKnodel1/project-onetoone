@@ -489,6 +489,14 @@ export function themeFlow(id: string): ThemeFlow {
  * weiterlaufen — es ändert sich ausschließlich die Anzeige im Generator.
  */
 const THEME_DISPLAY: Record<string, { name: string; description: string }> = {
+  // ---- Neue Premium-Generation (aktive Auswahl) ----
+  "theme-consulting-corporate": { name: "Corporate Consulting", description: "Klassisch, seriös und strukturiert. Navy/Weiß, ruhige Beratungsoptik mit klaren horizontalen Bereichen." },
+  "theme-modern-business": { name: "Modern Business", description: "Modern, dynamisch und professionell. Dunkles Anthrazit mit Petrol-Akzenten und überlappenden Karten." },
+  "theme-minimal-professional": { name: "Minimal Professional", description: "Reduziert, klar und hochwertig. Viel Weißraum, starke Typografie, feine Linien." },
+  "theme-executive-premium": { name: "Executive Premium", description: "Elegant, hochwertig und zurückhaltend. Tiefes Navy, Creme-Flächen, Editorial-Typografie." },
+  "theme-human-business": { name: "Human Business", description: "Persönlich, vertrauenswürdig und professionell. Warme Cremetöne, authentische Bildsprache." },
+  "theme-digital-professional": { name: "Digital Professional", description: "Modern, digital und technisch orientiert. Anthrazit mit dezenten Cyan-Akzenten, klares Raster." },
+
   // ---- Vermittlung (Personalagentur, leitet an Partnerfirmen weiter) ----
   "theme-connect-people": { name: "Kontor", description: "Warm und persönlich, Creme/Terrakotta. Klassische Personalvermittlung mit Ansprechpartner-Fokus." },
   "theme-talent-hub": { name: "Meridian", description: "Klar und ruhig, Weiß/Waldgrün. Seriöse Vermittlung mit starken Vertrauenszahlen." },
@@ -540,3 +548,33 @@ export const THEME_LIST = THEMES.filter((t) => !HIDDEN_THEMES.has(t.id)).map((t)
   slots: t.slots,
   flow: themeFlow(t.id),
 }));
+
+// ===== Aktive Premium-Generation vs. Archiv =====
+// Bei „Neue Landing" sind ausschließlich die 6 neuen Themes auswählbar. Alle
+// älteren Themes bleiben technisch vollständig erhalten (bestehende Landings
+// laufen unverändert weiter) und werden im Archiv angezeigt — keine Migration.
+export const ACTIVE_THEME_IDS = new Set<string>([
+  "theme-consulting-corporate",
+  "theme-modern-business",
+  "theme-minimal-professional",
+  "theme-executive-premium",
+  "theme-human-business",
+  "theme-digital-professional",
+]);
+
+function toThemeEntry(t: ThemeFiles) {
+  return {
+    id: t.id,
+    name: THEME_DISPLAY[t.id]?.name ?? t.name,
+    description: THEME_DISPLAY[t.id]?.description ?? t.description,
+    slots: t.slots,
+    flow: themeFlow(t.id),
+  };
+}
+
+export const ACTIVE_THEME_LIST = THEMES.filter((t) => ACTIVE_THEME_IDS.has(t.id)).map(toThemeEntry);
+export const ARCHIVE_THEME_LIST = THEMES.filter((t) => !ACTIVE_THEME_IDS.has(t.id)).map(toThemeEntry);
+
+export function isActiveTheme(id: string): boolean {
+  return ACTIVE_THEME_IDS.has(id);
+}
